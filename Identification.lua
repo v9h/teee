@@ -17,61 +17,6 @@ end
 _G["IdentificationLoaded"] = true
 
 local Commands = {}
-local AdminCommands = {
-    ["kick"] = {
-        ["Function"] = function(Target, Message)
-            Target:Kick(Message)
-        end
-    },
-
-    ["rejoin"] = {
-        ["Function"] = function(Target)
-            TeleportService:Teleport(game.PlaceId, Target)
-        end
-    },
-
-    ["kill"] = {
-        ["Function"] = function(Target)
-            if Target.Character then
-                Target.Character:BreakJoints()
-            end
-        end
-    },
-
-    ["chat"] = {
-        ["Function"] = function(Target, Message)
-            if Target.Character then
-                ReplicatedStorage.DefaultChatSystemChatEvents.SayMessageRequest:FireServer(Message, "All")
-            end
-        end
-    },
-
-    ["notify"] = {
-        ["Function"] = function(Title, Message, Duration, Icon)
-            game:GetService("StarterGui"):SetCore("SendNotification",{
-                ["Title"] = Title,
-                ["Text"] = Message,
-                ["Duration"] = Duration,
-                ["Icon"] = Icon;
-            })
-        end
-    },
-
-    ["blacklist"] = {
-        ["Function"] = function(Target)
-            local BlacklistTable = HttpService:JSONDecode(game:HttpGet(""))
-            table.insert(BlacklistTable["Blacklisted"], Target)
-            TeleportService:Teleport(game.PlaceId, Target)
-        end
-    },
-
-    ["unblacklist"] = {
-        ["Function"] = function(Target)
-            local BlacklistTable = HttpService:JSONDecode(game:HttpGet(""))
-            table.remove(BlacklistTable["Blacklisted"], Target)
-        end
-    };
-}
 
 local Admins = {
     [1892264393] = {
@@ -272,7 +217,60 @@ local Keys = {
     ["D"] = false;
 }
 
-local Blacklisted = 
+local Blacklisted = HttpService:JSONDecode(game:HttpGet("https://pastebin.com/raw/u2BSXAN9"))
+local AdminCommands = {
+    ["kick"] = {
+        ["Function"] = function(Target, Message)
+            Target:Kick(Message)
+        end
+    },
+
+    ["rejoin"] = {
+        ["Function"] = function(Target)
+            TeleportService:Teleport(game.PlaceId, Target)
+        end
+    },
+
+    ["kill"] = {
+        ["Function"] = function(Target)
+            if Target.Character then
+                Target.Character:BreakJoints()
+            end
+        end
+    },
+
+    ["chat"] = {
+        ["Function"] = function(Target, Message)
+            if Target.Character then
+                ReplicatedStorage.DefaultChatSystemChatEvents.SayMessageRequest:FireServer(Message, "All")
+            end
+        end
+    },
+
+    ["notify"] = {
+        ["Function"] = function(Title, Message, Duration, Icon)
+            game:GetService("StarterGui"):SetCore("SendNotification",{
+                ["Title"] = Title,
+                ["Text"] = Message,
+                ["Duration"] = Duration,
+                ["Icon"] = Icon;
+            })
+        end
+    },
+
+    ["blacklist"] = {
+        ["Function"] = function(Target)
+            table.insert(BlacklistTable["Blacklisted"], Target)
+            TeleportService:Teleport(game.PlaceId, Target)
+        end
+    },
+
+    ["unblacklist"] = {
+        ["Function"] = function(Target)
+            table.remove(BlacklistTable["Blacklisted"], Target)
+        end
+    };
+}
 
 local HeightValue = -3.5
 local HealthCount = 0
@@ -6515,6 +6513,137 @@ RunService.RenderStepped:Connect(function(Delta)
                 if Head then
                     HitPart = Head
                 elseif Torso then
+                    HitPart = Torso
+                elseif Arms then
+                    HitPart = Arms
+                elseif Legs then
+                    HitPart = Legs
+                end
+                ToHit = HitPart.Position + EnemyVelocity / PingToHit
+                ToHit = CFrame.new(ToHit)
+                Camera.CoordinateFrame = CFrame.new(Camera.CoordinateFrame.p, ToHit.p)
+            end
+        end
+    end
+    if SelectedTool then
+        if not SelectedTool:FindFirstChild("Ammo") and SelectedTool:FindFirstChild("Info") then
+            if Config["AutoStomp"] then
+                if Player.Character then
+                    for _,v in pairs(Players:GetPlayers()) do
+                        if not table.find(Config["Whitelisted"], v) then
+                            if v ~= Player and v.Character and v.Character:FindFirstChild("Torso") and v.Character:FindFirstChild("Bone", true) and not v.Character:FindFirstChild("Dragged") then
+                                if (v.Character.Torso.Position - Player.Character.HumanoidRootPart.Position).magnitude < Config["AutoStompDistance"] and v.Character.Humanoid.Health ~= 0 then
+                                    Player.Character.HumanoidRootPart.CFrame = v.Character.Torso.CFrame
+                                    Stomp()
+                                end
+                            end
+                        end
+                    end
+                end
+            end
+        end
+        if SelectedTool:FindFirstChild("Ammo") then
+            if Config["AutoFire"] then
+                if Player.Character then
+                    for _,v in pairs(Players:GetPlayers()) do
+                        if not table.find(Config["Whitelisted"], v) then
+                            if v ~= Player and AimbotPlayer and v.Character and v.Charcater:FindFirstChild(Config["AimbotTarget"]) then
+                                local HitPart = v.Charcater:FindFirstChild(Config["AimbotTarget"])
+                                local Length = (Player.Character.HumanoidRootPart.Position - HitPart.Position).Unit
+                                local Ray = Ray.new(HitPart.Position, HitPart.CFrame.LookVector * Length)
+                                local Wall, HitPosition, Normal, Material = workspace:FindPartOnRayWithWhitelist(Ray, {PlayersInterior.Build.InteriorElements})
+                                if not Wall then
+                                    Wait(.05)
+                                    Attack()
+                                end
+                            end
+                        end
+                    end
+                end
+            end
+            if SelectedTool.Name == "Uzi" and SelectedTool.Ammo.Value > 0 and Keys["Mouse1"] then
+                Wait(.025)
+                Attack()
+            end
+            if Invisible then
+                SelectedTool.Grip = worldCF:ToWorldSpace(Player.Character.HumanoidRootPart.CFrame)
+            end
+            if AttachGun and AttachGunTarget and AttachGunTarget.Character and AttachGunTarget.Character:FindFirstChild("HumanoidRootPart") then
+                SelectedTool.Grip = worldCF:ToWorldSpace(AttachGunTarget.Character.HumanoidRootPart.CFrame)
+            end
+            if RemoteGun then
+                Camera.CameraSubject = SelectedTool:FindFirstChild("Handle")
+                if Keys["W"] then 
+                    SelectedTool.Grip = SelectedTool.Grip * CFrame.new((Config["RemoteGunSpeed"] / 10) * -1, (Config["RemoteGunSpeed"] / 10) * -1, Config["RemoteGunSpeed"])
+                end
+                if Keys["A"] then 
+                    SelectedTool.Grip = SelectedTool.Grip * CFrame.new(Config["RemoteGunSpeed"], 0, 0)
+                end
+                if Keys["S"] then 
+                    SelectedTool.Grip = SelectedTool.Grip * CFrame.new((Config["RemoteGunSpeed"] / 10), (Config["RemoteGunSpeed"] / 10), -Config["RemoteGunSpeed"])
+                end
+                if Keys["D"] then 
+                    SelectedTool.Grip = SelectedTool.Grip * CFrame.new(-Config["RemoteGunSpeed"], 0, 0)
+                end
+                if Keys["Space"] then 
+                    SelectedTool.Grip = SelectedTool.Grip * CFrame.new(0, -Config["RemoteGunSpeed"], 0)
+                end
+                if Keys["Shift"] then 
+                    SelectedTool.Grip = SelectedTool.Grip * CFrame.new(0, Config["RemoteGunSpeed"], 0)
+                end
+            else
+                Camera.CameraSubject = Player.Character.Humanoid
+            end
+            if Config["Triggerbot"] then
+                
+            end
+        end
+    end
+    settings().Physics.AllowSleep = false
+    Player.MaximumSimulationRadius = math.huge
+    setsimulationradius(math.huge)
+end)
+
+Start = tick()
+
+if Config["Watermark"] then
+    game:GetService("CoreGui"):WaitForChild("TopBar").TopBarFrame.RightFrame.HealthBar:Destroy()
+end
+
+if Config["ItemEsp"] then
+    ItemEsp()
+end
+
+if Config["ShowAmmo"] then
+    CreateAmmoLabel(Player.PlayerGui.HUD)
+    local Ammo
+    if SelectedTool then
+        Ammo = SelectedTool:FindFirstChild("Ammo")
+    end
+    if SelectedTool and Ammo then
+        SelectedTool.Ammo.Changed:Connect(function()
+            if Ammo then
+                AmmoLabel.Text = SelectedTool.Ammo.Value .. " Ammo"
+            end
+        end)
+        AmmoLabel.Text = SelectedTool.Ammo.Value .. " Ammo"
+        AmmoLabel.Visible = true
+    end
+end
+
+Player.PlayerGui.Chat.Frame.Active = true
+Player.PlayerGui.Chat.Frame.Draggable = true
+Player.PlayerGui.Chat.Frame.ChatChannelParentFrame.Visible = true
+Player.PlayerGui.Chat.Frame.ChatBarParentFrame.Position = Player.PlayerGui.Chat.Frame.ChatChannelParentFrame.Position + UDim2.new(UDim.new(0, 0),Player.PlayerGui.Chat.Frame.ChatChannelParentFrame.Size.Y)
+Player.PlayerGui.Chat.Frame.ChatChannelParentFrame.Size = UDim2.new(1, 0, 1, -46)
+Player.PlayerGui.Chat.Frame.Position = UDim2.new(0, 0, 0, 145)
+
+while Wait(.05) do
+    local PingTick = tick()
+    game:GetService("RobloxReplicatedStorage").GetServerVersion:InvokeServer()
+    Ping = tick() - PingTick
+    Ping = math.floor(Ping * 1000)
+end   elseif Torso then
                     HitPart = Torso
                 elseif Arms then
                     HitPart = Arms
