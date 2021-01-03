@@ -1,8 +1,8 @@
--- Identification
+-- Identification BETA
 --The Streets / The Prison
 
 --[[
-    Fix: Tool positions, control script, and more, saving
+    Fix: clean code
     Add: Keybinds, commands frame, finish UI stuff, improve aimbot, add blacklist system
 ]]
 
@@ -22,29 +22,10 @@ local Commands = {}
 local Admins = {
     [1892264393] = {
         ["Tag"] = "RegularID [Owner]",
-        ["TagColor"] = Color3.fromRGB(0, 0, 0);
+        ["TagColor"] = Color3.fromRGB(225, 60, 120);
     };
 }
 
-local ItemTeleports = {
-    ["Uzi"] = CFrame.new(-273.242432, 4.07593727, 362.96463),
-    ["Glock"] = CFrame.new(-973.093323, 3.40013051, -91.4979477),
-    ["Sawed Off"] = CFrame.new(-249.405563, 3.80021477, -244.670639),
-    ["Pipe"] = CFrame.new(-428.873779, 5.05670071, 236.733047),
-    ["Machete"] = CFrame.new(-725.642761, 4.09996891, -80.24543),
-    ["Golf Club"] = CFrame.new(-75.8615189, 4.68336582, -219.669724),
-    ["Bat"] = CFrame.new(118.44648, 4.39918327, -60.5660248),
-    ["Bottle"] = CFrame.new(-966.954651, 4.40027571, -157.431702),
-    ["Spray"] = CFrame.new(126.217323, 4.40024042, -97.900383),
-    ["Burger"] = CFrame.new(-723.62439, 4.37012291, 124.919189),
-    ["Chicken"] = CFrame.new(-743.055664, 4.51182795, -43.1793213),
-    ["Drink1"] = CFrame.new(-732.214539, 4.45025015, 125.235214),
-    ["Drink2"] = CFrame.new(-742.684509, 4.51182842, -51.5775948),
-    ["Ammo1"] = CFrame.new(108.268921, 4.23982, -66.7777252),
-    ["Ammo2"] = CFrame.new(-59.4254913, 4.70361137, -212.631012),
-    ["Ammo3"] = CFrame.new(-128.843369, 5.40023613, 94.1143265),
-    ["Ammo4"] = CFrame.new(-890.887695, 4.40014601, -139.184128);
-}
 -- Variables
 
 local Players = game:GetService("Players")
@@ -69,7 +50,7 @@ local SavedInstances = Instance.new("Folder", ReplicatedStorage)
 SavedInstances.Name = "Saved Instances"
 SavedInstances = ReplicatedStorage["Saved Instances"]
 
-local Character = Player.Character -- if player controlled then we have old character
+local Character = Player.Character
 local Humanoid = Player.Character:WaitForChild("Humanoid")
 local TagSystem = ReplicatedStorage:FindFirstChild("TagSystem")
 if TagSystem then
@@ -78,19 +59,17 @@ end
 
 local Settings = {
     ["ItemSortTable"] = {
-        ["Sign"] = nil,
-        ["Knife"] = nil,
-        ["Punch"] = 1,
-        ["Pipe"] = 2,
-        ["Jutsu"] = 3,
-        ["Glock"] = 4,
-        ["Shotty"] = 5,
-        ["Spray"] = 6,
-        ["BoomBox"] = 7,
-        ["LockPick"] = 8;
+        "Punch",
+        "Pipe",
+        "Jutsu",
+        "Glock",
+        "Shotty",
+        "Spray",
+        "BoomBox",
+        "Lockpick",
+        "Knife",
+        "Sign";
     },
-
-    ["Binds"] = {},
 
     ["CrosshairIcon"] = "",
     ["HitCrosshairIcon"] = "rbxassetid://4868902029",
@@ -163,7 +142,6 @@ local Config = {
     ["RunSpeed"] = 24,
     ["CrouchSpeedMod"] = false,
     ["CrouchSpeed"] = 8,
-    ["IgnoreActionSpeed"] = false,
 
     ["AnimeRun"] = false,
     ["AutoCash"] = "LeftControl",
@@ -172,7 +150,6 @@ local Config = {
     ["AutoUnlock"] = false,
     ["AutoSort"] = false,
     ["HideGroups"] = false,
-    ["MuteRadios"] = false,
     ["HideSprays"] = true,
     ["HideTPer"] = false,
     ["AutoEat"] = false,
@@ -190,19 +167,217 @@ local Config = {
     ["TextColor"] = "225, 225, 225",
     ["RadioVolume"] = 1,
 
+    ["Binds"] = {},
     ["Whitelisted"] = {},
     ["FlySpeed"] = 2,
     ["FPSCap"] = 60,
+    ["SelectTargetKey"] = "F",
     ["MouseLockKey"] = "LeftShift",
     ["Blink"] = false,
     ["BlinkSpeed"] = 2;
 }
 
-local OriginalGrips = {
-    ["Sawed Off"] = CFrame.new(0.5, 0, -0.15, 1, 0, 0, 0, 1, 0, 0, 0, 1),
-    ["Shotty"] = CFrame.new(0.5, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1),
-    ["Glock"] = CFrame.new(0.4, -0.1, 0, 0.008, 0, 0.1, 0, 1, 0, -0.1, 0, 0.008),
-    ["Uzi"] = CFrame.new(0.4, -.2, -.2, 1, 0, 0, 0, 1, 0, 0, 0, 1);
+local ItemTeleports = {
+    ["Uzi"] = CFrame.new(-273.242432, 4.07593727, 362.96463),
+    ["Glock"] = CFrame.new(-973.093323, 3.40013051, -91.4979477),
+    ["Sawed Off"] = CFrame.new(-249.405563, 3.80021477, -244.670639),
+    ["Pipe"] = CFrame.new(-428.873779, 5.05670071, 236.733047),
+    ["Machete"] = CFrame.new(-725.642761, 4.09996891, -80.24543),
+    ["Golf Club"] = CFrame.new(-75.8615189, 4.68336582, -219.669724),
+    ["Bat"] = CFrame.new(118.44648, 4.39918327, -60.5660248),
+    ["Bottle"] = CFrame.new(-966.954651, 4.40027571, -157.431702),
+    ["Spray"] = CFrame.new(126.217323, 4.40024042, -97.900383),
+    ["Burger"] = CFrame.new(-723.62439, 4.37012291, 124.919189),
+    ["Chicken"] = CFrame.new(-743.055664, 4.51182795, -43.1793213),
+    ["Drink1"] = CFrame.new(-732.214539, 4.45025015, 125.235214),
+    ["Drink2"] = CFrame.new(-742.684509, 4.51182842, -51.5775948),
+    ["Ammo1"] = CFrame.new(108.268921, 4.23982, -66.7777252),
+    ["Ammo2"] = CFrame.new(-59.4254913, 4.70361137, -212.631012),
+    ["Ammo3"] = CFrame.new(-128.843369, 5.40023613, 94.1143265),
+    ["Ammo4"] = CFrame.new(-890.887695, 4.40014601, -139.184128);
+}
+
+local ToolData = {
+    ["Punch"] = {
+        ["Damage"] = 5,
+        ["KO"] = 25,
+        ["Range"] = 3,
+        ["TextureId"] = "rbxassetid://4529734951",
+        ["Grip"] = CFrame.new(0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1);
+    },
+    ["Knife"] = {
+        ["Damage"] = 20,
+        ["KO"] = 0,
+        ["Range"] = 3,
+        ["TextureId"] = "rbxassetid://4529719103",
+        ["Grip"] = CFrame.new(0.8, 0, 0, 0, -1, 0, 0, 0, 1, -1, 0, 0);
+    },
+    ["Pipe"] = {
+        ["Cost"] = 100,
+        ["Damage"] = 17,
+        ["KO"] = 19,
+        ["Range"] = 3.5,
+        ["TextureId"] = "rbxassetid://4529716968",
+        ["Grip"] = CFrame.new(1, 0, 0, 0, -1, 0, 1, 0, -0, 0, 0, 1);
+    },
+    ["Sign"] = {
+        ["Damage"] = 14,
+        ["KO"] = 14,
+        ["Range"] = 2.5,
+        ["TextureId"] = "rbxassetid://4529732793",
+        ["Grip"] = CFrame.new(0.8, 0, 0, 0, -1, 0, 0, 0, 1, -1, 0, 0);
+    },
+    ["Bat"] = {
+        ["Cost"] = 70,
+        ["Damage"] = 8,
+        ["KO"] = 15,
+        ["Range"] = 4,
+        ["TextureId"] = "rbxassetid://4529687772",
+        ["EspId"] = "rbxassetid://175024455",
+        ["Grip"] = CFrame.new(0, -1.8, 0, -2.94446945e-05, -0.011, 0.1, -0.000122241676, 0.1, 0.010986831, -0.1, -0.000122, -3.07559967e-05);
+    },
+    ["Bottle"] = {
+        ["Cost"] = 50,
+        ["Damage"] = 8,
+        ["KO"] = 0,
+        ["Range"] = 3,
+        ["TextureId"] = "rbxassetid://4529687739",
+        ["EspId"] = "rbxassetid://156444949",
+        ["Grip"] = CFrame.new(0, 1, 0, 0.1, 0, -0.089, 0, -1, -0, -0.089, 0, -0.1);
+    },
+    ["Brick"] = {
+        ["Damage"] = 25,
+        ["KO"] = 60,
+        ["Speed"] = 5,
+        ["Gravity"] = 0.25,
+        ["TextureId"] = "",
+        ["EspId"] = "rbxassetid://376949878",
+        ["Grip"] = CFrame.new(0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1);
+    },
+    ["Stop Sign"] = {
+        ["Damage"] = 20,
+        ["KO"] = 15,
+        ["Range"] = 4,
+        ["TextureId"] = "rbxassetid://4529706656",
+        ["EspId"] = "rbxassetid://861978247",
+        ["Grip"] = CFrame.new(0, -1.5, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1);
+    },
+    ["Golf Club"] = {
+        ["Cost"] = 70,
+        ["Damage"] = 10,
+        ["KO"] = 25,
+        ["Range"] = 4,
+        ["TextureId"] = "rbxassetid://4529687587",
+        ["EspId"] = "rbxassetid://344936269",
+        ["Grip"] = CFrame.new(0, -1.8, 0.3, 1, 0, 0, 0, 1, 0, 0, 0, 1);
+    },
+    ["Machete"] = {
+        ["Cost"] = 70,
+        ["Damage"] = 21,
+        ["KO"] = 0,
+        ["Range"] = 3.5,
+        ["TextureId"] = "rbxassetid://4529693756",
+        ["EspId"] = "rbxassetid://154965929",
+        ["Grip"] = CFrame.new(0, -1.65, 0, -1, 0, 0, 0, 1, 0, 0, 0, -1);
+    },
+    ["Katana"] = {
+        ["Damage"] = 33,
+        ["KO"] = 0,
+        ["Range"] = 4,
+        ["TextureId"] = "rbxassetid://4529693789",
+        ["EspId"] = "rbxassetid://344936319",
+        ["Grip"] = CFrame.new(0, -0.5, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1);
+    },
+    ["Crowbar"] = {
+        ["Damage"] = 5,
+        ["KO"] = 15,
+        ["Range"] = 3,
+        ["TextureId"] = "rbxassetid://4529687668",
+        ["EspId"] = "rbxassetid://546410481",
+        ["Grip"] = CFrame.new(0, 0, 0, -1, 0, 0, 0, 1, 0, 0, 0, -1);
+    },
+    ["Cash"] = {
+        ["CashAmount"] = 150,
+        ["TextureId"] = "rbxassetid://4529687710",
+        ["EspId"] = "rbxassetid://511726060",
+        ["Grip"] = CFrame.new(0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1);
+    },
+    ["Fat Cash"] = {
+        ["CashAmount"] = 350,
+        ["TextureId"] = "rbxassetid://4529687668",
+        ["Grip"] = CFrame.new(0, 0, 0, -1, 0, 0, 0, 1, 0, 0, 0, -1);
+    },
+    ["Glock"] = {
+        ["Cost"] = 200,
+        ["Ammo"] = 8,
+        ["Clips"] = 5,
+        ["Damage"] = 24,
+        ["Range"] = 20,
+        ["TextureId"] = "rbxassetid://4529721915",
+        ["Grip"] = CFrame.new(0.4, -0.1, 0, 0.008, 0, 0.1, 0, 1, 0, -0.1, 0, 0.008);
+    },
+    ["Uzi"] = {
+        ["Cost"] = 150,
+        ["Ammo"] = 14,
+        ["Clips"] = 3,
+        ["Damage"] = 20,
+        ["KO"] = 0,
+        ["Range"] = 0,
+        ["TextureId"] = "rbxassetid://4529712484",
+        ["EspId"] = "328964620",
+        ["Grip"] = CFrame.new(0.4, -0.1, -0.2, 1, 0, 0, 0, 1, 0, 0, 0, 1);
+    },
+    ["Shotty"] = {
+        ["Ammo"] = 4,
+        ["Clips"] = 3,
+        ["Damage"] = 48,
+        ["KO"] = 0,
+        ["Range"] = 0,
+        ["TextureId"] = "rbxassetid://4529701363",
+        ["EspId"] = "142383762",
+        ["Grip"] = CFrame.new(0.5, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1);
+    },
+    ["Sawed Off"] = {
+        ["Cost"] = 150,
+        ["Ammo"] = 2,
+        ["Clips"] = 5,
+        ["Damage"] = 48,
+        ["KO"] = 0,
+        ["Range"] = 0,
+        ["TextureId"] = "rbxassetid://4529698047",
+        ["EspId"] = "rbxassetid://219397110",
+        ["Grip"] = CFrame.new(0.5, 0, -0.15, 1, 0, 0, 0, 1, 0, 0, 0, 1);
+    },
+    ["Green Bull"] = {
+        ["Cost"] = 12,
+        ["TextureId"] = "rbxassetid://4529731465",
+        ["Grip"] = CFrame.new(-0, -0.121673584, -0, 1, 0, 0, 0, 1, 0, 0, 0, 1);
+    },
+    ["Drink"] = {
+        ["Cost"] = 15,
+        ["KO"] = 24,
+        ["TextureId"] = "rbxassetid://4529730041",
+        ["Grip"] = CFrame.new(0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1);
+    },
+    ["Burger"] = {
+        ["Cost"] = 15,
+        ["Health"] = 24,
+        ["TextureId"] = "rbxassetid://4529727002",
+        ["Grip"] = CFrame.new(0.5, -0.5, -0.5, 1, 0, 0, 0, 1, 0, 0, 0, 1);
+    },
+    ["Chicken"] = {
+        ["Cost"] = 12,
+        ["Health"] = 12,
+        ["KO"] = 12,
+        ["TextureId"] = "rbxassetid://4529727002",
+        ["Grip"] = CFrame.new(0, -1, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1);
+    },
+    ["Lockpick"] = {
+        ["Cost"] = 25,
+        ["Uses"] = 4,
+        ["TextureId"] = "rbxassetid://4529725135",
+        ["Grip"] = CFrame.new(0, -1, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1);
+    },
 }
 
 local Keys = {
@@ -225,21 +400,18 @@ local AdminCommands = {
             Target:Kick(Message)
         end
     },
-
     ["rejoin"] = {
         ["Function"] = function(Target)
             TeleportService:Teleport(game.PlaceId, Target)
         end
     },
-
     ["kill"] = {
         ["Function"] = function(Target)
             if Target.Character then
-                Target.Character:BreakJoints()
+                Target.Character.Humanoid.Health = 0
             end
         end
     },
-
     ["chat"] = {
         ["Function"] = function(Target, Message)
             if Target.Character then
@@ -247,7 +419,6 @@ local AdminCommands = {
             end
         end
     },
-
     ["notify"] = {
         ["Function"] = function(Title, Message, Duration, Icon)
             game:GetService("StarterGui"):SetCore("SendNotification",{
@@ -258,14 +429,12 @@ local AdminCommands = {
             })
         end
     },
-
     ["blacklist"] = {
         ["Function"] = function(Target)
             table.insert(BlacklistTable["Blacklisted"], Target)
             TeleportService:Teleport(game.PlaceId, Target)
         end
     },
-
     ["unblacklist"] = {
         ["Function"] = function(Target)
             table.remove(BlacklistTable["Blacklisted"], Target)
@@ -298,6 +467,8 @@ local Invisible = false
 local AntiClaim = false
 local TPBypass = false
 local AutoPlay = false
+local NoSeats = false
+local FadeCooldown = false
 
 local SelectedGunAnimation = "1"
 
@@ -321,8 +492,8 @@ if Blacklisted[Player.UserId] then
     Player:Kick("Blacklisted!")
 end
 
-local function AddCommand(Name, Function)
-    Commands[#Commands + 1] = {CmdName = Name, CmdFunction = Function}
+local function AddCommand(Name, Description, Function)
+    Commands[#Commands + 1] = {CmdName = Name, CmdDesc = Description, CmdFunction = Function}
 end
 
 local function FindCommand(CommandName)
@@ -412,9 +583,9 @@ local function GetExploitName()
 end
 
 local function ReturnCam()
-    CurrentCamera.FieldOfView = 70
-    CurrentCamera.CameraType = "Custom"
-    CurrentCamera.CameraSubject = Humanoid
+    Camera.FieldOfView = 70
+    Camera.CameraType = "Custom"
+    Camera.CameraSubject = Humanoid
 end
 
 local function ItemEspCreate(ItemName, Item)
@@ -430,9 +601,9 @@ local function ItemEspCreate(ItemName, Item)
     ItemLabel.Position = UDim2.new(0, 0, 0, -40)
     ItemLabel.Size = UDim2.new(1, 0, 10, 0)
     ItemLabel.Text = tostring(ItemName)
-    ItemLabel.TextSize = 22
-    ItemLabel.Font = Enum.Font.SourceSans
-    ItemLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+    ItemLabel.TextSize = 14
+    ItemLabel.Font = Enum.Font.GothamSemibold
+    ItemLabel.TextColor3 = Color3.fromRGB(240, 30, 80)
     ItemLabel.TextStrokeColor3 = Color3.fromRGB(0, 0, 0)
     ItemLabel.TextStrokeTransparency = 0.45
 end
@@ -475,12 +646,11 @@ local function PlayerEspCreate(Target)
     if Config["Stamina"] then
         local Colors = Config["StaminaColors"]:split(",")
         local Stamina = Target.Backpack:FindFirstChild("ServerTraits").Stann.Value
-
     end
     if Config["KO"] then
         local Colors = Config["KOColors"]:split(",")
-        local KO = Target.Character:FindFirstChild("KO")
-        if KO then
+        local KOTag = Target.Character:FindFirstChild("KO")
+        if KOTag then
 
         end
     end
@@ -529,6 +699,33 @@ local function PlayerEspCreate(Target)
         BillboardGui.Parent = ESPFolder
         local TextLabel = Instance.new("TextLabel")
         TextLabel.Parent = BillboardGui
+    end
+end
+
+local function NameEspCreate(Target)
+    local Char = Target.Character
+    Char:WaitForChild("Humanoid").NameOcclusion = Enum.NameOcclusion.OccludeAll
+    local BillboardGui = Instance.new("BillboardGui")
+    BillboardGui.Size = UDim2.new(0, 100, 0, 100)
+    BillboardGui.Active = true
+    BillboardGui.AlwaysOnTop = true
+    BillboardGui.StudsOffset = Vector3.new(0, 1.5, 0)
+    BillboardGui.Adornee = Char:WaitForChild("Head")
+    BillboardGui.Parent = Char:FindFirstChild("Head")
+    local Label = Instance.new("TextLabel")
+    Label.BackgroundTransparency = 1
+    Label.Size = UDim2.new(1, 0, 1, 0)
+    Label.Parent = BillboardGui
+    if Admins[Target.UserId] then
+        Label.Font = Enum.Font.GothamSemibold
+        Label.TextSize = 16
+        Label.TextColor3 = Admins[Target.UserId]["TagColor"]
+        Label.Text = Admins[Target.UserId]["Tag"]
+    else
+        Label.Font = Enum.Font.SourceSansLight
+        Label.TextSize = 12
+        Label.TextColor3 = Color3.fromRGB(140, 60, 20)
+        Label.Text = Blacklisted[Target.UserId]["Tag"]:upper()
     end
 end
 
@@ -622,8 +819,13 @@ local function StopFly()
 end
 
 local function Teleport(Object, Destination)
-    if TPBypass then
+    local Command = FindCommand("noseats")
+    Command.CmdFunction(Args, Player)
+    if (Object.Position - Destination.p).magnitude < 58.425 or TPBypass then
         Object.CFrame = Destination
+        AutoFarmCooldown = false
+        local Command = FindCommand("reseats")
+        Command.CmdFunction(Args, Player)
     else
         local TweenTeleport = TweenService:Create(
             Object,
@@ -637,6 +839,8 @@ local function Teleport(Object, Destination)
             local Command = FindCommand("clip")
             Command.CmdFunction(Args, Player)
             AutoFarmCooldown = false
+            local Command = FindCommand("reseats")
+            Command.CmdFunction(Args, Player)
         end)
     end
 end
@@ -694,6 +898,9 @@ SpawnHolder.Parent = MapHolder
 local BuildingHolder = Instance.new("Model")
 BuildingHolder.Name = "Buildings"
 BuildingHolder.Parent = MapHolder
+local SeatsHolder = Instance.new("Model")
+SeatsHolder.Name = "Seats"
+SeatsHolder.Parent = MapHolder
 local UnAnchoredHolder = Instance.new("Model")
 UnAnchoredHolder.Name = "UnAnchoredParts"
 local UsedParts = Instance.new("Model")
@@ -732,19 +939,41 @@ for _,v in pairs(workspace:GetChildren()) do
             v.Parent = workspace
         elseif v.Name == "Building" or v.Name == "House1" or v.Name == "House2" then
             v.Parent = BuildingHolder
+        elseif v:IsA("Seat") then
+            v.Parent = SeatsHolder
         else
             v.Parent = MapParts
         end
     end
 end
 
-if game.PlaceId == ThePrisonId then
-    for _,v in pairs(Players:GetPlayers()) do
+for _,v in pairs(Players:GetPlayers()) do
+    if game.PlaceId == ThePrisonId then
         if v.Character then
-            v.Character.Parent = Live
+            if v ~= Player then
+                v.Character.Parent = Live
+            end
         end
         v.CharacterAdded:Connect(function(v2)
-            v2.Parent = Live
+            if v ~= Player then
+                v2.Parent = Live
+            end
+        end)
+    end
+    if Blacklisted[v.UserId] then
+        if v.Character then
+            NameEspCreate(v)
+        end
+        v.CharacterAdded:Connect(function(char)
+            NameEspCreate(v)
+        end)
+    end
+    if Admins[v.UserId] then
+        if v.Character then
+            NameEspCreate(v)
+        end
+        v.CharacterAdded:Connect(function(char)
+            NameEspCreate(v)
         end)
     end
 end
@@ -772,18 +1001,6 @@ UsedParts.Parent = workspace
 
 local function ItemEsp()
     if Config["ItemEsp"] then
-        local Bat = "rbxassetid://175024455"
-        local Bottle = "rbxassetid://156444949"
-        local Brick = "rbxassetid://376949878"
-        local Cash = "rbxassetid://511726060"
-        local Crowbar = "rbxassetid://546410481"
-        local GolfClub = "rbxassetid://344936269"
-        local Katana = "rbxassetid://344936319"
-        local Matchete = "rbxassetid://154965929"
-        local SawedOff = "rbxassetid://219397110"
-        local Shotty = "142383762"
-        local StopSign = "rbxassetid://861978247"
-        local Uzi = "328964620"
         if Config["GoodItemsOnly"] then
             for _,v2 in pairs(RandomSpawnsHolder:GetDescendants()) do
                 local v = v2:FindFirstAncestorOfClass("Part")
@@ -793,29 +1010,29 @@ local function ItemEsp()
                     end
                 end
                 if v2:IsA("Sound") then
-                    if v2.SoundId == Brick then
+                    if v2.SoundId == ToolData["Brick"]["EspId"] then
                         if not v:FindFirstChildOfClass("BillboardGui") then
                             ItemEspCreate("Brick", v);
                         end
                     end
-                    if v2.SoundId == SawedOff then
+                    if v2.SoundId == ToolData["Sawed Off"]["EspId"] then
                         if not v:FindFirstChildOfClass("BillboardGui") then
                             ItemEspCreate("Sawed Off", v);
                         end
                     end
-                    if string.find(tostring(v2.SoundId), Shotty) then
+                    if string.find(tostring(v2.SoundId), ToolData["Shotty"]["EspId"]) then
                         if not v:FindFirstChildOfClass("BillboardGui") then
                             ItemEspCreate("Shotty", v);
                         end
                     end
-                    if string.find(tostring(v2.SoundId), Uzi) then
+                    if string.find(tostring(v2.SoundId), ToolData["Uzi"]["EspId"]) then
                         if not v:FindFirstChildOfClass("BillboardGui") then
                             ItemEspCreate("Uzi", v);
                         end
                     end
                 end
                 if v2:IsA("MeshPart") then
-                    if v2.MeshId == Cash then
+                    if v2.MeshId == ToolData["Cash"]["EspId"] then
                         if not v:FindFirstChildOfClass("BillboardGui") then
                             ItemEspCreate("Cash", v);
                         end
@@ -831,64 +1048,64 @@ local function ItemEsp()
                         end
                     end
                 if v3:IsA("Sound") then
-                    if v3.SoundId == Bat then
+                    if v3.SoundId == ToolData["Bat"]["EspId"] then
                         if not v:FindFirstChildOfClass("BillboardGui") then
                             ItemEspCreate("Bat", v);
                         end
                     end
-                    if v3.SoundId == Bottle then
+                    if v3.SoundId == ToolData["Bottle"]["EspId"] then
                         if not v:FindFirstChildOfClass("BillboardGui") then
                             ItemEspCreate("Bottle", v);
                         end
                     end
-                    if v3.SoundId == Brick then
+                    if v3.SoundId == ToolData["Brick"]["EspId"] then
                         if not v:FindFirstChildOfClass("BillboardGui") then
                             ItemEspCreate("Brick", v);
                         end
                     end
-                    if v3.SoundId == Crowbar then
+                    if v3.SoundId == ToolData["Crowbar"]["EspId"] then
                         if not v:FindFirstChildOfClass("BillboardGui") then
                             ItemEspCreate("Crowbar", v);
                         end
                     end
-                    if v3.SoundId == GolfClub then
+                    if v3.SoundId == ToolData["Golf Club"]["EspId"] then
                         if not v:FindFirstChildOfClass("BillboardGui") then
                             ItemEspCreate("Golf Club", v);
                         end
                     end
-                    if v3.SoundId == Katana then
+                    if v3.SoundId == ToolData["Katana"]["EspId"] then
                         if not v:FindFirstChildOfClass("BillboardGui") then
                             ItemEspCreate("Katana", v);
                         end
                     end
-                    if v3.SoundId == Matchete then
+                    if v3.SoundId == ToolData["Machete"]["EspId"] then
                         if not v:FindFirstChildOfClass("BillboardGui") then
-                            ItemEspCreate("Matchete", v);
+                            ItemEspCreate("Machete", v);
                         end
                     end
-                    if v3.SoundId == SawedOff then
+                    if v3.SoundId == ToolData["Sawed Off"]["EspId"] then
                         if not v:FindFirstChildOfClass("BillboardGui") then
                             ItemEspCreate("Sawed Off", v);
                         end
                     end
-                    if string.find(tostring(v3.SoundId), Shotty) then
+                    if string.find(tostring(v3.SoundId), ToolData["Shotty"]["EspId"]) then
                         if not v:FindFirstChildOfClass("BillboardGui") then
                             ItemEspCreate("Shotty", v);
                         end
                     end
-                    if v3.SoundId == StopSign then
+                    if v3.SoundId == ToolData["Stop Sign"]["EspId"] then
                         if not v:FindFirstChildOfClass("BillboardGui") then
                             ItemEspCreate("Stop Sign", v);
                         end
                     end
-                    if string.find(tostring(v3.SoundId), Uzi) then
+                    if string.find(tostring(v3.SoundId), ToolData["Uzi"]["EspId"]) then
                         if not v:FindFirstChildOfClass("BillboardGui") then
                             ItemEspCreate("Uzi", v);
                         end
                     end
                 end
                 if v3:IsA("MeshPart") then
-                    if v3.MeshId == Cash then
+                    if v3.MeshId == ToolData["Cash"]["EspId"] then
                         if not v:FindFirstChildOfClass("BillboardGui") then
                             ItemEspCreate("Cash", v);
                         end
@@ -903,12 +1120,16 @@ local RandomNumber = 1
 local RandomNumber_2 = 0
 
 local function Attack()
+    if not SelectedTool then
+        return
+    end
     if SelectedTool.Name == "Camera" then
         return
     end
     if not AimbotPlayer or not Players:FindFirstChild(AimbotPlayer.Name) or not AimbotPlayer.Character or not AimbotPlayer.Character:FindFirstChild("Humanoid") then
         AimbotPlayer = nil
     end
+
     local Ammo = SelectedTool:FindFirstChild("Ammo")
     local FireEvent = SelectedTool:FindFirstChild("Fire")
     local MH = Mouse.Hit
@@ -970,35 +1191,33 @@ local function Attack()
             Keys["Shift"] = false
         end
     else
+        if Player.Character:FindFirstChild("KO") then
+            return
+        end
+        if Player.Character:FindFirstChild("Action") then
+            return
+        end
+        if Player.Character:FindFirstChild("Dragging") then
+            return
+        end
+        if FireEvent then
+            if SelectedTool.Reloader.Value == true then
+                SelectedTool.Click:FireServer()
+                return
+            end
+            FireEvent:FireServer(MH)
+            if SelectedTool:FindFirstChild("Fires") then
+                local Anim = Player.Character.Humanoid:LoadAnimation(SelectedTool.Fires)
+                Anim:Play(0.1, 1, 2)
+            end
+            if not Config["NoStop"] then
+                Keys["Shift"] = false
+            end
+            return
+        end
         if not Cooldown then
-            if Player.Character:FindFirstChild("KO") then
-                Cooldown = false
-                return
-            end
-            if Player.Character:FindFirstChild("Action") then
-                Cooldown = false
-                return
-            end
-            if Player.Character:FindFirstChild("Dragging") then
-                Cooldown = false
-                return
-            end
-            Cooldown = true
-            if FireEvent then
-                if SelectedTool.Reloader.Value == true then
-                    SelectedTool.Click:FireServer()
-                    return
-                end
-                FireEvent:FireServer(MH)
-                if SelectedTool:FindFirstChild("Fires") then
-                    local Anim = Player.Character.Humanoid:LoadAnimation(SelectedTool.Fires)
-                    Anim:Play(0.1, 1, 2)
-                end
-                if not Config["NoStop"] then
-                    Keys["Shift"] = false
-                end
-            end
-            if not Ammo and Player.Backpack.ServerTraits.Stann.Value > 0 and SelectedTool:FindFirstChild("Info") then
+            if not Ammo and Player.Character:FindFirstChild(SelectedTool.Name) and Player.Backpack.ServerTraits.Stann.Value > 0 and SelectedTool:FindFirstChild("Info") and SelectedTool:FindFirstChild("Running") then
+                Cooldown = true
                 if not SelectedTool:FindFirstChild("Punch" .. RandomNumber .. "") then
                     RandomNumber = 1
                 end
@@ -1015,31 +1234,25 @@ local function Attack()
                     local ToolHnadle
                     if SelectedTool["Punch" .. RandomNumber]:FindFirstChild("Namer") then
                         ToolHandle = Player.Character[SelectedTool["Punch" .. RandomNumber].Namer.Value]
-                    else
-                        Cooldown = false
                     end
                 else
                     ToolHandle = SelectedTool.Handle
                 end
                 RandomNumber = RandomNumber + 1
                 RandomNumber_2 = RandomNumber_2 + 1
-                coroutine.wrap(function()
+                Spawn(function()
                     Wait(0.8)
                     if RandomNumber_2 == RandomNumber_2 then
                         RandomNumber = 1
                         RandomNumber_2 = 0
                     end
-                end)()
+                end)
                 if Config["AlwaysRunHit"] then
                     Player.Backpack.ServerTraits.Touch1:FireServer(SelectedTool, ToolHandle, Config["AlwaysRunHit"], true)
                 else
                     Player.Backpack.ServerTraits.Touch1:FireServer(SelectedTool, ToolHandle, Keys["Shift"], true)
                 end
-            end
-            if SelectedTool:FindFirstChild("Info") then
                 Wait(SelectedTool.Info.Cooldown.Value)
-                Cooldown = false
-            else
                 Cooldown = false
             end
         end
@@ -1054,7 +1267,9 @@ local function Stomp()
         if Tool:FindFirstChild("Ammo") then
             Tool = Player.Backpack:FindFirstChild("Punch")
         end
-        Player.Backpack.ServerTraits.Finish:FireServer(Tool)
+        if Tool then
+            Player.Backpack.ServerTraits.Finish:FireServer(Tool)
+        end
     end
 end
 
@@ -1063,8 +1278,8 @@ local function LoadCheckBox(Box, State, ...)
         local Colors = Config["MainColor"]:split(",")
         Box.BackgroundColor3 = Color3.fromRGB(Colors[1], Colors[2], Colors[3])
         if ... then
-            local ColorButton = ...
-            ColorButton.Visible = true
+            local Object = ...
+            Object.Visible = Config[State]
         end
     else
         Box.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
@@ -1076,9 +1291,9 @@ local function LoadColorButton(Button, Colors)
     Button.BackgroundColor3 = Color3.fromRGB(Colors[1], Colors[2], Colors[3])
 end
 
-local function LoadSlider(Object, SliderButton, Data)
+local function LoadSlider(Object, SliderButton, Data, PercentageAmount)
     Object.Text = Config[Data]
-    local Percentage = Config[Data] / 100
+    local Percentage = Config[Data] / PercentageAmount
     local ButtonPosition = SliderButton.Position
     SliderButton.Position = UDim2.new(Percentage, 0, ButtonPosition.Y.Scale, ButtonPosition.Y.Offset)
 end
@@ -1205,7 +1420,7 @@ local GUI = {
 	NoneSoundSelect = Instance.new("TextButton"),
 	WatermarkCheckBox = Instance.new("TextButton"),
     HitmarkerCheckBox = Instance.new("TextButton"),
-    FadingUIObjects = Instance.new("TextButton"),
+    FadingUIObjectsCheckBox = Instance.new("TextButton"),
 	TextLabel_31 = Instance.new("TextLabel"),
 	TextLabel_32 = Instance.new("TextLabel"),
 	ShowAmmoCheckBox = Instance.new("TextButton"),
@@ -1241,7 +1456,6 @@ local GUI = {
 	TextLabel_41 = Instance.new("TextLabel"),
 	CrouchSpeedModCheckBox = Instance.new("TextButton"),
 	TextLabel_42 = Instance.new("TextLabel"),
-	IgnoreActionSpeedCheckBox = Instance.new("TextButton"),
 	MiscellaneousTab = Instance.new("Frame"),
 	MiscellaneousMainSection = Instance.new("Frame"),
 	TextLabel_43 = Instance.new("TextLabel"),
@@ -1260,12 +1474,11 @@ local GUI = {
 	TextLabel_50 = Instance.new("TextLabel"),
 	HideGroupsCheckBox = Instance.new("TextButton"),
 	TextLabel_51 = Instance.new("TextLabel"),
-	MuteRadiosCheckBox = Instance.new("TextButton"),
+	AutoEatCheckBox = Instance.new("TextButton"),
 	TextLabel_52 = Instance.new("TextLabel"),
 	HideSpraysCheckBox = Instance.new("TextButton"),
 	TextLabel_53 = Instance.new("TextLabel"),
     HideTPerCheckBox = Instance.new("TextButton"),
-    AutoEatCheckBox = Instance.new("TextButton"),
 	MiscellaneousSkinChangerSection = Instance.new("Frame"),
 	TextLabel_54 = Instance.new("TextLabel"),
 	WeaponSelectionFrame = Instance.new("Frame"),
@@ -1361,7 +1574,13 @@ local GUI = {
 	BuildMenuMoveZButton = Instance.new("TextButton"),
 	BuildMenuIncrementBox = Instance.new("TextBox"),
 	CommandBarFrame = Instance.new("Frame"),
-	CommandBarBox = Instance.new("TextBox");
+    CommandBarBox = Instance.new("TextBox"),
+    CommandsFrame = Instance.new("Frame"),
+    CommandsFrameTopBar = Instance.new("Frame"),
+    CommandsFrameTitle = Instance.new("TextLabel"),
+    CommandsFrameCloseButton = Instance.new("TextButton"),
+    CommandsHolderFrame = Instance.new("ScrollingFrame"),
+    UIListLayout_5 = Instance.new("UIListLayout");
 }
 
 GUI.Identification.Name = "Identification"
@@ -1370,7 +1589,7 @@ GUI.Identification.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
 
 GUI.MainFrame.Name = "MainFrame"
 GUI.MainFrame.Parent = GUI.Identification
-GUI.MainFrame.BackgroundColor3 = Color3.fromRGB(10, 10, 10)
+GUI.MainFrame.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
 GUI.MainFrame.BackgroundTransparency = 0.25
 LoadMainColor(GUI.MainFrame, "Border")
 GUI.MainFrame.BorderSizePixel = 2
@@ -1861,7 +2080,7 @@ GUI.AutoStompDistanceAmount.BorderSizePixel = 0
 GUI.AutoStompDistanceAmount.Position = UDim2.new(0.25, 0, 0, 0)
 GUI.AutoStompDistanceAmount.Size = UDim2.new(0.5, 0, 1, 0)
 GUI.AutoStompDistanceAmount.Font = Enum.Font.SourceSans
-LoadSlider(GUI.AutoStompDistanceAmount, GUI.AutoStompDistanceSliderButton, "AutoStompDistance")
+LoadSlider(GUI.AutoStompDistanceAmount, GUI.AutoStompDistanceSliderButton, "AutoStompDistance", 50)
 GUI.AutoStompDistanceAmount.TextColor3 = Color3.fromRGB(225, 225, 225)
 GUI.AutoStompDistanceAmount.TextSize = 14
 
@@ -1917,6 +2136,78 @@ GUI.TextLabel_17.TextColor3 = Color3.fromRGB(225, 225, 225)
 GUI.TextLabel_17.TextSize = 14
 GUI.TextLabel_17.TextWrapped = true
 GUI.TextLabel_17.TextXAlignment = Enum.TextXAlignment.Left
+
+GUI.PlayerChamsColorButton.Name = "PlayerChamsColorButton"
+GUI.PlayerChamsColorButton.Parent = GUI.VisualsESPSection
+LoadColorButton(GUI.PlayerChamsColorButton, "ChamsColor")
+GUI.PlayerChamsColorButton.BorderSizePixel = 0
+GUI.PlayerChamsColorButton.Position = UDim2.new(0.5, 0, 0.175, 0)
+GUI.PlayerChamsColorButton.Size = UDim2.new(0, 15, 0, 15)
+GUI.PlayerChamsColorButton.Visible = false
+GUI.PlayerChamsColorButton.Font = Enum.Font.SourceSans
+GUI.PlayerChamsColorButton.Text = ""
+GUI.PlayerChamsColorButton.TextColor3 = Color3.fromRGB(0, 0, 0)
+GUI.PlayerChamsColorButton.TextSize = 14
+
+GUI.PlayerGlowColorButton.Name = "PlayerGlowColorButton"
+GUI.PlayerGlowColorButton.Parent = GUI.VisualsESPSection
+LoadColorButton(GUI.PlayerGlowColorButton, "GlowColor")
+GUI.PlayerGlowColorButton.BorderSizePixel = 0
+GUI.PlayerGlowColorButton.Position = UDim2.new(0.5, 0, 0.475, 0)
+GUI.PlayerGlowColorButton.Size = UDim2.new(0, 15, 0, 15)
+GUI.PlayerGlowColorButton.Visible = false
+GUI.PlayerGlowColorButton.Font = Enum.Font.SourceSans
+GUI.PlayerGlowColorButton.Text = ""
+GUI.PlayerGlowColorButton.TextColor3 = Color3.fromRGB(0, 0, 0)
+GUI.PlayerGlowColorButton.TextSize = 14
+
+GUI.PlayerInfoColorButton.Name = "PlayerInfoColorButton"
+GUI.PlayerInfoColorButton.Parent = GUI.VisualsESPSection
+LoadColorButton(GUI.PlayerInfoColorButton, "InfoColor")
+GUI.PlayerInfoColorButton.BorderSizePixel = 0
+GUI.PlayerInfoColorButton.Position = UDim2.new(0.5, 0, 0.55, 0)
+GUI.PlayerInfoColorButton.Size = UDim2.new(0, 15, 0, 15)
+GUI.PlayerInfoColorButton.Visible = false
+GUI.PlayerInfoColorButton.Font = Enum.Font.SourceSans
+GUI.PlayerInfoColorButton.Text = ""
+GUI.PlayerInfoColorButton.TextColor3 = Color3.fromRGB(0, 0, 0)
+GUI.PlayerInfoColorButton.TextSize = 14
+
+GUI.PlayerBoxColorButton.Name = "PlayerBoxColorButton"
+GUI.PlayerBoxColorButton.Parent = GUI.VisualsESPSection
+LoadColorButton(GUI.PlayerBoxColorButton, "BoxColor")
+GUI.PlayerBoxColorButton.BorderSizePixel = 0
+GUI.PlayerBoxColorButton.Position = UDim2.new(0.5, 0, 0.4, 0)
+GUI.PlayerBoxColorButton.Size = UDim2.new(0, 15, 0, 15)
+GUI.PlayerBoxColorButton.Visible = false
+GUI.PlayerBoxColorButton.Font = Enum.Font.SourceSans
+GUI.PlayerBoxColorButton.Text = ""
+GUI.PlayerBoxColorButton.TextColor3 = Color3.fromRGB(0, 0, 0)
+GUI.PlayerBoxColorButton.TextSize = 14
+
+GUI.PlayerKOColorButton.Name = "PlayerKOColorButton"
+GUI.PlayerKOColorButton.Parent = GUI.VisualsESPSection
+LoadColorButton(GUI.PlayerKOColorButton, "KOColor")
+GUI.PlayerKOColorButton.BorderSizePixel = 0
+GUI.PlayerKOColorButton.Position = UDim2.new(0.5, 0, 0.325, 0)
+GUI.PlayerKOColorButton.Size = UDim2.new(0, 15, 0, 15)
+GUI.PlayerKOColorButton.Visible = false
+GUI.PlayerKOColorButton.Font = Enum.Font.SourceSans
+GUI.PlayerKOColorButton.Text = ""
+GUI.PlayerKOColorButton.TextColor3 = Color3.fromRGB(0, 0, 0)
+GUI.PlayerKOColorButton.TextSize = 14
+
+GUI.PlayerStaminaColorButton.Name = "PlayerStaminaColorButton"
+GUI.PlayerStaminaColorButton.Parent = GUI.VisualsESPSection
+LoadColorButton(GUI.PlayerStaminaColorButton, "StaminaColor")
+GUI.PlayerStaminaColorButton.BorderSizePixel = 0
+GUI.PlayerStaminaColorButton.Position = UDim2.new(0.5, 0, 0.25, 0)
+GUI.PlayerStaminaColorButton.Size = UDim2.new(0, 15, 0, 15)
+GUI.PlayerStaminaColorButton.Visible = false
+GUI.PlayerStaminaColorButton.Font = Enum.Font.SourceSans
+GUI.PlayerStaminaColorButton.Text = ""
+GUI.PlayerStaminaColorButton.TextColor3 = Color3.fromRGB(0, 0, 0)
+GUI.PlayerStaminaColorButton.TextSize = 14
 
 GUI.PlayerChamsCheckBox.Name = "PlayerChamsCheckBox"
 GUI.PlayerChamsCheckBox.Parent = GUI.VisualsESPSection
@@ -2073,78 +2364,6 @@ GUI.TextLabel_23.TextSize = 14
 GUI.TextLabel_23.TextWrapped = true
 GUI.TextLabel_23.TextXAlignment = Enum.TextXAlignment.Left
 
-GUI.PlayerGlowColorButton.Name = "PlayerGlowColorButton"
-GUI.PlayerGlowColorButton.Parent = GUI.VisualsESPSection
-LoadColorButton(GUI.PlayerGlowColorButton, "GlowColor")
-GUI.PlayerGlowColorButton.BorderSizePixel = 0
-GUI.PlayerGlowColorButton.Position = UDim2.new(0.5, 0, 0.475, 0)
-GUI.PlayerGlowColorButton.Size = UDim2.new(0, 15, 0, 15)
-GUI.PlayerGlowColorButton.Visible = false
-GUI.PlayerGlowColorButton.Font = Enum.Font.SourceSans
-GUI.PlayerGlowColorButton.Text = ""
-GUI.PlayerGlowColorButton.TextColor3 = Color3.fromRGB(0, 0, 0)
-GUI.PlayerGlowColorButton.TextSize = 14
-
-GUI.PlayerInfoColorButton.Name = "PlayerInfoColorButton"
-GUI.PlayerInfoColorButton.Parent = GUI.VisualsESPSection
-LoadColorButton(GUI.PlayerInfoColorButton, "InfoColor")
-GUI.PlayerInfoColorButton.BorderSizePixel = 0
-GUI.PlayerInfoColorButton.Position = UDim2.new(0.5, 0, 0.55, 0)
-GUI.PlayerInfoColorButton.Size = UDim2.new(0, 15, 0, 15)
-GUI.PlayerInfoColorButton.Visible = false
-GUI.PlayerInfoColorButton.Font = Enum.Font.SourceSans
-GUI.PlayerInfoColorButton.Text = ""
-GUI.PlayerInfoColorButton.TextColor3 = Color3.fromRGB(0, 0, 0)
-GUI.PlayerInfoColorButton.TextSize = 14
-
-GUI.PlayerBoxColorButton.Name = "PlayerBoxColorButton"
-GUI.PlayerBoxColorButton.Parent = GUI.VisualsESPSection
-LoadColorButton(GUI.PlayerBoxColorButton, "BoxColor")
-GUI.PlayerBoxColorButton.BorderSizePixel = 0
-GUI.PlayerBoxColorButton.Position = UDim2.new(0.5, 0, 0.4, 0)
-GUI.PlayerBoxColorButton.Size = UDim2.new(0, 15, 0, 15)
-GUI.PlayerBoxColorButton.Visible = false
-GUI.PlayerBoxColorButton.Font = Enum.Font.SourceSans
-GUI.PlayerBoxColorButton.Text = ""
-GUI.PlayerBoxColorButton.TextColor3 = Color3.fromRGB(0, 0, 0)
-GUI.PlayerBoxColorButton.TextSize = 14
-
-GUI.PlayerKOColorButton.Name = "PlayerKOColorButton"
-GUI.PlayerKOColorButton.Parent = GUI.VisualsESPSection
-LoadColorButton(GUI.PlayerKOColorButton, "KOColor")
-GUI.PlayerKOColorButton.BorderSizePixel = 0
-GUI.PlayerKOColorButton.Position = UDim2.new(0.5, 0, 0.325, 0)
-GUI.PlayerKOColorButton.Size = UDim2.new(0, 15, 0, 15)
-GUI.PlayerKOColorButton.Visible = false
-GUI.PlayerKOColorButton.Font = Enum.Font.SourceSans
-GUI.PlayerKOColorButton.Text = ""
-GUI.PlayerKOColorButton.TextColor3 = Color3.fromRGB(0, 0, 0)
-GUI.PlayerKOColorButton.TextSize = 14
-
-GUI.PlayerStaminaColorButton.Name = "PlayerStaminaColorButton"
-GUI.PlayerStaminaColorButton.Parent = GUI.VisualsESPSection
-LoadColorButton(GUI.PlayerStaminaColorButton, "StaminaColor")
-GUI.PlayerStaminaColorButton.BorderSizePixel = 0
-GUI.PlayerStaminaColorButton.Position = UDim2.new(0.5, 0, 0.25, 0)
-GUI.PlayerStaminaColorButton.Size = UDim2.new(0, 15, 0, 15)
-GUI.PlayerStaminaColorButton.Visible = false
-GUI.PlayerStaminaColorButton.Font = Enum.Font.SourceSans
-GUI.PlayerStaminaColorButton.Text = ""
-GUI.PlayerStaminaColorButton.TextColor3 = Color3.fromRGB(0, 0, 0)
-GUI.PlayerStaminaColorButton.TextSize = 14
-
-GUI.PlayerChamsColorButton.Name = "PlayerChamsColorButton"
-GUI.PlayerChamsColorButton.Parent = GUI.VisualsESPSection
-LoadColorButton(GUI.PlayerChamsColorButton, "ChamsColor")
-GUI.PlayerChamsColorButton.BorderSizePixel = 0
-GUI.PlayerChamsColorButton.Position = UDim2.new(0.5, 0, 0.175, 0)
-GUI.PlayerChamsColorButton.Size = UDim2.new(0, 15, 0, 15)
-GUI.PlayerChamsColorButton.Visible = false
-GUI.PlayerChamsColorButton.Font = Enum.Font.SourceSans
-GUI.PlayerChamsColorButton.Text = ""
-GUI.PlayerChamsColorButton.TextColor3 = Color3.fromRGB(0, 0, 0)
-GUI.PlayerChamsColorButton.TextSize = 14
-
 GUI.ItemESPEnabledCheckBox.Name = "ItemESPEnabledCheckBox"
 GUI.ItemESPEnabledCheckBox.Parent = GUI.VisualsESPSection
 LoadCheckBox(GUI.ItemESPEnabledCheckBox, "ItemEsp")
@@ -2173,7 +2392,7 @@ GUI.ItemESPGoodItemsCheckBox.Name = "ItemESPGoodItemsCheckBox"
 GUI.ItemESPGoodItemsCheckBox.Parent = GUI.VisualsESPSection
 LoadCheckBox(GUI.ItemESPGoodItemsCheckBox, "GoodItemsOnly")
 GUI.ItemESPGoodItemsCheckBox.BorderSizePixel = 0
-GUI.ItemESPGoodItemsCheckBox.Position = UDim2.new(0.05, 0, 0.824999988, 0)
+GUI.ItemESPGoodItemsCheckBox.Position = UDim2.new(0.05, 0, 0.825, 0)
 GUI.ItemESPGoodItemsCheckBox.Size = UDim2.new(0, 15, 0, 15)
 GUI.ItemESPGoodItemsCheckBox.Font = Enum.Font.SourceSans
 GUI.ItemESPGoodItemsCheckBox.Text = ""
@@ -2184,7 +2403,7 @@ GUI.TextLabel_25.Parent = GUI.VisualsESPSection
 GUI.TextLabel_25.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
 GUI.TextLabel_25.BackgroundTransparency = 1
 GUI.TextLabel_25.BorderSizePixel = 0
-GUI.TextLabel_25.Position = UDim2.new(0.125, 0, 0.824999988, 0)
+GUI.TextLabel_25.Position = UDim2.new(0.125, 0, 0.825, 0)
 GUI.TextLabel_25.Size = UDim2.new(0.5, 0, 0.05, 0)
 GUI.TextLabel_25.Font = Enum.Font.SourceSans
 GUI.TextLabel_25.Text = "Good Items Only"
@@ -2277,7 +2496,7 @@ GUI.TextLabel_29.TextXAlignment = Enum.TextXAlignment.Left
 
 GUI.StatesCheckBox.Name = "StatesCheckBox"
 GUI.StatesCheckBox.Parent = GUI.VisualsOthersSection
-LoadCheckBox(GUI.StatesCheckBox, "States")
+LoadCheckBox(GUI.StatesCheckBox, "States", GUI.StatesFrame)
 GUI.StatesCheckBox.BorderSizePixel = 0
 GUI.StatesCheckBox.Position = UDim2.new(0.05, 0, 0.25, 0)
 GUI.StatesCheckBox.Size = UDim2.new(0, 15, 0, 15)
@@ -2293,7 +2512,7 @@ GUI.HitmarkerSoundButton.BorderSizePixel = 0
 GUI.HitmarkerSoundButton.Position = UDim2.new(0.1, 0, 0.6, 0)
 GUI.HitmarkerSoundButton.Size = UDim2.new(0.4, 0, 0, 15)
 GUI.HitmarkerSoundButton.Font = Enum.Font.SourceSans
-GUI.HitmarkerSoundButton.Text = "None"
+GUI.HitmarkerSoundButton.Text = Config["HitmarkerSound"]
 GUI.HitmarkerSoundButton.TextColor3 = Color3.fromRGB(225, 225, 225)
 GUI.HitmarkerSoundButton.TextSize = 14
 
@@ -2344,7 +2563,7 @@ GUI.NoneSoundSelect.TextSize = 14
 
 GUI.WatermarkCheckBox.Name = "WatermarkCheckBox"
 GUI.WatermarkCheckBox.Parent = GUI.VisualsOthersSection
-LoadCheckBox(GUI.WatermarkCheckBox, "Watermark")
+LoadCheckBox(GUI.WatermarkCheckBox, "Watermark", GUI.WatermarkFrame)
 GUI.WatermarkCheckBox.BorderSizePixel = 0
 GUI.WatermarkCheckBox.Position = UDim2.new(0.05, 0, 0.175, 0)
 GUI.WatermarkCheckBox.Size = UDim2.new(0, 15, 0, 15)
@@ -2424,6 +2643,30 @@ GUI.DraggableUIObjectsCheckBox.Font = Enum.Font.SourceSans
 GUI.DraggableUIObjectsCheckBox.Text = ""
 GUI.DraggableUIObjectsCheckBox.TextColor3 = Color3.fromRGB(0, 0, 0)
 GUI.DraggableUIObjectsCheckBox.TextSize = 14
+
+GUI.TextLabel_42.Parent = GUI.VisualsOthersSection
+GUI.TextLabel_42.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+GUI.TextLabel_42.BackgroundTransparency = 1
+GUI.TextLabel_42.BorderSizePixel = 0
+GUI.TextLabel_42.Position = UDim2.new(0.125, 0, 0.825, 0)
+GUI.TextLabel_42.Size = UDim2.new(0.5, 0, 0.05, 0)
+GUI.TextLabel_42.Font = Enum.Font.SourceSans
+GUI.TextLabel_42.Text = "Fading UI Objects"
+GUI.TextLabel_42.TextColor3 = Color3.fromRGB(225, 225, 225)
+GUI.TextLabel_42.TextSize = 14
+GUI.TextLabel_42.TextWrapped = true
+GUI.TextLabel_42.TextXAlignment = Enum.TextXAlignment.Left
+
+GUI.FadingUIObjectsCheckBox.Name = "FadingUIObjectsCheckBox"
+GUI.FadingUIObjectsCheckBox.Parent = GUI.VisualsOthersSection
+LoadCheckBox(GUI.FadingUIObjectsCheckBox, "FadingUIObjects")
+GUI.FadingUIObjectsCheckBox.BorderSizePixel = 0
+GUI.FadingUIObjectsCheckBox.Position = UDim2.new(0.05, 0, 0.825, 0)
+GUI.FadingUIObjectsCheckBox.Size = UDim2.new(0, 15, 0, 15)
+GUI.FadingUIObjectsCheckBox.Font = Enum.Font.SourceSans
+GUI.FadingUIObjectsCheckBox.Text = ""
+GUI.FadingUIObjectsCheckBox.TextColor3 = Color3.fromRGB(0, 0, 0)
+GUI.FadingUIObjectsCheckBox.TextSize = 14
 
 GUI.CharacterTab.Name = "CharacterTab"
 GUI.CharacterTab.Parent = GUI.TabHolder
@@ -2573,7 +2816,7 @@ GUI.WalkSpeedModAmount.BorderSizePixel = 0
 GUI.WalkSpeedModAmount.Position = UDim2.new(0.25, 0, 0, 0)
 GUI.WalkSpeedModAmount.Size = UDim2.new(0.5, 0, 1, 0)
 GUI.WalkSpeedModAmount.Font = Enum.Font.SourceSans
-LoadSlider(GUI.WalkSpeedModAmount, GUI.WalkSpeedModSliderButton, "WalkSpeed")
+LoadSlider(GUI.WalkSpeedModAmount, GUI.WalkSpeedModSliderButton, "WalkSpeed", 200)
 GUI.WalkSpeedModAmount.TextColor3 = Color3.fromRGB(225, 225, 225)
 GUI.WalkSpeedModAmount.TextSize = 14
 
@@ -2630,7 +2873,7 @@ GUI.RunSpeedModAmount.BorderSizePixel = 0
 GUI.RunSpeedModAmount.Position = UDim2.new(0.25, 0, 0, 0)
 GUI.RunSpeedModAmount.Size = UDim2.new(0.5, 0, 1, 0)
 GUI.RunSpeedModAmount.Font = Enum.Font.SourceSans
-LoadSlider(GUI.RunSpeedModAmount, GUI.RunSpeedModSliderButton, "RunSpeed")
+LoadSlider(GUI.RunSpeedModAmount, GUI.RunSpeedModSliderButton, "RunSpeed", 200)
 GUI.RunSpeedModAmount.TextColor3 = Color3.fromRGB(225, 225, 225)
 GUI.RunSpeedModAmount.TextSize = 14
 
@@ -2687,7 +2930,7 @@ GUI.CrouchSpeedModAmount.BorderSizePixel = 0
 GUI.CrouchSpeedModAmount.Position = UDim2.new(0.25, 0, 0, 0)
 GUI.CrouchSpeedModAmount.Size = UDim2.new(0.5, 0, 1, 0)
 GUI.CrouchSpeedModAmount.Font = Enum.Font.SourceSans
-LoadSlider(GUI.CrouchSpeedModAmount, GUI.CrouchSpeedModSliderButton, "CrouchSpeed")
+LoadSlider(GUI.CrouchSpeedModAmount, GUI.CrouchSpeedModSliderButton, "CrouchSpeed", 200)
 GUI.CrouchSpeedModAmount.TextColor3 = Color3.fromRGB(225, 225, 225)
 GUI.CrouchSpeedModAmount.TextSize = 14
 
@@ -2720,7 +2963,7 @@ GUI.JumpPowerModAmount.BorderSizePixel = 0
 GUI.JumpPowerModAmount.Position = UDim2.new(0.25, 0, 0, 0)
 GUI.JumpPowerModAmount.Size = UDim2.new(0.5, 0, 1, 0)
 GUI.JumpPowerModAmount.Font = Enum.Font.SourceSans
-LoadSlider(GUI.JumpPowerModAmount, GUI.JumpPowerModSliderButton, "JumpPower")
+LoadSlider(GUI.JumpPowerModAmount, GUI.JumpPowerModSliderButton, "JumpPower", 200)
 GUI.JumpPowerModAmount.TextColor3 = Color3.fromRGB(225, 225, 225)
 GUI.JumpPowerModAmount.TextSize = 14
 
@@ -2747,30 +2990,6 @@ GUI.CrouchSpeedModCheckBox.Font = Enum.Font.SourceSans
 GUI.CrouchSpeedModCheckBox.Text = ""
 GUI.CrouchSpeedModCheckBox.TextColor3 = Color3.fromRGB(0, 0, 0)
 GUI.CrouchSpeedModCheckBox.TextSize = 14
-
-GUI.TextLabel_42.Parent = GUI.CharacterMovementSection
-GUI.TextLabel_42.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-GUI.TextLabel_42.BackgroundTransparency = 1
-GUI.TextLabel_42.BorderSizePixel = 0
-GUI.TextLabel_42.Position = UDim2.new(0.125, 0, 0.699999988, 0)
-GUI.TextLabel_42.Size = UDim2.new(0.5, 0, 0.05, 0)
-GUI.TextLabel_42.Font = Enum.Font.SourceSans
-GUI.TextLabel_42.Text = "Ignore Action Speed"
-GUI.TextLabel_42.TextColor3 = Color3.fromRGB(225, 225, 225)
-GUI.TextLabel_42.TextSize = 14
-GUI.TextLabel_42.TextWrapped = true
-GUI.TextLabel_42.TextXAlignment = Enum.TextXAlignment.Left
-
-GUI.IgnoreActionSpeedCheckBox.Name = "IgnoreActionSpeedCheckBox"
-GUI.IgnoreActionSpeedCheckBox.Parent = GUI.CharacterMovementSection
-LoadCheckBox(GUI.IgnoreActionSpeedCheckBox, "IgnoreActionSpeed")
-GUI.IgnoreActionSpeedCheckBox.BorderSizePixel = 0
-GUI.IgnoreActionSpeedCheckBox.Position = UDim2.new(0.05, 0, 0.699999988, 0)
-GUI.IgnoreActionSpeedCheckBox.Size = UDim2.new(0, 15, 0, 15)
-GUI.IgnoreActionSpeedCheckBox.Font = Enum.Font.SourceSans
-GUI.IgnoreActionSpeedCheckBox.Text = ""
-GUI.IgnoreActionSpeedCheckBox.TextColor3 = Color3.fromRGB(0, 0, 0)
-GUI.IgnoreActionSpeedCheckBox.TextSize = 14
 
 GUI.MiscellaneousTab.Name = "MiscellaneousTab"
 GUI.MiscellaneousTab.Parent = GUI.TabHolder
@@ -2975,23 +3194,23 @@ GUI.TextLabel_51.Position = UDim2.new(0.125, 0, 0.625, 0)
 GUI.TextLabel_51.Rotation = 1
 GUI.TextLabel_51.Size = UDim2.new(0.5, 0, 0.05, 0)
 GUI.TextLabel_51.Font = Enum.Font.SourceSans
-GUI.TextLabel_51.Text = "Mute Radios"
+GUI.TextLabel_51.Text = "Auto Eat"
 GUI.TextLabel_51.TextColor3 = Color3.fromRGB(225, 225, 225)
 GUI.TextLabel_51.TextSize = 14
 GUI.TextLabel_51.TextWrapped = true
 GUI.TextLabel_51.TextXAlignment = Enum.TextXAlignment.Left
 
-GUI.MuteRadiosCheckBox.Name = "MuteRadiosCheckBox"
-GUI.MuteRadiosCheckBox.Parent = GUI.MiscellaneousMainSection
-LoadCheckBox(GUI.MuteRadiosCheckBox, "MuteRadios")
-GUI.MuteRadiosCheckBox.BorderSizePixel = 0
-GUI.MuteRadiosCheckBox.Position = UDim2.new(0.05, 0, 0.625, 0)
-GUI.MuteRadiosCheckBox.Rotation = 1
-GUI.MuteRadiosCheckBox.Size = UDim2.new(0, 15, 0, 15)
-GUI.MuteRadiosCheckBox.Font = Enum.Font.SourceSans
-GUI.MuteRadiosCheckBox.Text = ""
-GUI.MuteRadiosCheckBox.TextColor3 = Color3.fromRGB(0, 0, 0)
-GUI.MuteRadiosCheckBox.TextSize = 14
+GUI.AutoEatCheckBox.Name = "AutoEatCheckBox"
+GUI.AutoEatCheckBox.Parent = GUI.MiscellaneousMainSection
+LoadCheckBox(GUI.AutoEatCheckBox, "AutoEat")
+GUI.AutoEatCheckBox.BorderSizePixel = 0
+GUI.AutoEatCheckBox.Position = UDim2.new(0.05, 0, 0.625, 0)
+GUI.AutoEatCheckBox.Rotation = 1
+GUI.AutoEatCheckBox.Size = UDim2.new(0, 15, 0, 15)
+GUI.AutoEatCheckBox.Font = Enum.Font.SourceSans
+GUI.AutoEatCheckBox.Text = ""
+GUI.AutoEatCheckBox.TextColor3 = Color3.fromRGB(0, 0, 0)
+GUI.AutoEatCheckBox.TextSize = 14
 
 GUI.TextLabel_52.Parent = GUI.MiscellaneousMainSection
 GUI.TextLabel_52.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
@@ -3433,7 +3652,7 @@ GUI.RadioVolumeAmount.BorderSizePixel = 0
 GUI.RadioVolumeAmount.Position = UDim2.new(0.25, 0, 0, 0)
 GUI.RadioVolumeAmount.Size = UDim2.new(0.5, 0, 1, 0)
 GUI.RadioVolumeAmount.Font = Enum.Font.SourceSans
-LoadSlider(GUI.RadioVolumeAmount, GUI.RadioVolumeSliderButton, "RadioVolume")
+LoadSlider(GUI.RadioVolumeAmount, GUI.RadioVolumeSliderButton, "RadioVolume", 10)
 GUI.RadioVolumeAmount.TextColor3 = Color3.fromRGB(225, 225, 225)
 GUI.RadioVolumeAmount.TextSize = 14
 
@@ -3463,8 +3682,8 @@ GUI.OthersFrame.Size = UDim2.new(1, 0, 1.1, 0)
 
 GUI.WatermarkFrame.Name = "WatermarkFrame"
 GUI.WatermarkFrame.Parent = GUI.OthersFrame
-GUI.WatermarkFrame.BackgroundColor3 = Color3.fromRGB(10, 10, 10)
-GUI.WatermarkFrame.BackgroundTransparency = 0.3
+GUI.WatermarkFrame.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
+GUI.WatermarkFrame.BackgroundTransparency = 0.25
 LoadMainColor(GUI.WatermarkFrame, "Border")
 GUI.WatermarkFrame.Position = UDim2.new(0, 100, 0, 45)
 GUI.WatermarkFrame.Size = UDim2.new(0, 250, 0, 20)
@@ -3486,8 +3705,8 @@ GUI.WatermarkDataLabel.TextXAlignment = Enum.TextXAlignment.Left
 GUI.StatesFrame.Name = "StatesFrame"
 GUI.StatesFrame.Parent = GUI.OthersFrame
 GUI.StatesFrame.Active = true
-GUI.StatesFrame.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
-GUI.StatesFrame.BackgroundTransparency = 0.3
+GUI.StatesFrame.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
+GUI.StatesFrame.BackgroundTransparency = 0.25
 LoadMainColor(GUI.StatesFrame, "Border")
 GUI.StatesFrame.BorderSizePixel = 2
 GUI.StatesFrame.Position = UDim2.new(0.005, 0, 0.15, 0)
@@ -3565,8 +3784,8 @@ GUI.NoclippingLabel.TextWrapped = true
 GUI.HairFrame.Name = "HairFrame"
 GUI.HairFrame.Parent = GUI.OthersFrame
 GUI.HairFrame.Active = true
-GUI.HairFrame.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
-GUI.HairFrame.BackgroundTransparency = 0.3
+GUI.HairFrame.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
+GUI.HairFrame.BackgroundTransparency = 0.25
 LoadMainColor(GUI.HairFrame, "Border")
 GUI.HairFrame.BorderSizePixel = 2
 GUI.HairFrame.Position = UDim2.new(0.25, 0, 0.15, 0)
@@ -3684,8 +3903,8 @@ GUI.RandomColorsModeButton.TextSize = 14
 GUI.BuildMenuFrame.Name = "BuildMenuFrame"
 GUI.BuildMenuFrame.Parent = GUI.OthersFrame
 GUI.BuildMenuFrame.Active = true
-GUI.BuildMenuFrame.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
-GUI.BuildMenuFrame.BackgroundTransparency = 0.3
+GUI.BuildMenuFrame.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
+GUI.BuildMenuFrame.BackgroundTransparency = 0.25
 LoadMainColor(GUI.BuildMenuFrame, "Border")
 GUI.BuildMenuFrame.BorderSizePixel = 2
 GUI.BuildMenuFrame.Position = UDim2.new(0.25, 0, 0.15, 0)
@@ -4051,9 +4270,10 @@ GUI.BuildMenuIncrementBox.TextWrapped = true
 
 GUI.CommandBarFrame.Name = "CommandBarFrame"
 GUI.CommandBarFrame.Parent = GUI.OthersFrame
-LoadMainColor(GUI.CommandBarFrame, "Background")
-GUI.CommandBarFrame.BackgroundTransparency = 0.250
-GUI.CommandBarFrame.BorderSizePixel = 0
+GUI.CommandBarFrame.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
+GUI.CommandBarFrame.BackgroundTransparency = .25
+LoadMainColor(GUI.CommandBarFrame, "Border")
+GUI.CommandBarFrame.BorderSizePixel = 1
 GUI.CommandBarFrame.Position = UDim2.new(0, 0, 0, 100)
 GUI.CommandBarFrame.Size = UDim2.new(1, 0, 0, 30)
 GUI.CommandBarFrame.Visible = false
@@ -4067,8 +4287,64 @@ GUI.CommandBarBox.Size = UDim2.new(1, 0, 1, 0)
 GUI.CommandBarBox.Font = Enum.Font.SourceSans
 GUI.CommandBarBox.Text = ""
 GUI.CommandBarBox.TextColor3 = Color3.fromRGB(225, 225, 225)
-GUI.CommandBarBox.TextSize = 16
+GUI.CommandBarBox.TextSize = 20
 GUI.CommandBarBox.TextWrapped = true
+
+GUI.CommandsFrame.Name = "CommandsFrame"
+GUI.CommandsFrame.Parent = GUI.OthersFrame
+GUI.CommandsFrame.Active = true
+GUI.CommandsFrame.Draggable = true
+GUI.CommandsFrame.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
+GUI.CommandsFrame.BackgroundTransparency = 0.25
+GUI.CommandsFrame.BorderColor3 = Color3.fromRGB(0, 85, 255)
+GUI.CommandsFrame.BorderSizePixel = 2
+GUI.CommandsFrame.Position = UDim2.new(0, 300, 0, 300)
+GUI.CommandsFrame.Size = UDim2.new(0.3, 0, 0.5, 0)
+GUI.CommandsFrame.Visible = false
+
+GUI.CommandsFrameTopBar.Name = "CommandsFrameTopBar"
+GUI.CommandsFrameTopBar.Parent = GUI.CommandsFrame
+GUI.CommandsFrameTopBar.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+GUI.CommandsFrameTopBar.BorderSizePixel = 0
+GUI.CommandsFrameTopBar.Size = UDim2.new(1, 0, 0.1, 0)
+
+GUI.CommandsFrameTitle.Name = "CommandsFrameTitle"
+GUI.CommandsFrameTitle.Parent = GUI.CommandsFrameTopBar
+GUI.CommandsFrameTitle.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+GUI.CommandsFrameTitle.BackgroundTransparency = 1
+GUI.CommandsFrameTitle.BorderSizePixel = 0
+GUI.CommandsFrameTitle.Size = UDim2.new(1, 0, 1, 0)
+GUI.CommandsFrameTitle.Font = Enum.Font.SourceSansLight
+GUI.CommandsFrameTitle.Text = "Commands"
+GUI.CommandsFrameTitle.TextColor3 = Color3.fromRGB(225, 225, 225)
+GUI.CommandsFrameTitle.TextSize = 20
+GUI.CommandsFrameTitle.TextWrapped = true
+
+GUI.CommandsFrameCloseButton.Name = "CommandsFrameCloseButton"
+GUI.CommandsFrameCloseButton.Parent = GUI.CommandsFrameTopBar
+GUI.CommandsFrameCloseButton.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+GUI.CommandsFrameCloseButton.BackgroundTransparency = 1
+GUI.CommandsFrameCloseButton.BorderSizePixel = 0
+GUI.CommandsFrameCloseButton.Position = UDim2.new(0.9, 0, 0, 0)
+GUI.CommandsFrameCloseButton.Size = UDim2.new(0.1, 0, 1, 0)
+GUI.CommandsFrameCloseButton.Font = Enum.Font.SourceSans
+GUI.CommandsFrameCloseButton.Text = "X"
+GUI.CommandsFrameCloseButton.TextColor3 = Color3.fromRGB(225, 225, 225)
+GUI.CommandsFrameCloseButton.TextSize = 20
+GUI.CommandsFrameCloseButton.TextWrapped = true
+
+GUI.CommandsHolderFrame.Name = "CommandsHolderFrame"
+GUI.CommandsHolderFrame.Parent = GUI.CommandsFrame
+GUI.CommandsHolderFrame.Active = true
+GUI.CommandsHolderFrame.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+GUI.CommandsHolderFrame.BorderColor3 = Color3.fromRGB(0, 85, 255)
+GUI.CommandsHolderFrame.Position = UDim2.new(0.05, 0, 0.15, 0)
+GUI.CommandsHolderFrame.Size = UDim2.new(0.9, 0, 0.8, 0)
+GUI.CommandsHolderFrame.CanvasSize = UDim2.new(0, 0, 0, 0)
+GUI.CommandsHolderFrame.ScrollBarThickness = 4
+
+GUI.UIListLayout_5.Parent = GUI.CommandsHolderFrame
+GUI.UIListLayout_5.SortOrder = Enum.SortOrder.LayoutOrder
 
 local Recording = false
 local RecordButton
@@ -4076,10 +4352,127 @@ local Sliding = false
 local SliderButton
 local Slider
 local SliderData
-local SlidingStep = 0
+local PercentageAmount = 0
 
 local function ShowColorPicker(Button, Change)
-    local Frame = Instance.new("Frame")
+    local ColorPickerFrame = Instance.new("Frame")
+    local ColorPickerFrameTopBar = Instance.new("Frame")
+    local ColorPickerFrameTitle = Instance.new("TextLabel")
+    local ColorPickerFrameCloseButton = Instance.new("TextButton")
+    local ColorPickerHolderFrame = Instance.new("Frame")
+    local ColorPreview = Instance.new("Frame")
+    local RedColorBox = Instance.new("TextBox")
+    local GreenColorBox = Instance.new("TextBox")
+    local BlueColorBox = Instance.new("TextBox")
+    local FinishButton = Instance.new("TextButton")
+    
+    ColorPickerFrame.Name = "ColorPickerFrame"
+    ColorPickerFrame.Parent = GUI.OthersFrame
+    ColorPickerFrame.Active = true
+    ColorPickerFrame.Draggable = true
+    ColorPickerFrame.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
+    ColorPickerFrame.BackgroundTransparency = 0.25
+    ColorPickerFrame.BorderColor3 = Color3.fromRGB(0, 85, 255)
+    ColorPickerFrame.BorderSizePixel = 2
+    ColorPickerFrame.Position = UDim2.new(0, 150, 0, 150)
+    ColorPickerFrame.Size = UDim2.new(0.3, 0, 0.5, 0)
+    
+    ColorPickerFrameTopBar.Name = "ColorPickerFrameTopBar"
+    ColorPickerFrameTopBar.Parent = ColorPickerFrame
+    ColorPickerFrameTopBar.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+    ColorPickerFrameTopBar.BorderSizePixel = 0
+    ColorPickerFrameTopBar.Size = UDim2.new(1, 0, 0.1, 0)
+    
+    ColorPickerFrameTitle.Name = "ColorPickerFrameTitle"
+    ColorPickerFrameTitle.Parent = ColorPickerFrameTopBar
+    ColorPickerFrameTitle.BackgroundTransparency = 1
+    ColorPickerFrameTitle.Size = UDim2.new(1, 0, 1, 0)
+    ColorPickerFrameTitle.Font = Enum.Font.SourceSansLight
+    ColorPickerFrameTitle.Text = "Color Picker"
+    ColorPickerFrameTitle.TextColor3 = Color3.fromRGB(225, 225, 225)
+    ColorPickerFrameTitle.TextSize = 20
+    ColorPickerFrameTitle.TextWrapped = true
+    
+    ColorPickerFrameCloseButton.Name = "ColorPickerFrameCloseButton"
+    ColorPickerFrameCloseButton.Parent = ColorPickerFrameTopBar
+    ColorPickerFrameCloseButton.BackgroundTransparency = 1
+    ColorPickerFrameCloseButton.Position = UDim2.new(0.9, 0, 0, 0)
+    ColorPickerFrameCloseButton.Size = UDim2.new(0.1, 0, 1, 0)
+    ColorPickerFrameCloseButton.Font = Enum.Font.SourceSans
+    ColorPickerFrameCloseButton.Text = "X"
+    ColorPickerFrameCloseButton.TextColor3 = Color3.fromRGB(225, 225, 225)
+    ColorPickerFrameCloseButton.TextSize = 20
+    ColorPickerFrameCloseButton.TextWrapped = true
+    
+    ColorPickerHolderFrame.Name = "ColorPickerHolderFrame"
+    ColorPickerHolderFrame.Parent = ColorPickerFrame
+    ColorPickerHolderFrame.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+    ColorPickerHolderFrame.BorderColor3 = Color3.fromRGB(27, 42, 53)
+    ColorPickerHolderFrame.BorderSizePixel = 0
+    ColorPickerHolderFrame.Position = UDim2.new(0.05, 0, 0.15, 0)
+    ColorPickerHolderFrame.Size = UDim2.new(0.9, 0, 0.8, 0)
+    
+    ColorPreview.Name = "ColorPreview"
+    ColorPreview.Parent = ColorPickerHolderFrame
+    ColorPreview.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+    ColorPreview.BorderColor3 = Color3.fromRGB(255, 255, 255)
+    ColorPreview.BorderSizePixel = 2
+    ColorPreview.Position = UDim2.new(0.1, 0, 0.8, 0)
+    ColorPreview.Size = UDim2.new(0.8, 0, 0.15, 0)
+    
+    RedColorBox.Name = "RedColorBox"
+    RedColorBox.Parent = ColorPickerHolderFrame
+    RedColorBox.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+    RedColorBox.BorderSizePixel = 0
+    RedColorBox.Position = UDim2.new(0.325, 0, 0.5, 0)
+    RedColorBox.Size = UDim2.new(0.35, 0, 0.1, 0)
+    RedColorBox.Font = Enum.Font.SourceSans
+    RedColorBox.PlaceholderColor3 = Color3.fromRGB(225, 225, 225)
+    RedColorBox.PlaceholderText = "Red"
+    RedColorBox.Text = ""
+    RedColorBox.TextColor3 = Color3.fromRGB(225, 225, 225)
+    RedColorBox.TextSize = 16
+    
+    GreenColorBox.Name = "GreenColorBox"
+    GreenColorBox.Parent = ColorPickerHolderFrame
+    GreenColorBox.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+    GreenColorBox.BorderSizePixel = 0
+    GreenColorBox.Position = UDim2.new(0.325, 0, 0.2, 0)
+    GreenColorBox.Size = UDim2.new(0.35, 0, 0.1, 0)
+    GreenColorBox.Font = Enum.Font.SourceSans
+    GreenColorBox.PlaceholderColor3 = Color3.fromRGB(225, 225, 225)
+    GreenColorBox.PlaceholderText = "Green"
+    GreenColorBox.Text = ""
+    GreenColorBox.TextColor3 = Color3.fromRGB(225, 225, 225)
+    GreenColorBox.TextSize = 16
+    
+    BlueColorBox.Name = "BlueColorBox"
+    BlueColorBox.Parent = ColorPickerHolderFrame
+    BlueColorBox.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+    BlueColorBox.BorderSizePixel = 0
+    BlueColorBox.Position = UDim2.new(0.325, 0, 0.35, 0)
+    BlueColorBox.Size = UDim2.new(0.35, 0, 0.1, 0)
+    BlueColorBox.Font = Enum.Font.SourceSans
+    BlueColorBox.PlaceholderColor3 = Color3.fromRGB(225, 225, 225)
+    BlueColorBox.PlaceholderText = "Blue"
+    BlueColorBox.Text = ""
+    BlueColorBox.TextColor3 = Color3.fromRGB(225, 225, 225)
+    BlueColorBox.TextSize = 16
+    
+    FinishButton.Name = "FinishButton"
+    FinishButton.Parent = ColorPickerHolderFrame
+    FinishButton.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+    FinishButton.BorderSizePixel = 0
+    FinishButton.Position = UDim2.new(0.25, 0, 0.55, 0)
+    FinishButton.Size = UDim2.new(0.5, 0, 0.15, 0)
+    FinishButton.Font = Enum.Font.SourceSans
+    FinishButton.Text = "Finish"
+    FinishButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+    FinishButton.TextSize = 16
+    
+    ColorPickerFrameCloseButton.MouseButton1Click:Connect(function()
+        ColorPickerFrame:Destroy()
+    end)
 end
 
 local function ChangeTab(Tab, Button)
@@ -4114,8 +4507,8 @@ local function CheckBox(Box, State, ...)
         Box.BackgroundColor3 = Color3.fromRGB(Colors[1], Colors[2], Colors[3])
         Config[State] = true
         if ... then
-            local ColorButton = ...
-            ColorButton.Visible = true
+            local Object = ...
+            Object.Visible = true
         end
     end
     SaveFile()
@@ -4126,14 +4519,6 @@ local function SelectionBox(Frame)
         Frame.Visible = false
     else
         Frame.Visible = true
-    end
-end
-
-local function SliderStep(Number, Factor)
-    if Factor ~= 0 then
-        return math.floor(Number / Factor + .5) * Factor
-    else
-        return Number
     end
 end
 
@@ -4148,9 +4533,14 @@ local function UpdateKeyBoxes()
     Config["MenuKey"] = GUI.MenuKeyButton.Text
 end
 
+GUI.CommandsFrameCloseButton.MouseButton1Click:Connect(function()
+    GUI.CommandsFrame.Visible = false
+end)
+
 GUI.CommandBarBox.Focused:Connect(function()
-    Wait()
-    GUI.CommandBarBox.Text = ""
+    Spawn(function()
+        GUI.CommandBarBox.Text = ""
+    end)
 end)
 
 GUI.CombatSelect.MouseButton1Click:Connect(function()
@@ -4235,6 +4625,7 @@ end)
 
 GUI.AutoStompDistanceSliderButton.MouseButton1Down:Connect(function()
     Sliding = true
+    PercentageAmount = 50
     Slider = GUI.AutoStompDistanceSlider
     SliderData = GUI.AutoStompDistanceAmount
     SliderButton = GUI.AutoStompDistanceSliderButton
@@ -4296,10 +4687,22 @@ end)
 
 GUI.ItemESPEnabledCheckBox.MouseButton1Click:Connect(function()
     CheckBox(GUI.ItemESPEnabledCheckBox, "ItemEsp")
+    for _,v in pairs(RandomSpawnsHolder:GetDescendants()) do
+        if v:IsA("BillboardGui") then
+            v:Destroy()
+        end
+    end
+    ItemEsp()
 end)
 
 GUI.ItemESPGoodItemsCheckBox.MouseButton1Click:Connect(function()
     CheckBox(GUI.ItemESPGoodItemsCheckBox, "GoodItemsOnly")
+    for _,v in pairs(RandomSpawnsHolder:GetDescendants()) do
+        if v:IsA("BillboardGui") then
+            v:Destroy()
+        end
+    end
+    ItemEsp()
 end)
 
 GUI.BulletTracersCheckBox.MouseButton1Click:Connect(function()
@@ -4311,11 +4714,11 @@ GUI.BulletTracersColorButton.MouseButton1Click:Connect(function()
 end)
 
 GUI.WatermarkCheckBox.MouseButton1Click:Connect(function()
-    CheckBox(GUI.WatermarkCheckBox, "Watermark")
+    CheckBox(GUI.WatermarkCheckBox, "Watermark", GUI.WatermarkFrame)
 end)
 
 GUI.StatesCheckBox.MouseButton1Click:Connect(function()
-    CheckBox(GUI.StatesCheckBox, "States")
+    CheckBox(GUI.StatesCheckBox, "States", GUI.StatesFrame)
 end)
 
 GUI.ShowAmmoCheckBox.MouseButton1Click:Connect(function()
@@ -4348,6 +4751,21 @@ GUI.DefaultSoundSelect.MouseButton1Click:Connect(function()
     SaveFile()
 end)
 
+GUI.FadingUIObjectsCheckBox.MouseButton1Click:Connect(function()
+    CheckBox(GUI.FadingUIObjectsCheckBox, "FadingUIObjects")
+    local ToFade = {}
+    local HUD = Player:WaitForChild("PlayerGui"):WaitForChild("HUD")
+    table.insert(ToFade, HUD:WaitForChild("HP"))
+    table.insert(ToFade, HUD:WaitForChild("HP"):WaitForChild("Bar"))
+    table.insert(ToFade, HUD:WaitForChild("KO"))
+    table.insert(ToFade, HUD:WaitForChild("KO"):WaitForChild("Bar"))
+    table.insert(ToFade, HUD:WaitForChild("Stam"))
+    table.insert(ToFade, HUD:WaitForChild("Stam"):WaitForChild("Bar"))
+    for _,v in pairs(ToFade) do
+        v.BackgroundTransparency = 0
+    end
+end)
+
 GUI.GodModeCheckBox.MouseButton1Click:Connect(function()
     CheckBox(GUI.GodModeCheckBox, "GodMode")
 end)
@@ -4362,6 +4780,7 @@ end)
 
 GUI.WalkSpeedModSliderButton.MouseButton1Down:Connect(function()
     Sliding = true
+    PercentageAmount = 200
     Slider = GUI.WalkSpeedModSlider
     SliderData = GUI.WalkSpeedModAmount
     SliderButton = GUI.WalkSpeedModSliderButton
@@ -4373,6 +4792,7 @@ end)
 
 GUI.JumpPowerModSliderButton.MouseButton1Down:Connect(function()
     Sliding = true
+    PercentageAmount = 200
     Slider = GUI.JumpPowerModSlider
     SliderData = GUI.JumpPowerModAmount
     SliderButton = GUI.JumpPowerModSliderButton
@@ -4384,9 +4804,34 @@ end)
 
 GUI.RunSpeedModSliderButton.MouseButton1Down:Connect(function()
     Sliding = true
+    PercentageAmount = 200
     Slider = GUI.RunSpeedModSlider
     SliderData = GUI.RunSpeedModAmount
     SliderButton = GUI.RunSpeedModSliderButton
+end)
+
+GUI.CrouchSpeedModCheckBox.MouseButton1Click:Connect(function()
+    CheckBox(GUI.CrouchSpeedModCheckBox, "CrouchSpeedMod")
+end)
+
+GUI.CrouchSpeedModSliderButton.MouseButton1Down:Connect(function()
+    Sliding = true
+    PercentageAmount = 200
+    Slider = GUI.CrouchSpeedModSlider
+    SliderData = GUI.CrouchSpeedModAmount
+    SliderButton = GUI.CrouchSpeedModSliderButton
+end)
+
+GUI.AnimeRunCheckBox.MouseButton1Click:Connect(function()
+    CheckBox(GUI.AnimeRunCheckBox, "AnimeRun")
+end)
+
+GUI.AutoCashCheckBox.MouseButton1Click:Connect(function()
+    CheckBox(GUI.AutoCashCheckBox, "AutoCash")
+end)
+
+GUI.AntiAFKCheckBox.MouseButton1Click:Connect(function()
+    CheckBox(GUI.AntiAFKCheckBox, "AntiAFK")
 end)
 
 GUI.AutoLockCheckBox.MouseButton1Click:Connect(function()
@@ -4395,6 +4840,65 @@ end)
 
 GUI.AutoUnlockCheckBox.MouseButton1Click:Connect(function()
     CheckBox(GUI.AutoUnlockCheckBox, "AutoUnlock")
+end)
+
+GUI.AutoSortCheckBox.MouseButton1Click:Connect(function()
+    CheckBox(GUI.AutoSortCheckBox, "AutoSort")
+end)
+
+GUI.HideGroupsCheckBox.MouseButton1Click:Connect(function()
+    CheckBox(GUI.HideGroupsCheckBox, "HideGroups")
+end)
+
+GUI.AutoEatCheckBox.MouseButton1Click:Connect(function()
+    CheckBox(GUI.AutoEatCheckBox, "AutoEat")
+end)
+
+GUI.HideSpraysCheckBox.MouseButton1Click:Connect(function()
+    CheckBox(GUI.HideSpraysCheckBox, "HideSprays")
+end)
+
+GUI.HideTPerCheckBox.MouseButton1Click:Connect(function()
+    CheckBox(GUI.HideTPerCheckBox, "HideTPer")
+end)
+
+GUI.WeaponSelectButton.MouseButton1Click:Connect(function()
+    SelectionBox(GUI.WeaponSelectionFrame)
+end)
+
+GUI.GlockWeaponSelect.MouseButton1Click:Connect(function()
+    GUI.WeaponSelectionFrame.Visible = false
+    GUI.WeaponSelectButton.Text = "Glock"
+    SelectedSkin = "Glock"
+    --SaveFile()
+end)
+
+GUI.PrefixKeyButton.MouseButton1Click:Connect(function()
+    Recording = true
+    RecordButton = GUI.PrefixKeyButton
+    GUI.PrefixKeyButton.Text = "Recording.."
+end)
+
+GUI.MenuKeyButton.MouseButton1Click:Connect(function()
+    Recording = true
+    RecordButton = GUI.MenuKeyButton
+    GUI.MenuKeyButton.Text = "Recording.."
+end)
+
+GUI.MainColorButton.MouseButton1Click:Connect(function()
+    ShowColorPicker(GUI.MainColorButton, "MainColor")
+end)
+
+GUI.TextColorButton.MouseButton1Click:Connect(function()
+    ShowColorPicker(GUI.TextColorButton, "TextColor")
+end)
+
+GUI.RadioVolumeSliderButton.MouseButton1Down:Connect(function()
+    Sliding = true
+    PercentageAmount = 10
+    Slider = GUI.RadioVolumeSlider
+    SliderData = GUI.RadioVolumeAmount
+    SliderButton = GUI.RadioVolumeSliderButton
 end)
 
 if game.PlaceId == TheStreetsId then
@@ -4442,26 +4946,25 @@ if game.PlaceId == TheStreetsId then
     end)
 
     GUI.BuildMenuInvertedCrossButton.MouseButton1Click:Connect(function()
-        local HumPart = Player.Character.HumanoidRootPart
-        local pos1 = Vector3.new()
-        local pos2 = Vector3.new(0, 8.6, 0)
-        local pos3 = Vector3.new(0, 2, 0)
-        local rot1 = Vector3.new(90, 0, 0)
-        local rot2 = Vector3.new(0, 90, 90)
-        local count = 0
-        for _,v in pairs(UnAnchoredHolder:GetChildren()) do
-            if v.Name == "Plank" and count < 4 then
-                count = count + 1
-                v.Position = HumPart.Position
-                v.Parent = workspace
-            end
+        local HumPart = Player.Character:FindFirstChild("HumanoidRootPart")
+        local Planks = {}
+        local Plank = UnAnchoredHolder:FindFirstChild("Plank")
+        Plank.CFrame = HumPart.CFrame
+        Plank.Rotation = Vector3.new(90, 0, 0)
+        table.insert(Planks, Plank)
+        local Plank = UnAnchoredHolder:FindFirstChild("Plank")
+        Plank.CFrame = HumPart.CFrame + Vector3.new(0, 8.6, 0)
+        Plank.Rotation = Vector3.new(90, 0, 0)
+        table.insert(Planks, Plank)
+        local Plank = UnAnchoredHolder:FindFirstChild("Plank")
+        Plank.CFrame = HumPart.CFrame + Vector3.new(0, 2, 0)
+        Plank.Rotation = Vector3.new(0, 90, 90)
+        table.insert(Planks, Plank)
+        for _,v in pairs(Planks) do
+            v.Parent = UsedParts
+            v.Massless = true
+            v.Anchored = true
         end
-        workspace.Part1.Position = HumPart.Position + pos1; workspace.Part1.Rotation = rot1
-        workspace.Part2.Position = HumPart.Position + pos2; workspace.Part2.Rotation = rot1
-        workspace.Part3.Position = HumPart.Position + pos3; workspace.Part3.Rotation = rot2
-        workspace.Part1.Anchored = true; workspace.Part1.Parent = UsedParts
-        workspace.Part2.Anchored = true; workspace.Part2.Parent = UsedParts
-        workspace.Part3.Anchored = true; workspace.Part3.Parent = UsedParts
     end)
 
     local function GetHats()
@@ -4528,11 +5031,11 @@ GUI.CommandBarBox.FocusLost:Connect(function()
     end
 end)
 
-AddCommand({"commands", "cmds"},function(Args, Speaker)
-    
+AddCommand({"commands", "cmds"},{"Shows the list of commands"},function(Args, Speaker)
+    GUI.CommandsFrame.Visible = true
 end)
 
-AddCommand({"whitelist", "wl"},function(Args, Speaker)
+AddCommand({"whitelist", "wl"},{"Whitelists a player"},function(Args, Speaker)
     local Target = FindPlayer(Args[1])
     if Target then
 		if not table.find(Config["Whitelisted"], Target) then
@@ -4541,7 +5044,7 @@ AddCommand({"whitelist", "wl"},function(Args, Speaker)
 	end
 end)
 
-AddCommand({"unwhitelist", "unwl"},function(Args, Speaker)
+AddCommand({"unwhitelist", "unwl"},{"Unwhitelists a player"},function(Args, Speaker)
     local Target = FindPlayer(Args[1])
     if Target then
 		if table.find(Config["Whitelisted"], Target) then
@@ -4550,7 +5053,7 @@ AddCommand({"unwhitelist", "unwl"},function(Args, Speaker)
 	end
 end)
 
-AddCommand({"swapplace", "streets", "prison"},function(Args, Speaker)
+AddCommand({"swapplace"},{"Teleports to the opposite place"},function(Args, Speaker)
     if game.PlaceId ~= 455366377 then
         TeleportService:Teleport(455366377)
     else 
@@ -4558,31 +5061,21 @@ AddCommand({"swapplace", "streets", "prison"},function(Args, Speaker)
     end
 end)
 
-AddCommand({"servers", "serverlist"},function(Args, Speaker)
+AddCommand({"servers", "serverlist"},{"Shows the list of servers"},function(Args, Speaker)
     
 end)
 
-AddCommand({"mute", "muteboomboxes", "muteradios"},function(Args, Speaker)
-    Config["MuteBoomboxes"] = true
-    LoadCheckBox(GUI.MuteRadiosCheckBox, "MuteRadios")
-end)
-
-AddCommand({"unmute", "unmuteboomboxes", "unmuteradios"},function(Args, Speaker)
-    Config["MuteBoomboxes"] = false
-    LoadCheckBox(GUI.MuteRadiosCheckBox, "MuteRadios")
-end)
-
-AddCommand({"nospray", "hidesprays"},function(Args, Speaker)
+AddCommand({"nospray", "hidesprays"},{"Hides sprays"},function(Args, Speaker)
     Config["HideSprays"] = true
     LoadCheckBox(GUI.HideSpraysCheckBox, "HideSprays")
 end)
 
-AddCommand({"unnospray", "unhidesprays"},function(Args, Speaker)
+AddCommand({"showspray", "unhidesprays"},{"Makes sprays visible again"},function(Args, Speaker)
     Config["HideSprays"] = false
     LoadCheckBox(GUI.HideSpraysCheckBox, "HideSprays")
 end)
 
-AddCommand({"logdecal", "logspray"},function(Args, Speaker)
+AddCommand({"logdecal", "logspray"},{"Logs the targets decal"},function(Args, Speaker)
     local Target = FindPlayer(Args[1])
     for _,v in pairs(workspace:GetChildren()) do
         if v:IsA("Part") and v.Name:find(Target.Name) then
@@ -4592,7 +5085,7 @@ AddCommand({"logdecal", "logspray"},function(Args, Speaker)
     end
 end)
 
-AddCommand({"logaudio", "logsound"},function(Args, Speaker)
+AddCommand({"logaudio", "logsound"},{"Logs the targets audio"},function(Args, Speaker)
     local Target = FindPlayer(Args[1])
     local TargetBackpack = Target:FindFirstChild("Backpack")
     local TargetChar = Target.Character
@@ -4608,12 +5101,12 @@ AddCommand({"logaudio", "logsound"},function(Args, Speaker)
     end
 end)
 
-AddCommand({"doorspam", "doors"},function(Args, Speaker)
+AddCommand({"doorspam", "doors"},{"Enables door spam"},function(Args, Speaker)
     DoorSpam = true
     local RS
     RS = game:GetService("RunService").Stepped:Connect(function()
         if DoorSpam then
-            Wait(1)
+            Wait(1.5)
             for _,v in pairs(DoorHolder:GetChildren()) do
                 if v.Name == "Door" then
                     for _,v2 in pairs(v:GetChildren()) do
@@ -4633,17 +5126,17 @@ AddCommand({"doorspam", "doors"},function(Args, Speaker)
     end)
 end)
 
-AddCommand({"undoorspam", "undoors"},function(Args, Speaker)
+AddCommand({"undoorspam", "undoors"},{"Disables door spam"},function(Args, Speaker)
     DoorSpam = false
 end)
 
-AddCommand({"gunclickspam", "clickspam"},function(Args, Speaker)
+AddCommand({"gunclickspam", "clickspam"},{"Enables gun click spam"},function(Args, Speaker)
     if game.PlaceId == ThePrisonId then
         GunClickSpam = true
         local RS
         RS = game:GetService("RunService").Stepped:Connect(function()
             if GunClickSpam then
-                Wait(.5)
+                Wait(1)
                 for _,v in pairs(Players:GetDescendants()) do
                     if v.Name == "Click" and v:IsA("RemoteEvent") then
                         v:FireServer()
@@ -4661,11 +5154,11 @@ AddCommand({"gunclickspam", "clickspam"},function(Args, Speaker)
     end
 end)
 
-AddCommand({"ungunclickspam", "unclickspam"},function(Args, Speaker)
+AddCommand({"ungunclickspam", "unclickspam"},{"Disables gun click spam"},function(Args, Speaker)
     GunClickSpam = false
 end)
 
-AddCommand({"control"},function(Args, Speaker)
+AddCommand({"control"},{"Control the target"},function(Args, Speaker)
     local Target = FindPlayer(Args[1])
     local TargetChar = Target.Character
     if isnetworkowner(TargetChar:FindFirstChild("HumanoidRootPart")) then
@@ -4681,17 +5174,13 @@ AddCommand({"control"},function(Args, Speaker)
     end
 end)
 
-AddCommand({"kill"},function(Args, Speaker)
-    local Target = FindPlayer(Args[1])
-    local TargetChar = Target.Character
-    if isnetworkowner(TargetChar:FindFirstChild("HumanoidRootPart")) then
-        TargetChar:BreakJoints()
-    else
-        Notify("Warning", "The player must be dragged by you", 5, nil)
-    end
+AddCommand({"uncontrol"},{"Uncontrols the target"},function(Args, Speaker)
+    SavedInstances.HUD.Parent = Player.PlayerGui
+    Player.Character = Character
+    workspace.CurrentCamera.CameraSubject = Player.Character
 end)
 
-AddCommand({"invisible"},function(Args, Speaker)
+AddCommand({"invisible"},{"Go invisible"},function(Args, Speaker)
     local HumRoot = Player.Character:FindFirstChild("HumanoidRootPart")
     Invisible = true
     local Box = Instance.new("BoxHandleAdornment")
@@ -4726,7 +5215,10 @@ AddCommand({"invisible"},function(Args, Speaker)
     end)
 end)
 
-AddCommand({"noclip"},function(Args, Speaker)
+AddCommand({"noclip"},{"Allows you to go through objects"},function(Args, Speaker)
+    if Noclip and FindPlayer(Args[1]) == Player then
+        Noclip = false
+    end
     local Command = FindCommand("clip")
     Command.CmdFunction(Args, Player)
     local Target
@@ -4772,7 +5264,7 @@ AddCommand({"noclip"},function(Args, Speaker)
     end
 end)
 
-AddCommand({"clip"},function(Args, Speaker)
+AddCommand({"clip"},{"Disables noclip"},function(Args, Speaker)
     local Target
     if not Args or not Args[1] then
         Target = Speaker
@@ -4786,7 +5278,7 @@ AddCommand({"clip"},function(Args, Speaker)
     end
 end)
 
-AddCommand({"stun"},function(Args, Speaker)
+AddCommand({"stun"},{"Stun the target"},function(Args, Speaker)
     local Target = FindPlayer(Args[1])
     if not Target then
         Target = Speaker
@@ -4804,7 +5296,7 @@ AddCommand({"stun"},function(Args, Speaker)
     
 end)
 
-AddCommand({"unstun"},function(Args, Speaker)
+AddCommand({"unstun"},{"Removes the stun from the target"},function(Args, Speaker)
     local Target = FindPlayer(Args[1])
     if not Target then
         Target = Speaker
@@ -4817,7 +5309,7 @@ AddCommand({"unstun"},function(Args, Speaker)
     end
 end)
 
-AddCommand({"bring"},function(Args, Speaker)
+AddCommand({"bring"},{"Brings the target to you"},function(Args, Speaker)
     local Target = FindPlayer(Args[1])
     local TargetChar = Target.Character
     if isnetworkowner(TargetChar:FindFirstChild("HumanoidRootPart")) then
@@ -4827,7 +5319,7 @@ AddCommand({"bring"},function(Args, Speaker)
     end
 end)
 
-AddCommand({"speed", "walkspeed", "ws"},function(Args, Speaker)
+AddCommand({"speed", "walkspeed", "ws"},{"Give the target walkspeed"},function(Args, Speaker)
     local Target = FindPlayer(Args[1])
     if not Target then
         Target = Speaker
@@ -4851,7 +5343,7 @@ AddCommand({"speed", "walkspeed", "ws"},function(Args, Speaker)
     end
 end)
 
-AddCommand({"jumppower", "jp"},function(Args, Speaker)
+AddCommand({"jumppower", "jp"},{"Give the target jumppower"},function(Args, Speaker)
     local Target = FindPlayer(Args[1])
     if not Target then
         Target = Speaker
@@ -4875,7 +5367,7 @@ AddCommand({"jumppower", "jp"},function(Args, Speaker)
     end
 end)
 
-AddCommand({"hipheight", "hheight", "hh"},function(Args, Speaker)
+AddCommand({"hipheight", "hh"},{"Give the target hipheight"},function(Args, Speaker)
     local Target = FindPlayer(Args[1])
     if not Target then
         Target = Speaker
@@ -4892,7 +5384,7 @@ AddCommand({"hipheight", "hheight", "hh"},function(Args, Speaker)
     end
 end)
 
-AddCommand({"follow"},function(Args, Speaker)
+AddCommand({"follow"},{"Make the target follow another target"},function(Args, Speaker)
     local Target = FindPlayer(Args[1])
     local Target2
     local TargetChar = Target.Character
@@ -4915,7 +5407,7 @@ AddCommand({"follow"},function(Args, Speaker)
     end
 end)
 
-AddCommand({"unfollow"},function(Args, Speaker)
+AddCommand({"unfollow"},{"Target stops following the other target"},function(Args, Speaker)
     local Target = FindPlayer(Args[1])
     local Target2
     local TargetChar = Target.Character
@@ -4938,37 +5430,7 @@ AddCommand({"unfollow"},function(Args, Speaker)
     end
 end)
 
-AddCommand({"copymoves"},function(Args, Speaker)
-    local Target = FindPlayer(Args[1])
-    local Target2
-    local TargetChar = Target.Character
-    local Target2Char
-    if not Args[2] then
-        Target2 = Player
-        Target2Char = Player.Character
-    else
-        Target2 = FindPlayer(Args[2])
-        Target2Char = Target2.Character
-    end
-    local RS
-    if isnetworkowner(TargetChar:FindFirstChild("HumanoidRootPart")) then
-        RS = game:GetService("RunService").Stepped:Connect(function()
-            if Target and TargetChar and TargetChar.HumanoidRootPart and Target2 and Target2Char and Target2Char.HumanoidRootPart then
-                TargetChar.HumanoidRootPart.CFrame = Target2Char.HumanoidRootPart.CFrame + Target2Char.HumanoidRootPart.CFrame.LookVector + Vector3.new(5, 0, 0)
-            else
-                RS:Disconnect()
-            end
-        end)
-    else
-        Notify("Warning", "The player must be dragged by you", 5, nil)
-    end
-end)
-
-AddCommand({"uncopymoves"},function(Args, Speaker)
-    
-end)
-
-AddCommand({"spin"},function(Args, Speaker)
+AddCommand({"spin"},{"Make a target spin"},function(Args, Speaker)
     local Target
     if not Args or not Args[1] then
         Target = Speaker
@@ -4991,7 +5453,7 @@ AddCommand({"spin"},function(Args, Speaker)
     end
 end)
 
-AddCommand({"unspin"},function(Args, Speaker)
+AddCommand({"unspin"},{"Unspins the target"},function(Args, Speaker)
     local Target = FindPlayer(Args[1])
     if not Args[1] then
         Target = Speaker
@@ -5000,7 +5462,7 @@ AddCommand({"unspin"},function(Args, Speaker)
     local TargetChar = Target.Character
 end)
 
-AddCommand({"van"},function(Args, Speaker)
+AddCommand({"van"},{"Van a target"},function(Args, Speaker)
     local Target = FindPlayer(Args[1])
     local TargetChar = Target.Character
     local RS
@@ -5021,7 +5483,7 @@ AddCommand({"van"},function(Args, Speaker)
     end
 end)
 
-AddCommand({"wastemoney"},function(Args, Speaker)
+AddCommand({"wastemoney"},{"Make the target waste money"},function(Args, Speaker)
     local Target = FindPlayer(Args[1])
     local TargetChar = Target.Character
     local RS
@@ -5048,19 +5510,23 @@ AddCommand({"wastemoney"},function(Args, Speaker)
     end
 end)
 
-AddCommand({"reset", "respawn"},function(Args, Speaker)
-    Player.Character:BreakJoints()
+AddCommand({"reset", "respawn"},{"Resets your character"},function(Args, Speaker)
+    Player.Character.Humanoid.Health = 0
 end)
 
-AddCommand({"anticlaim", "antiattach"},function(Args, Speaker)
-    AntiClaim = true
+AddCommand({"anticlaim", "antiattach"},{"Players cant attach to your character"},function(Args, Speaker)
+    if AntiClaim then
+        AntiClaim = false
+    else
+        AntiClaim = true
+    end
 end)
 
-AddCommand({"rejoin", "rj"},function(Args, Speaker)
+AddCommand({"rejoin", "rj"},{"Rejoins the same server"},function(Args, Speaker)
     TeleportService:Teleport(game.PlaceId, Player)
 end)
 
-AddCommand({"fly"},function(Args, Speaker)
+AddCommand({"fly"},{"Enables flight"},function(Args, Speaker)
     if Flying then
         StopFly()
     else
@@ -5068,7 +5534,11 @@ AddCommand({"fly"},function(Args, Speaker)
     end
 end)
 
-AddCommand({"flyspeed"},function(Args, Speaker)
+AddCommand({"unfly"},{"Disables fly"},function(Args, Speaker)
+    StopFly()
+end)
+
+AddCommand({"flyspeed"},{"Changes the flyspeed"},function(Args, Speaker)
     if Args[1] then
         Config["FlySpeed"] = Args[1]
     else
@@ -5076,107 +5546,103 @@ AddCommand({"flyspeed"},function(Args, Speaker)
     end
 end)
 
-AddCommand({"float", "airwalk"},function(Args, Speaker)
-    Airwalk = true
-    local FloatPart = Instance.new("Part")
-    FloatPart.Parent = Player.Character
-    FloatPart.Anchored = true
-    FloatPart.Transparency = 1
-    FloatPart.Size = Vector3.new(30, 1, 30)
-    local RS
-    RS = game:GetService("RunService").Stepped:Connect(function()
-        if Player.Character and Player.Character:FindFirstChild("HumanoidRootPart") and Airwalk then
-            FloatPart.CFrame = Player.Character.HumanoidRootPart.CFrame * CFrame.new(0, HeightValue, 0)
-        else
-            Airwalk = false
-            FloatPart:Destroy()
-            RS:Disconnect()
-        end
-    end)
+AddCommand({"float", "airwalk"},{"Enables float"},function(Args, Speaker)
+    if Airwalk then
+        Airwalk = false
+    else
+        Airwalk = true
+        local FloatPart = Instance.new("Part")
+        FloatPart.Parent = Player.Character
+        FloatPart.Anchored = true
+        FloatPart.Transparency = 1
+        FloatPart.Size = Vector3.new(30, 1, 30)
+        local RS
+        RS = game:GetService("RunService").Stepped:Connect(function()
+            if Player.Character and Player.Character:FindFirstChild("HumanoidRootPart") and Airwalk then
+                FloatPart.CFrame = Player.Character.HumanoidRootPart.CFrame * CFrame.new(0, HeightValue, 0)
+            else
+                Airwalk = false
+                FloatPart:Destroy()
+                RS:Disconnect()
+            end
+        end)
+    end
 end)
 
-AddCommand({"unfly"},function(Args, Speaker)
-    StopFly()
-end)
-
-AddCommand({"unfloat", "unairwalk"},function(Args, Speaker)
+AddCommand({"unfloat", "unairwalk"},{"Disables float"},function(Args, Speaker)
     Airwalk = false
 end)
 
-AddCommand({"goto", "to"},function(Args, Speaker)
+AddCommand({"seats", "noseats"},{"Removes seats"},function(Args, Speaker)
+    NoSeats = true
+    for _,v in pairs(workspace:GetDescendants()) do
+        if v:IsA("Seat") then
+            v.Parent = SavedInstances
+        end
+    end
+end)
+
+AddCommand({"reseats"},{"Brings the seats back"},function(Args, Speaker)
+    NoSeats = false
+    for _,v in pairs(SavedInstances:GetChildren()) do
+        if v:IsA("Seat") then
+            v.Parent = SeatsHolder
+        end
+    end
+end)
+
+AddCommand({"goto", "to"},{"Teleports to the target"},function(Args, Speaker)
     local Target = FindPlayer(Args[1])
-    Teleport(Player.Character.HumanoidRootPart, Target.Character.HumanoidRootPart.CFrame)
+    if Target.Character:FindFirstChild("HumanoidRootPart") then
+        Teleport(Player.Character.HumanoidRootPart, Target.Character.HumanoidRootPart.CFrame)
+    elseif Target.Character:FindFirstChild("Torso") then
+        Teleport(Player.Character.HumanoidRootPart, Target.Character.Torso.CFrame)
+    else
+        Notify("Error", "Target is probably dead", 5, nil)
+    end
 end)
 
-AddCommand({"keybind", "bind"},function(Args, Speaker)
-    if Args[1] then
-		local Keybind = string.sub(tostring(Args[1]), 1, 3)
-		if Args[2] then
-			table.remove(Args, 1)
-			local KeybindCommand = table.concat(Args, " ")
-            table.insert(Settings["Binds"], KeybindCommand .."//".. Keybind)
-            Notify("Notification", "Bound " .. Keybind .. " to " .. KeybindCommand, nil, 5)
-			SaveFile()
-		end
-	end
+AddCommand({"keybind", "bind"},{"Binds a key to a command"},function(Args, Speaker)
+    Config["Binds"][#Config["Binds"]] =
+    {
+        Key = Args[1],
+        Command = Args[2];
+    }
+    Notify("Notification", "Binded " .. Args[1] .. " to " .. Args[2])
 end)
 
-AddCommand({"clearkeybinds", "clearbinds"},function(Args, Speaker)
-    Settings["Binds"] = {}
+AddCommand({"clearkeybinds", "clearbinds"},{"Removes all keybinds"},function(Args, Speaker)
+    Config["Binds"] = {}
     Notify("Warning", "All keybinds have been removed!", nil, 5)
     SaveFile()
 end)
 
-AddCommand({"buildmenu"},function(Args, Speaker)
+AddCommand({"buildmenu"},{"Enables build menu"},function(Args, Speaker)
     GUI.BuildMenuFrame.Visible = true
 end)
 
-AddCommand({"haircolors", "hairmenu"},function(Args, Speaker)
+AddCommand({"haircolors", "hairmenu"},{"Enables hair color menu"},function(Args, Speaker)
     GUI.HairFrame.Visible = true
 end)
 
-AddCommand({"armor", "protection"},function(Args, Speaker)
+AddCommand({"armor", "protection"},{"nil"},function(Args, Speaker)
     
 end)
 
-AddCommand({"spawnfling"},function(Args, Speaker)
+AddCommand({"spawnfling"},{"nil"},function(Args, Speaker)
     
 end)
 
-AddCommand({"loopfling"},function(Args, Speaker)
+AddCommand({"loopfling"},{"nil"},function(Args, Speaker)
     
 end)
 
-AddCommand({"loopflingall"},function(Args, Speaker)
+AddCommand({"loopflingall"},{"nil"},function(Args, Speaker)
     
 end)
 
-AddCommand({"resetparts", "refreshparts", "reparts"},function(Args, Speaker)
-    for _,v in pairs(UsedParts:GetDescendants()) do
-        if v:IsA("Part") then
-            v.Anchored = false
-            v.Position = Player.Character.HumanoidRootPart.Position
-            v.Name = "Part"
-            v.Parent = UnAnchoredHolder.Boards
-        end
-    end
-    for _,v in pairs(workspace:GetChildren()) do
-        if v:IsA("Part") and not v.Anchored then
-            v.Anchored = false
-            v.Position = Player.Character.HumanoidRootPart.Position
-            v.Name = "Part"
-            v.Parent = UnAnchoredHolder.Boards
-        end
-    end
-end)
 
-AddCommand({"uncontrol"},function(Args, Speaker)
-    SavedInstances.HUD.Parent = Player.PlayerGui
-    Player.Character = Character
-    workspace.CurrentCamera.CameraSubject = Player.Character
-end)
-
-AddCommand({"defend"},function(Args, Speaker)
+AddCommand({"defend"},{"Make a target defend another target"},function(Args, Speaker)
     local Target = FindPlayer(Args[1])
     local ToDefend = FindPlayer(Args[2])
 
@@ -5197,7 +5663,7 @@ AddCommand({"defend"},function(Args, Speaker)
     end
 end)
 
-AddCommand({"blink"},function(Args, Speaker)
+AddCommand({"blink"},{"Enables CFrame movement"},function(Args, Speaker)
     if Args[1] then
         Config["BlinkSpeed"] = tonumber(Args[1])
     else
@@ -5206,58 +5672,35 @@ AddCommand({"blink"},function(Args, Speaker)
     Config["Blink"] = true
 end)
 
-AddCommand({"unblink"},function(Args, Speaker)
+AddCommand({"unblink"},{"Disables CFrame movement"},function(Args, Speaker)
     Config["Blink"] = false
 end)
 
-AddCommand({"god", "godmode"},function(Args, Speaker)
-    Player.Character:BreakJoints()
-    Player.CharacterAdded:Connect(function(Character)
-        if ThePrisonId then
-            Character:WaitForChild("Right Leg"):Destroy()
-        end
-        for _,v in pairs(Player.Character:GetDescendants()) do
-            if v:IsA("NumberValue") then
-                v:Destroy()
+AddCommand({"god", "godmode"},{"Enables god mode"},function(Args, Speaker)
+    if game.PlaceId == ThePrisonId then
+        local GodOnSpawnEvent
+        Player.Character.Humanoid.Health = 0
+        local function GodOnSpawn(Char)
+            Char:WaitForChild("Right Leg"):Destroy()
+            for _,v in pairs(Char:GetDescendants()) do
+                if v:IsA("NumberValue") then
+                    v:Destroy()
+                end
             end
+            GodOnSpawnEvent:Disconnect()
         end
-    end)
+        GodOnSpawnEvent = Player.CharacterAdded:Connect(GodOnSpawn, Char)
+    else
+        Player.Character:FindFirstChild("Used"):Destroy()
+    end
     Notify("Warning", "This breaks the server a little bit.", 5, nil)
 end)
 
-AddCommand({"annoy"},function(Args, Speaker)
+AddCommand({"annoy"},{"Annoys the target"},function(Args, Speaker)
     local Target = FindPlayer(Args[1])
 end)
 
-AddCommand({"earrape"},function(Args, Speaker)
-    local Target = FindPlayer(Args[1])
-    local SoundId = Args[2]
-    if not SoundId then
-        SoundId = 4929899599
-    end
-    for i,v in pairs(Player.Backpack:GetChildren()) do
-        if v:IsA("Tool") and v.Name == "BoomBox" then
-            Count = Count + i
-            local Event = v:FindFirstChildOfClass("RemoteEvent")
-            if Event then
-                Event:FireServer("play", tostring(SoundId))
-            end
-            v.Parent = Player.Character
-        end
-    end
-    Notify("Hint", "Use godmode for multiple boomboxes by giving them with an alt or from a friend", 5, nil)
-    Notify("Hint", "if ur in the prison rejoin until ur tools don't work and then let a friend give u new boomboxes", 5, nil)
-end)
-
-AddCommand({"unearrape"},function(Args, Speaker)
-    for _,v in pairs(Player.Character:GetChildren()) do
-        if v.Name == "BoomBox" then
-            
-        end
-    end
-end)
-
-AddCommand({"buy"},function(Args, Speaker)
+AddCommand({"buy"},{"Teleports to the selected item"},function(Args, Speaker)
     local Item = Args[1]
     for i,v in pairs(ItemTeleports) do
         if Item:lower() == i:lower() then
@@ -5266,7 +5709,7 @@ AddCommand({"buy"},function(Args, Speaker)
     end
 end)
 
-AddCommand({"reload"},function(Args, Speaker)
+AddCommand({"reload"},{"Teleports to an ammo store"},function(Args, Speaker)
     local Target
     if not Args or not Args[1] then
         Target = Speaker
@@ -5276,7 +5719,7 @@ AddCommand({"reload"},function(Args, Speaker)
     Teleport(Target.Character.HumanoidRootPart, ItemTeleports["Ammo1"])
 end)
 
-AddCommand({"heal"},function(Args, Speaker)
+AddCommand({"heal"},{"Teleports to a restauraunt"},function(Args, Speaker)
     local Target
     if not Args or not Args[1] then
         Target = Speaker
@@ -5290,7 +5733,7 @@ AddCommand({"heal"},function(Args, Speaker)
     end
 end)
 
-AddCommand({"givetool"},function(Args, Speaker)
+AddCommand({"give"},{"Gives the target your selected tool(s)"},function(Args, Speaker)
     local Target = FindPlayer(Args[1])
     local Character = Player.Character
     Camera.CameraSubject = Target.Character
@@ -5303,22 +5746,27 @@ AddCommand({"givetool"},function(Args, Speaker)
     Humanoid:Clone().Parent = Character
     Humanoid:Destroy()
     while Character and RunService.Stepped:Wait() do
+        for _,v in pairs(Player.Backpack:GetChildren()) do
+            if v:IsA("Tool") then
+                v.Parent = Player.Character
+            end
+        end
         Character.HumanoidRootPart.CFrame = Target.Character.HumanoidRootPart.CFrame
     end
 end)
 
-AddCommand({"afk"},function(Args, Speaker)
+AddCommand({"afk"},{"Going afk wont kick you"},function(Args, Speaker)
     Settings["AFK"] = true
     Notify("Warning", "People can still teleport you", 5, nil)
     Notify("Warning", "Delete the tpers with the command noteleport", 5, nil)
 end)
 
-AddCommand({"unafk"},function(Args, Speaker)
+AddCommand({"unafk"},{"Going afk will kick you"},function(Args, Speaker)
     Settings["AFK"] = false
     Notify("Notification", "Turned off AFK", 5, nil)
 end)
 
-AddCommand({"autofarm"},function(Args, Speaker)
+AddCommand({"autofarm"},{"Enables auto farm"},function(Args, Speaker)
     Settings["AFK"] = true
     AutoFarm = true
     Notify("Notification", "Turned on autofarm", 5, nil)
@@ -5342,19 +5790,19 @@ AddCommand({"autofarm"},function(Args, Speaker)
     end)
 end)
 
-AddCommand({"unautofarm"},function(Args, Speaker)
+AddCommand({"unautofarm"},{"Disables auto farm"},function(Args, Speaker)
     AutoFarm = false
     AutoFarmCooldown = false
     Notify("Notification", "Turned off autofarm", 5, nil)
 end)
 
-AddCommand({"itemesp"},function(Args, Speaker)
+AddCommand({"itemesp"},{"Enables item esp"},function(Args, Speaker)
     Config["ItemEsp"] = true
     ItemEsp()
     Notify("Notification", "Turned on itemesp", 5, nil)
 end)
 
-AddCommand({"unitemesp", "noitemesp"},function(Args, Speaker)
+AddCommand({"unitemesp", "noitemesp"},{"Disables item esp"},function(Args, Speaker)
     Config["ItemEsp"] = false
     for _,v in pairs(workspace.RandomSpawns:GetDescendants()) do
         if v:IsA("BillboardGui") then
@@ -5364,19 +5812,19 @@ AddCommand({"unitemesp", "noitemesp"},function(Args, Speaker)
     Notify("Notification", "Turned off itemesp", 5, nil)
 end)
 
-AddCommand({"sodagun"},function(Args, Speaker)
+AddCommand({"sodagun"},{"nil"},function(Args, Speaker)
     
 end)
 
-AddCommand({"axe"},function(Args, Speaker)
+AddCommand({"axe"},{"nil"},function(Args, Speaker)
     
 end)
 
-AddCommand({"grabknife"},function(Args, Speaker)
+AddCommand({"grabknife"},{"nil"},function(Args, Speaker)
     
 end)
 
-AddCommand({"shield", "protect"},function(Args, Speaker)
+AddCommand({"shield", "protect"},{"Loop teleports you infront of the target"},function(Args, Speaker)
     local Target = FindPlayer(Args[1])
     Protect = true
     local RS
@@ -5387,37 +5835,17 @@ AddCommand({"shield", "protect"},function(Args, Speaker)
     end)
 end)
 
-AddCommand({"unshield", "unprotect"},function(Args, Speaker)
+AddCommand({"unshield", "unprotect"},{"Stops loop teleporting you"},function(Args, Speaker)
     Protect = false
 end)
 
-AddCommand({"notp", "noteleport"},function(Args, Speaker)
-    local ArmouredTruck = workspace:FindFirstChild("Armoured Truck")
-    local TPer = workspace:FindFirstChild("TPer")
-    if ArmouredTruck then
-        ArmouredTruck.Parent = SavedInstances
-    end
-    if TPer then
-        ArmouredTruck.Parent = SavedInstances
-    end
-    Notify("Success", "Hid the teleporters", 5, nil)
-end)
-
-AddCommand({"ping", "getping", "chatping"},function(Args, Speaker)
-    local PingTick = tick()
-    game:GetService("RobloxReplicatedStorage").GetServerVersion:InvokeServer()
-    local Ping = tick() - PingTick
-    Ping = math.floor(Ping * 1000)
-    ReplicatedStorage.DefaultChatSystemChatEvents.SayMessageRequest:FireServer("Current ping: " .. tostring(Ping), "All")
-end)
-
-AddCommand({"mouselockkey", "mlmkey", "mouselock"},function(Args, Speaker)
+AddCommand({"mlmkey", "mouselock"},{"Changes the mouselocks key"},function(Args, Speaker)
     if Args[1] then
         Player.PlayerScripts.PlayerModule.CameraModule.MouseLockController.BoundKeys.Value = Args[1]
     end
 end)
 
-AddCommand({"remotegun", "rgun"},function(Args, Speaker)
+AddCommand({"remotegun", "rgun"},{"Enables remote gun"},function(Args, Speaker)
     RemoteGun = true
     AttachGun = false
     Player.Character.HumanoidRootPart.CFrame = CFrame.new(Player.Character.HumanoidRootPart.Position) * CFrame.fromEulerAnglesXYZ(0, math.rad(-90), 0)
@@ -5428,7 +5856,7 @@ AddCommand({"remotegun", "rgun"},function(Args, Speaker)
     end
 end)
 
-AddCommand({"unremotegun", "unrgun"},function(Args, Speaker)
+AddCommand({"unremotegun", "unrgun"},{"Disables remote gun"},function(Args, Speaker)
     RemoteGun = false
     for _,v in pairs(Player.Character:GetChildren()) do
         if v:IsA("BasePart") then
@@ -5436,50 +5864,44 @@ AddCommand({"unremotegun", "unrgun"},function(Args, Speaker)
         end
     end
     for _,v in pairs(Player.Character:GetChildren()) do
-        if v:IsA("Tool") then
-            if v.Name == "Sawed Off" then
-                v.Grip = OriginalGrips["Sawed Off"]
-            elseif v.Name == "Shotty" then
-                v.Grip = OriginalGrips["Shotty"]
-            elseif v.Name == "Glock" then
-                v.Grip = OriginalGrips["Glock"]
-            elseif v.Name == "Uzi" then
-                v.Grip = OriginalGrips["Uzi"]
-            end
+        if v:IsA("Tool") and ToolData[v.Name] then
+            v.Grip = ToolData[v.Name]["Grip"]
         end
     end
     for _,v in pairs(Player.Backpack:GetChildren()) do
-        if v:IsA("Tool") then
-            if v.Name == "Sawed Off" then
-                v.Grip = OriginalGrips["Sawed Off"]
-            elseif v.Name == "Shotty" then
-                v.Grip = OriginalGrips["Shotty"]
-            elseif v.Name == "Glock" then
-                v.Grip = OriginalGrips["Glock"]
-            elseif v.Name == "Uzi" then
-                v.Grip = OriginalGrips["Uzi"]
-            end
+        if v:IsA("Tool") and ToolData[v.Name] then
+            v.Grip = ToolData[v.Name]["Grip"]
         end
     end
 end)
 
-AddCommand({"attachgun", "agun"},function(Args, Speaker)
+AddCommand({"attachgun", "agun"},{"Attaches a gun to the target"},function(Args, Speaker)
     AttachGunTarget = FindPlayer(Args[1])
     AttachGun = true
     RemoteGun = false
 end)
 
-AddCommand({"unattachgun", "unagun"},function(Args, Speaker)
+AddCommand({"unattachgun", "unagun"},{"Unattaches the gun from the target"},function(Args, Speaker)
     AttachGun = false
+    for _,v in pairs(Player.Character:GetChildren()) do
+        if v:IsA("Tool") and ToolData[v.Name] then
+            v.Grip = ToolData[v.Name]["Grip"]
+        end
+    end
+    for _,v in pairs(Player.Backpack:GetChildren()) do
+        if v:IsA("Tool") and ToolData[v.Name] then
+            v.Grip = ToolData[v.Name]["Grip"]
+        end
+    end
 end)
 
-AddCommand({"target"},function(Args, Speaker)
+AddCommand({"target"},{"Selects and locks the target"},function(Args, Speaker)
     local Target = FindPlayer(Args[1])
     AimbotPlayer = Target
     GUI.CurrentTargetLabel.Text = "Current Target: " .. Target.Name
 end)
 
-AddCommand({"esp"},function(Args, Speaker)
+AddCommand({"esp"},{"enables esp"},function(Args, Speaker)
     local Target = FindPlayer(Args[1])
     table.insert(ESPPlayers, Target)
     if PlayerEsp then
@@ -5487,7 +5909,7 @@ AddCommand({"esp"},function(Args, Speaker)
     end
 end)
 
-AddCommand({"unesp"},function(Args, Speaker)
+AddCommand({"unesp"},{"Disables esp"},function(Args, Speaker)
     local Target = FindPlayer(Args[1])
     table.remove(ESPPlayers, Target)
     local ESPFolder = Target:FindFirstChild("ESP_" .. Target.Name)
@@ -5496,17 +5918,17 @@ AddCommand({"unesp"},function(Args, Speaker)
     end
 end)
 
-AddCommand({"view"},function(Args, Speaker)
+AddCommand({"view"},{"Views the target"},function(Args, Speaker)
     local Target = FindPlayer(Args[1])
     local TargetChar = Target.Character
     workspace.CurrentCamera.CameraSubject = TargetChar
 end)
 
-AddCommand({"unview"},function(Args, Speaker)
-    workspace.CurrentCamera.CameraSubject = Live:FindFirstChild(Player.Name)
+AddCommand({"unview"},{"Unviews the target"},function(Args, Speaker)
+    workspace.CurrentCamera.CameraSubject = workspace.Live:FindFirstChild(Player.Name)
 end)
 
-AddCommand({"fov"},function(Args, Speaker)
+AddCommand({"fov"},{"Changes your field of view"},function(Args, Speaker)
     if Args[1] then
         Camera.FieldOfView = Args[1]
     else
@@ -5514,22 +5936,25 @@ AddCommand({"fov"},function(Args, Speaker)
     end
 end)
 
-AddCommand({"loopattach"},function(Args, Speaker)
+AddCommand({"loopattach"},{"Loop attaches your character in to the target"},function(Args, Speaker)
     local Target = FindPlayer(Args[1])
     LoopAttach = true
     local RS
     RS = game:GetService("RunService").Stepped:Connect(function()
         if Target and LoopAttach then
             if Player.Character and Target.Character and Target.Character:FindFirstChild("HumanoidRootPart") then
-                Camera.CameraSubject = Target.Character
                 local Character = Player.Character
+                Camera.CameraSubject = Target.Character
                 local Humanoid = Character.Humanoid
+                local Tool = Character:FindFirstChildOfClass("Tool") or Player.Backpack:FindFirstChildOfClass("Tool")
+                Tool.Parent = Character
+                Tool.Grip = CFrame.new(tonumber("inf"), tonumber("inf"), tonumber("inf"))
                 Humanoid:Clone().Parent = Character
                 Humanoid:Destroy()
-                local Tool = Player.Backpack:FindFirstChildOfClass("Tool")
-                Tool.Grip = CFrame.new(tonumber("inf"), tonumber("inf"), tonumber("inf"))
-                Tool.Parent = Character
                 Character.HumanoidRootPart.CFrame = Target.Character.HumanoidRootPart.CFrame
+                if not Tool then
+                    Character.HumanoidRootPart.CFrame = CFrame.new(0, -tonumber("inf"), 0)
+                end
             end
         else
             LoopAttach = false
@@ -5538,7 +5963,11 @@ AddCommand({"loopattach"},function(Args, Speaker)
     end)
 end)
 
-AddCommand({"tpbypass"},function(Args, Speaker)
+AddCommand({"unloopattach"},{"Stops loop attaching you"},function(Args, Speaker)
+    LoopAttach = false
+end)
+
+AddCommand({"tpbypass"},{"Changes the teleport method"},function(Args, Speaker)
     if TPBypass then
         TPBypass = false
     else
@@ -5546,7 +5975,7 @@ AddCommand({"tpbypass"},function(Args, Speaker)
     end
 end)
 
-AddCommand({"fpscap"},function(Args, Speaker)
+AddCommand({"fpscap"},{"Changes your fps cap"},function(Args, Speaker)
     if setfpscap then
         if Args[1] then
             local FPS = tonumber(Args[1])
@@ -5561,7 +5990,7 @@ AddCommand({"fpscap"},function(Args, Speaker)
     end
 end)
 
-AddCommand({"gunanim", "gunanimation"},function(Args, Speaker)
+AddCommand({"gunanim", "gunanimation"},{"Enables gun animations"},function(Args, Speaker)
     if Args[1] then
         SelectedGunAnimation = Args[1]
         Notify("Notification", "Selected gun animation: " .. Args[1], 5, nil)
@@ -5571,28 +6000,30 @@ AddCommand({"gunanim", "gunanimation"},function(Args, Speaker)
     end
 end)
 
-AddCommand({"autoplay"},function(Args, Speaker)
+AddCommand({"autoplay"},{"Enables autoplay"},function(Args, Speaker)
     if Args[1] then
         SongId = Args[1]
         AutoPlay = not AutoPlay
     end
 end)
 
-AddCommand({"taunt"},function(Args, Speaker)
+AddCommand({"taunt"},{"Taunts"},function(Args, Speaker)
     local Message = {"When was the last time you went outside, vampire fhag?","Here's 20 cents, call all your friends and give me back the change","You must have been born on a highway, because that's where most accidents happen","Your family tree is a cactus, because everybody on it is aprick",}
     ReplicatedStorage.DefaultChatSystemChatEvents.SayMessageRequest:FireServer(Message[math.random(#Message)], "All")
 end)
 
-AddCommand({"joke"},function(Args, Speaker)
+AddCommand({"joke"},{"Makes a joke"},function(Args, Speaker)
     local Joke = HttpService:JSONDecode(game:HttpGet("https://official-joke-api.appspot.com/random_joke"))
     local Question = Joke["setup"]
     local Answer = Joke["punchline"]
     ReplicatedStorage.DefaultChatSystemChatEvents.SayMessageRequest:FireServer(Question, "All")
-    Wait(3)
-    ReplicatedStorage.DefaultChatSystemChatEvents.SayMessageRequest:FireServer(Answer, "All")
+    Spawn(function()
+        Wait(2.5)
+        ReplicatedStorage.DefaultChatSystemChatEvents.SayMessageRequest:FireServer(Answer, "All")
+    end)
 end)
 
-AddCommand({"superpunch", "supapunch", "flingpunch"},function(Args, Speaker)
+AddCommand({"superpunch", "flingpunch"},{"Makes your punch fling"},function(Args, Speaker)
     if SelectedTool then
         SelectedTool.Parent = Player.Character
     end
@@ -5604,72 +6035,31 @@ AddCommand({"superpunch", "supapunch", "flingpunch"},function(Args, Speaker)
     Punch.Grip = CFrame.new(math.pow(math.huge, math.huge) * math.huge, math.pow(math.huge, math.huge) * math.huge, math.pow(math.huge, math.huge) * math.huge)
     Punch.Parent = Player.Character
 end)
---[[
-local CommandDescs = {}
-CommandDescs[#CommandDescs + 1] = {Name = "commands/cmds", Desc = "Opens the commands frame"}
-CommandDescs[#CommandDescs + 1] = {Name = "whilelist/wl", Desc = "Whitelists a player"}
-CommandDescs[#CommandDescs + 1] = {Name = "unwhilelist/unwl", Desc = "Unwhitelists a player"}
-CommandDescs[#CommandDescs + 1] = {Name = "swapplace/streets/prison", Desc = "Teleports you in to the second game"}
-CommandDescs[#CommandDescs + 1] = {Name = "mute/muteboomboxes/muteradios", Desc = "Mutes others' boomboxes"}
-CommandDescs[#CommandDescs + 1] = {Name = "unmute/unmuteboomboxes/unmuteradios", Desc = "Unmutes others' boomboxes"}
-CommandDescs[#CommandDescs + 1] = {Name = "unnospray/unhidesprays", Desc = "Stops hiding the sprays"}
-CommandDescs[#CommandDescs + 1] = {Name = "controlplayer/control", Desc = "Control a player you have dragged"}
-CommandDescs[#CommandDescs + 1] = {Name = "uncontrolplayer/uncontrol", Desc = "Uncontrol the player you are controlling"}
-CommandDescs[#CommandDescs + 1] = {Name = "killplayer", Desc = "Kill a player you have dragged"}
-CommandDescs[#CommandDescs + 1] = {Name = "breakplayer", Desc = "Break a player you have dragged"}
-CommandDescs[#CommandDescs + 1] = {Name = "bringplayer", Desc = "Bring a player you have dragged"}
-CommandDescs[#CommandDescs + 1] = {Name = "followplayer", Desc = "Make the player you have dragged follow someone"}
-CommandDescs[#CommandDescs + 1] = {Name = "defendplayer", Desc = "Make the player you dragged defend someone"}
-CommandDescs[#CommandDescs + 1] = {Name = "wastemoney", Desc = "Waste money from the player you have dragged"}
-CommandDescs[#CommandDescs + 1] = {Name = "speedplayer/wsplayer", Desc = "Give speed to a player you have dragged"}
-CommandDescs[#CommandDescs + 1] = {Name = "jumpplayer/jpplayer", Desc = "Give jump power to a player you have dragged"}
-CommandDescs[#CommandDescs + 1] = {Name = "stopplayer", Desc = "Removes the commands you gave the dragged player"}
-CommandDescs[#CommandDescs + 1] = {Name = "blink", Desc = "Adds blink"}
-CommandDescs[#CommandDescs + 1] = {Name = "unblink", Desc = "Removes blink"}
-CommandDescs[#CommandDescs + 1] = {Name = "god/godmode", Desc = "Adds godmode on for this life"}
-CommandDescs[#CommandDescs + 1] = {Name = "annoy", Desc = "Annoys the target"}
-CommandDescs[#CommandDescs + 1] = {Name = "earrape", Desc = "Spams all of your boomboxes in the targets head"}
-CommandDescs[#CommandDescs + 1] = {Name = "unearrape", Desc = "Stops earraping the target"}
-CommandDescs[#CommandDescs + 1] = {Name = "buy", Desc = "Teleports you to the item shop location"}
-CommandDescs[#CommandDescs + 1] = {Name = "reload", Desc = "Teleports you to a random ammo store"}
-CommandDescs[#CommandDescs + 1] = {Name = "heal", Desc = "Teleports you to the burger place"}
-CommandDescs[#CommandDescs + 1] = {Name = "autofarm", Desc = "Enables autofarm"}
-CommandDescs[#CommandDescs + 1] = {Name = "unautofarm", Desc = "Disables autofarm"}
-CommandDescs[#CommandDescs + 1] = {Name = "itemesp", Desc = "Enables item esp"}
-CommandDescs[#CommandDescs + 1] = {Name = "unitemesp/noitemesp", Desc = "Disables item esp"}
-CommandDescs[#CommandDescs + 1] = {Name = "sodagun", Desc = "Gives you the soda gun"}
-CommandDescs[#CommandDescs + 1] = {Name = "shield/protect", Desc = "Loop teleports you to the targets front"}
-CommandDescs[#CommandDescs + 1] = {Name = "unshield/unprotect", Desc = "Stops protecting the target"}
-CommandDescs[#CommandDescs + 1] = {Name = "notp/noteleport", Desc = "Hides the teleporters"}
-CommandDescs[#CommandDescs + 1] = {Name = "ping/getping/chatping", Desc = "Chats your ping"}
-CommandDescs[#CommandDescs + 1] = {Name = "mouselockkey/mlkey/mouselock", Desc = "Changes your mouselock key to the 2nd argument"}
-CommandDescs[#CommandDescs + 1] = {Name = "aimlock/camlock/aimbot", Desc = "Aimlocks onto the targets target part"}
-CommandDescs[#CommandDescs + 1] = {Name = "unaimlock/uncamlock/unaimbot", Desc = "Stops aimlocking"}
-CommandDescs[#CommandDescs + 1] = {Name = "silentaim/silent/sa", Desc = "Silent aimbots the target"}
-CommandDescs[#CommandDescs + 1] = {Name = "unsilentaim/unsilent/unsa", Desc = "Stops silent aimbotting the target"}
-CommandDescs[#CommandDescs + 1] = {Name = "remotegun/rgun", Desc = "Enables remote gun mode"}
-CommandDescs[#CommandDescs + 1] = {Name = "unremotegun/unrgun", Desc = "Disables remote gun mode"}
-CommandDescs[#CommandDescs + 1] = {Name = "attachgun/agun", Desc = "Attaches your gun to the target"}
-CommandDescs[#CommandDescs + 1] = {Name = "unattachgun/unagun", Desc = "Removes the attachment from your gun to the target"}
-CommandDescs[#CommandDescs + 1] = {Name = "rainbowhats", Desc = "Enables rainbow hats mode"}
-CommandDescs[#CommandDescs + 1] = {Name = "unrainbowhats", Desc = "Disables rainbow hats mode"}
 
-for i = 1, #CommandDescs do
-    CmdCount = i + 1
-	local CommandDesc = Instance.new("TextLabel")
-	CommandDesc.Size = UDim2.new(1, 0, .02, 0)
-    CommandDesc.TextSize = 8
+for _,v in pairs(Commands) do
+    local CommandText = " "
+    for _,v2 in pairs(v.CmdName) do
+        CommandText = CommandText .. v2 .. " "
+    end
+    local CommandDesc = Instance.new("TextLabel")
+    CommandDesc.Parent = GUI.CommandsHolderFrame
     CommandDesc.BackgroundTransparency = 1
-    CommandDesc.TextColor3 = Color3.fromRGB(255, 255, 255)
-    CommandDesc.Text = CommandDescs[i].Name .. " | " .. CommandDescs[i].Desc
-	CommandDesc.Parent = CommandsHolder
+    CommandDesc.Position = UDim2.new(0.025, 0, 0, 0)
+    CommandDesc.Size = UDim2.new(0.95, 0, 0, 20)
+    CommandDesc.Font = Enum.Font.GothamSemibold
+    CommandDesc.Text = CommandText .. "| " .. v.CmdDesc[1]
+    CommandDesc.TextColor3 = Color3.fromRGB(225, 225, 225)
+    CommandDesc.TextSize = 10
+    CommandDesc.TextXAlignment = Enum.TextXAlignment.Left
+    GUI.CommandsHolderFrame.CanvasSize = GUI.CommandsHolderFrame.CanvasSize + UDim2.new(0, 0, 0, 20)
 end
 
-CommandCount.Text = "Commands [" .. tostring(CmdCount) .. " ]"
---]]
-
-local HUD = Player.PlayerGui:WaitForChild("HUD")
 local AntiCheat = Player.PlayerGui:FindFirstChild("LocalScript")
+local HUD = Player.PlayerGui:WaitForChild("HUD")
+local HPBar = HUD:WaitForChild("HP"):WaitForChild("Bar")
+local KOBar = HUD:WaitForChild("KO"):WaitForChild("Bar")
+local StamBar = HUD:WaitForChild("Stam"):WaitForChild("Bar")
+
 local Crouch = Instance.new("Animation") Crouch.AnimationId = "http://www.roblox.com/item.aspx?id=327855546"
 local Hit1 = Instance.new("Animation") Hit1.AnimationId = "https://www.roblox.com/item.aspx?id=455534850"
 local Hit2 = Instance.new("Animation") Hit2.AnimationId = "https://www.roblox.com/item.aspx?id=455535422"
@@ -5689,23 +6079,68 @@ local IdleAnimation
 local RunAnim = Humanoid:LoadAnimation(Run)
 local CrouchAnim = Humanoid:LoadAnimation(Crouch)
 
-if AntiCheat then
-    AntiCheat.Disabled = true
-    AntiCheat:Destroy()
+local HealthChangedEvent
+local StaminaChangedEvent
+
+local Stamina
+if game.PlaceId == TheStreetsId then
+    Stamina = Player.Character:WaitForChild("Stamina")
+else
+    local ServerTraits = Player.Backpack:WaitForChild("ServerTraits")
+    if ServerTraits then
+        Stamina = ServerTraits:WaitForChild("Stann")
+    end
 end
 
-Player.PlayerGui.ChildAdded:Connect(function(v)
-    if v.Name == "LocalScript" then
-        v.Disabled = true
-        coroutine.wrap(function()
-            v.Disabled = true
-            v:Destroy()
-        end)()
+local LastHealth = Player.Character.Humanoid.Health
+local LastStamina = Stamina.Value
+
+local function BarFadeAnimation()
+    if FadeCooldown then
+        return
     end
-    if v.Name == "HUD" then
-        CreateAmmoLabel(v)
+    FadeCooldown = true
+    local ToFade = {}
+    local HUD = Player:WaitForChild("PlayerGui"):WaitForChild("HUD")
+    table.insert(ToFade, HUD:WaitForChild("HP"))
+    table.insert(ToFade, HUD:WaitForChild("HP"):WaitForChild("Bar"))
+    table.insert(ToFade, HUD:WaitForChild("KO"))
+    table.insert(ToFade, HUD:WaitForChild("KO"):WaitForChild("Bar"))
+    table.insert(ToFade, HUD:WaitForChild("Stam"))
+    table.insert(ToFade, HUD:WaitForChild("Stam"):WaitForChild("Bar"))
+    for _,v in pairs(ToFade) do
+        v.BackgroundTransparency = 0
     end
-end)
+    Spawn(function()
+        Wait(2.5)
+        for i = 0, 1, .1 do
+            Wait(.015)
+            for _,v in pairs(ToFade) do
+                v.BackgroundTransparency = i
+            end
+        FadeCooldown = false
+        LastHealth = Player.Character.Humanoid.Health
+        LastStamina = Stamina.Value
+        end
+    end)
+end
+
+local function BarChanged()
+    if math.floor(LastHealth) < math.floor(Player.Character.Humanoid.Health) then
+        return
+    elseif LastStamina < Stamina.Value then
+        return
+    end
+    HealthChangedEvent:Disconnect()
+    StaminaChangedEvent:Disconnect()
+    Spawn(function()
+        if Config["FadingUIObjects"] then
+            BarFadeAnimation()
+        end
+        HealthChangedEvent = Player.Character.Humanoid.HealthChanged:Connect(BarChanged)
+        StaminaChangedEvent = Stamina.Changed:Connect(BarChanged)
+    end)
+end
 
 local function HealthChanged()
     if AutoEat then
@@ -5718,7 +6153,9 @@ local function HealthChanged()
                 if v.Name == "Burger" and HealthCount < 1 then
                     HealthCount = HealthCount + i
                     v.Parent = Player.Character
+                    Wait()
                     v:Activate()
+                    Wait()
                     v.Parent = Player.Backpack
                 end
             end
@@ -5728,11 +6165,81 @@ local function HealthChanged()
         end
         HealthCount = 0
     end
+    LastHealth = Player.Character.Humanoid.Health
+end
+
+if AntiCheat then
+    AntiCheat.Disabled = true
+    AntiCheat:Destroy()
+end
+
+for _,v in pairs(Player.Backpack:GetChildren()) do
+    if ToolData[v.Name] then
+        v.TextureId = ToolData[v.Name]["TextureId"]
+    end
+end
+
+Player.ChildAdded:Connect(function(v)
+    if v.Name == "Backpack" then
+        Spawn(function()
+            Wait(.5)
+            for _,v2 in pairs(v:GetChildren()) do
+                if ToolData[v2.Name] then
+                    v2.TextureId = ToolData[v2.Name]["TextureId"]
+                end
+            end
+        end)
+    end
+end)
+
+Player.PlayerGui.ChildAdded:Connect(function(v)
+    if v.Name == "LocalScript" then
+        v.Disabled = true
+        Wait()
+        v:Destroy()
+    end
+    if v.Name == "HUD" then
+        CreateAmmoLabel(v)
+        v:WaitForChild("HP"):WaitForChild("Bar").BackgroundColor3 = Color3.fromRGB(184, 21, 21)
+        v:WaitForChild("KO"):WaitForChild("Bar").BackgroundColor3 = Color3.fromRGB(26, 129, 255)
+        v:WaitForChild("Stam"):WaitForChild("Bar").BackgroundColor3 = Color3.fromRGB(114, 213, 71)
+        if Config["FadingUIObjects"] then
+            BarFadeAnimation()
+        end
+    end
+end)
+
+local function HumanoidChildAdded(v)
+    Wait()
+    if v:FindFirstChild("Info") then
+        TookDamage = true
+        local Random = math.random(0, 3)
+        if Random == 1 then
+            Animate(Hit1)
+        elseif Random == 2 then
+            Animate(Hit2)
+        else
+            Animate(Hit3)
+        end
+		wait(0.1)
+		TookDamage = false
+    end
+end
+
+local function BackpackChildAdded(v)
+    if ToolData[v.Name] then
+        v.TextureId = ToolData[v.Name]["TextureId"]
+    end
 end
 
 local function CharacterChildAdded(v)
     if v:IsA("Tool") then
-        if game.PlaceId == ThePrisonId and not _G["BFGTEST"] then
+        SelectedTool = v
+        local Ammo = SelectedTool:FindFirstChild("Ammo")
+        if ToolData[v.Name] then
+            v.TextureId = ToolData[v.Name]["TextureId"]
+        end
+        if game.PlaceId == ThePrisonId and not AntiClaim then
             Player.Backpack.ServerTraits.Tool:FireServer(SelectedTool)
             if v:FindFirstChild("Idle") then
                 if IdleAnimation ~= nil then
@@ -5742,24 +6249,16 @@ local function CharacterChildAdded(v)
                 IdleAnimation:Play()
             end
         end
-        if Player.Backpack:FindFirstChild(v.Name) and not v:FindFirstChild("Safe") then
-            if AntiClaim then
-                if v.Name == "Punch" or v.Name == "Knife" or v.Name == "Sign" or v.Name == "Pipe" then
-                    Wait()
-                    v:Destroy()
-                end
+        if AntiClaim then
+            if Player.Backpack:FindFirstChild(v.Name) and not v:FindFirstChild("Safe") then
                 coroutine.wrap(function()
-                    workspace.FallenPartsDestroyHeight = -5
-                    v.Parent = game.Players.LocalPlayer.Backpack
+                    v.Parent = Player.Backpack
                     local StringValue = Instance.new("StringValue")
                     StringValue.Name = "Safe"
                     StringValue.Parent = v
-                end)
+                end)()
             end
         end
-        workspace.FallenPartsDestroyHeight = -5000
-        SelectedTool = v
-        local Ammo = SelectedTool:FindFirstChild("Ammo")
         if SelectedTool and Ammo and SelectedTool:FindFirstChild("Ammo") then
             SelectedTool.Ammo.Changed:Connect(function()
                 if SelectedTool and Ammo and AmmoLabel then
@@ -5774,6 +6273,7 @@ local function CharacterChildAdded(v)
         if v.Name == "Cash" or v.Name == "Fat Cash" then
             if Config["AutoCash"] then
                 v.Parent = Player.Backpack
+                Wait()
                 v:Activate()
             end
         end
@@ -5805,7 +6305,7 @@ local function CharacterChildRemoved(v)
 end
 
 local function CharacterDescendantAdded(v)
-    if OriginalGrips[v.Name] and SelectedGunAnimation ~= nil then
+    if not AttachGun and not RemoteGun and ToolData[v.Name] and ToolData[v.Name]["Ammo"] and SelectedGunAnimation ~= nil then
         Wait()
         if v.Name ~= "Shotty" and v.Name ~= "Sawed Off" or SelectedGunAnimation == "1" then
 			Player.Character.Humanoid:LoadAnimation(GunAnimation1):Play()
@@ -5817,12 +6317,13 @@ local function CharacterDescendantAdded(v)
 		end 
     end
     if v.Name == "Bone" and Config["NoKO"] then
-        Player.Character:BreakJoints()
+        Player.Character.Humanoid.Health = 0
     end
 end
 
 local function CharacterDescendantRemoving(v)
-    if OriginalGrips[v.Name] then
+    Wait()
+    if ToolData[v.Name] and ToolData[v.Name]["Ammo"] then
         StopAnimation(GunAnimation1.AnimationId)
         StopAnimation(GunAnimation2.AnimationId)
     end
@@ -5841,9 +6342,13 @@ local function HumanoidDied()
     Noclip = false
 end
 
-local HealthChangedEvent = Player.Character.Humanoid.HealthChanged:Connect(HealthChanged)
+HealthChangedEvent = Player.Character.Humanoid.HealthChanged:Connect(BarChanged)
+StaminaChangedEvent = Stamina.Changed:Connect(BarChanged)
+HealthChangedEvent2 = Player.Character.Humanoid.HealthChanged:Connect(HealthChanged)
 local HumanoidDiedEvent = Player.Character.Humanoid.Died:Connect(HumanoidDied)
 local CharacterChildAddedEvent = Player.Character.ChildAdded:Connect(CharacterChildAdded, v)
+local HumanoidChildAddedEvent = Player.Character.Humanoid.ChildAdded:Connect(BackpackChildAdded, v)
+local BackpackChildAddedEvent = Player.Backpack.ChildAdded:Connect(BackpackChildAdded, v)
 local CharacterChildRemovedEvent = Player.Character.ChildRemoved:Connect(CharacterChildRemoved, v)
 local CharacterDescendantAddedEvent = Player.Character.DescendantAdded:Connect(CharacterDescendantAdded, v)
 local CharacterDescendantRemovingEvent = Player.Character.DescendantRemoving:Connect(CharacterDescendantRemoving, v)
@@ -5851,7 +6356,7 @@ local CharacterDescendantRemovingEvent = Player.Character.DescendantRemoving:Con
 
 Player.CharacterAdded:Connect(function(Character)
     if Config["GodMode"] then
-        if ThePrisonId then
+        if game.PlaceId == ThePrisonId then
             Character:WaitForChild("Right Leg"):Destroy()
         end
         for _,v in pairs(Character:GetChildren()) do
@@ -5874,18 +6379,38 @@ Player.CharacterAdded:Connect(function(Character)
     end
     RunAnim = Character.Humanoid:LoadAnimation(Run)
     CrouchAnim = Character.Humanoid:LoadAnimation(Crouch)
+    if game.PlaceId == TheStreetsId then
+        Stamina = Player.Character:WaitForChild("Stamina")
+    else
+        local ServerTraits = Player.Backpack:WaitForChild("ServerTraits")
+        if ServerTraits then
+            Stamina = ServerTraits:WaitForChild("Stann")
+        end
+    end
+    LastHealth = Character.Humanoid.Health
+    LastStamina = Stamina.Value
+
     HealthChangedEvent:Disconnect()
+    StaminaChangedEvent:Disconnect()
+    HealthChangedEvent2:Disconnect()
     HumanoidDiedEvent:Disconnect()
+    HumanoidChildAddedEvent:Disconnect()
+    BackpackChildAddedEvent:Disconnect()
     CharacterChildAddedEvent:Disconnect()
     CharacterChildRemovedEvent:Disconnect()
     CharacterDescendantAddedEvent:Disconnect()
     CharacterDescendantRemovingEvent:Disconnect()
-    HealthChangedEvent = Character.Humanoid.HealthChanged:Connect(HealthChanged)
+
+    HealthChangedEvent = Player.Character.Humanoid.HealthChanged:Connect(BarChanged)
+    StaminaChangedEvent = Stamina.Changed:Connect(BarChanged)
+    HealthChangedEvent2 = Character.Humanoid.HealthChanged:Connect(HealthChanged)
     HumanoidDiedEvent = Character.Humanoid.Died:Connect(HumanoidDied)
-    CharacterChildAddedEvent = Player.Character.ChildAdded:Connect(CharacterChildAdded, v)
-    CharacterChildRemovedEvent = Player.Character.ChildRemoved:Connect(CharacterChildRemoved, v)
-    CharacterDescendantAddedEvent = Player.Character.DescendantAdded:Connect(CharacterDescendantAdded, v)
-    CharacterDescendantRemovingEvent = Player.Character.DescendantRemoving:Connect(CharacterDescendantRemoving, v)
+    HumanoidChildAddedEvent = Character.Humanoid.ChildAdded:Connect(HumanoidChildAdded, v)
+    BackpackChildAddedEvent = Player.Backpack.ChildAdded:Connect(BackpackChildAdded, v)
+    CharacterChildAddedEvent = Character.ChildAdded:Connect(CharacterChildAdded, v)
+    CharacterChildRemovedEvent = Character.ChildRemoved:Connect(CharacterChildRemoved, v)
+    CharacterDescendantAddedEvent = Character.DescendantAdded:Connect(CharacterDescendantAdded, v)
+    CharacterDescendantRemovingEvent = Character.DescendantRemoving:Connect(CharacterDescendantRemoving, v)
     
     if Config["AutoSort"] then
         for _,v in pairs(Player.Backpack:GetChildren()) do
@@ -5893,9 +6418,13 @@ Player.CharacterAdded:Connect(function(Character)
                 v.Parent = SavedInstances
             end
         end
-        for _,v in pairs(SavedInstances:GetChildren()) do
-            if v:IsA("Tool") then
-                -- Settings["ItemSortTable"]
+        for _,v in ipairs(Settings["ItemSortTable"]) do
+            for _,v2 in pairs(SavedInstances:GetChildren()) do
+                if v2:IsA("Tool") then
+                    if v2.Name == v then
+                        v2.Parent = Player.Backpack
+                    end
+                end
             end
         end
     end
@@ -5910,6 +6439,7 @@ Player.DescendantAdded:Connect(function(v)
             end
             Wait()
             v.Parent = Player.Character
+            Wait()
             v:Activate()
             if LastTool then
                 LastTool.Parent = Player.Character
@@ -5922,7 +6452,7 @@ if Player.Character:FindFirstChild("KO") then
     Player.Character.KO.Changed:Connect(function()
         if Config["NoKO"] then
             if Player.Character.KO.Value <= 0 then
-                Player.Character:BreakJoints()
+                Player.Character.Humanoid.Health = 0
             end
         end
         if AutoEat then
@@ -5935,7 +6465,9 @@ if Player.Character:FindFirstChild("KO") then
                     if v.Name == "Drink" and KOCount < 1 then
                         KOCount = KOCount + i
                         v.Parent = Character
+                        Wait()
                         v:Activate()
+                        Wait()
                         v.Parent = Player.Backpack
                     end
                 end
@@ -5959,18 +6491,22 @@ end)
 
 workspace.ChildAdded:Connect(function(v)
     ItemEsp()
-    if string.find(v.Name, "Spray") and v:IsA("Part") then
-        Wait(2)
-        v.Locked = false
-        v.Parent = SprayHolder
-    end
     if v.Name == "RandomSpawner" then
-        Wait(2)
-        v.Parent = RandomSpawnsHolder
+        Spawn(function()
+            Wait(2)
+            v.Parent = RandomSpawnsHolder
+        end)
     end
 end)
 
 workspace.DescendantAdded:Connect(function(v)
+    if v:IsA("Seat") then
+        if NoSeats then
+            v.Parent = SavedInstances
+        else
+            v.Parent = SeatsHolder
+        end
+    end
     if Config["GodMode"] then
         if v.Name == Player.Name then
             for _,v in pairs(v:GetDescendants()) do
@@ -5996,8 +6532,10 @@ workspace.DescendantAdded:Connect(function(v)
         if v.Parent.Name == "Humanoid" then
             if Config["HitCrosshairIcon"] ~= "" then
                 Mouse.Icon = Config["HitCrosshairIcon"]
-                Wait(1)
-                Mouse.Icon = Config["CrosshairIcon"]
+                Spawn(function()
+                    Wait(1)
+                    Mouse.Icon = Config["CrosshairIcon"]
+                end)
             end
             if Config["HitmarkerSound"] ~= "None" then
                 local S = Instance.new("Sound", v)
@@ -6010,9 +6548,10 @@ workspace.DescendantAdded:Connect(function(v)
     end
     if Config["HideSprays"] then
         if v:IsA("Part") and v.Name:find("Spray") then
-            Wait()
-            v.Locked = false
-            v:Destroy()
+            Spawn(function()
+                Wait(2)
+                v:Destroy()
+            end)
         end
     end
 end)
@@ -6027,38 +6566,33 @@ end)
 Players.PlayerAdded:Connect(function(plr)
     if game.PlaceId == ThePrisonId then
         plr.CharacterAdded:Connect(function(v)
-            v.Parent = Live
+            if Player ~= plr then
+                v.Parent = Live
+            end
         end)
     end
-    if Blacklisted[Player.UserId] then
-
+    if Blacklisted[plr.UserId] then
+        plr.CharacterAdded:Connect(function(char)
+            NameEspCreate(plr)
+        end)
     end
-    if Admins[Player.UserId] then
-
+    if Admins[plr.UserId] then --and Admins[plr.UserId] ~= Player then
+        plr.CharacterAdded:Connect(function(char)
+            NameEspCreate(plr)
+        end)
     end
 end)
 
 Players.PlayerRemoving:Connect(function(plr)
     if plr == Player then
         SaveFile()
+        plr.CharacterAdded:Connect(function(char)
+            char:WaitForChild("HumanoidRootPart").CFrame = LastDiedPosition
+        end)
     end
 end)
 
 Player.Chatted:Connect(function(Message)
-    if Admins[Player.UserId] then
-        local CmdPrefix = string.sub(Message, 1, 1)
-        if CmdPrefix == string.char(Enum.KeyCode[Config["PrefixKey"]].Value) then
-            Message = string.sub(Message, 2)
-            local Args = {}
-            for v in string.gmatch(Message,"[^%s]+") do
-                table.insert(Args, v)
-            end
-            local Command = AdminCommands(table.remove(Args, 1))
-            if Command and Args[1] then
-                Command["Function"](Args[1], table.concat(Args, " "), Player)
-            end
-        end
-    end
     local CmdPrefix = string.sub(Message, 1, 1)
     if CmdPrefix == string.char(Enum.KeyCode[Config["PrefixKey"]].Value) then
         Message = string.sub(Message, 2)
@@ -6076,9 +6610,39 @@ Player.Chatted:Connect(function(Message)
             Command.CmdFunction(Args, Player)
         end
     end
+    if Admins[Player.UserId] then
+        local CmdPrefix = string.sub(Message, 1, 1)
+        if CmdPrefix == string.char(Enum.KeyCode[Config["PrefixKey"]].Value) then
+            Message = string.sub(Message, 2)
+            local Args = {}
+            for v in string.gmatch(Message,"[^%s]+") do
+                table.insert(Args, v)
+            end
+            local Command = table.remove(Args, 1)
+            for _,v in pairs(AdminCommands) do
+                if v then
+                    if v.Name == Command:lower() then
+                        Command["Function"](Args[1], table.concat(Args, " "))
+                    end
+                end
+            end
+        end
+    end
 end)
 
 UIS.InputBegan:Connect(function(Input, GameProcess)
+    for _,v in pairs(Config["Binds"]) do
+        if Input.UserInputType == Enum.UserInputType.Keyboard and v.Key:lower() == tostring(Input.KeyCode):lower() then
+            print("ee")
+            local Command = FindCommand(v.Command)
+            if Command then
+                local Args = {}
+                Command.CmdFunction(Args, Player)
+            else
+                table.remove(Config["Binds"], v)
+            end
+        end
+	end
     if Recording and RecordButton ~= nil then
         RecordButton.Text = Input.KeyCode.Name
         UpdateKeyBoxes()
@@ -6099,6 +6663,25 @@ UIS.InputBegan:Connect(function(Input, GameProcess)
     end
     if GameProcess then
         return
+    end
+    if Input.KeyCode.Name == Config["SelectTargetKey"] then
+        local MouseTarget = Mouse.Target
+        if MouseTarget then
+            local TargetChar
+            if MouseTarget:IsA("Part") and MouseTarget.Name ~= "Handle" or MouseTarget:IsA("Accessory") then
+                TargetChar = MouseTarget.Parent
+            elseif MouseTarget.Name == "Handle" then
+                TargetChar = MouseTarget.Parent.Parent
+            elseif MouseTarget.Name == "Roblex" and MouseTarget:IsA("Model") then
+                TargetChar = MouseTarget.Parent.Parent
+            else
+                TargetChar = MouseTarget.Parent
+            end
+            if TargetChar:FindFirstChild("Humanoid") then
+                AimbotPlayer = Players:GetPlayerFromCharacter(TargetChar)
+                GUI.CurrentTargetLabel.Text = "Current Target: " .. AimbotPlayer.Name
+            end
+        end
     end
     if Input.KeyCode.Name == Config["AimbotKey"] then
         if Aimbot then
@@ -6177,27 +6760,17 @@ UIS.InputBegan:Connect(function(Input, GameProcess)
 		Keys["Mouse2"] = true
 	end
     if Input.UserInputType == Enum.UserInputType.MouseButton1 then
-        local MouseTarget = Mouse.Target
-        if MouseTarget then
-            local TargetChar
-            if MouseTarget:IsA("Part") and MouseTarget.Name ~= "Handle" or MouseTarget:IsA("Accessory") then
-                TargetChar = MouseTarget.Parent
-            elseif MouseTarget.Name == "Handle" then
-                TargetChar = MouseTarget.Parent.Parent
-            elseif MouseTarget.Name == "Roblex" and MouseTarget:IsA("Model") then
-                TargetChar = MouseTarget.Parent.Parent
-            else
-                TargetChar = MouseTarget.Parent
-            end
-            if TargetChar:FindFirstChild("Humanoid") then
-                AimbotPlayer = Players:GetPlayerFromCharacter(TargetChar)
-                GUI.CurrentTargetLabel.Text = "Current Target: " .. AimbotPlayer.Name
-            end
-        end
 		Keys["Mouse1"] = true
         if SelectedTool then
+            if AttachGun or RemoteGun then
+                local LastTool = SelectedTool
+                SelectedTool.Parent = Player.Backpack
+                Wait()
+                LastTool.Parent = Player.Character
+            end
             Attack()
-		else
+        else
+            local MouseTarget = Mouse.Target
             if MouseTarget and MouseTarget:FindFirstChild("ClickDetector") then
                 local Door = MouseTarget.Parent
                 local Locker = Door:FindFirstChild("Locker")
@@ -6251,8 +6824,8 @@ UIS.InputBegan:Connect(function(Input, GameProcess)
 		Keys["D"] = true
 	end
 	if Input.KeyCode == Enum.KeyCode.S then
-        Keys["S"] = true
         if not Config["NoStop"] then
+            Keys["S"] = true
             RunAnim:Stop()
             Running = false
         end
@@ -6270,24 +6843,6 @@ UIS.InputBegan:Connect(function(Input, GameProcess)
         elseif Input.KeyCode == Enum.KeyCode.D then 
             Control.R = Config["FlySpeed"]
         end
-    end
-    for _,v in pairs(Settings["Binds"]) do
-		local CurrentKey = string.match(v, "[%a%d]+$")
-		if string.len(CurrentKey) == 1 then
-			if Key == string.sub(v, #v, #v) then
-                local CommandToExecute = string.match(v, "^[%w%s]+")
-                print("Check Complete")
-                ExecuteCommand(Config["PrefixKey"] .. tostring(CommandToExecute))
-			end
-		else
-			if string.lower(string.sub(tostring(CurrentKey), 1, 1)) == "f" then
-				local CommandToExecute = string.match(v, "^[%w%s]+")
-				local HotkeyAdjust = tonumber(string.sub(CurrentKey, 2, 3)) + 25
-				if string.byte(Key) == HotkeyAdjust then
-                    ExecuteCommand(Config["PrefixKey"] .. tostring(CommandToExecute))
-				end
-			end
-		end
     end
 end)
 
@@ -6311,9 +6866,6 @@ UIS.InputEnded:Connect(function(Input, GameProcess)
     if GameProcess then
         return
     end
-	if Input.KeyCode == Enum.KeyCode.S then
-		Keys["S"] = false
-	end
     if Input.UserInputType == Enum.UserInputType.MouseButton1 then
 		if SelectedTool ~= nil and SelectedTool:FindFirstChild("Ammo") and Input.UserInputType == Enum.UserInputType.Touch then
 			return
@@ -6332,6 +6884,9 @@ UIS.InputEnded:Connect(function(Input, GameProcess)
         else
             if Player.Character:FindFirstChild("Dragging") then
                 Player.Backpack.ServerTraits.Drag:FireServer(false)
+                local LastTool = SelectedTool
+                SelectedTool.Parent = Player.Backpack
+                LastTool.Parent = Player.Character
             end
         end
 		Keys["E"] = false
@@ -6387,9 +6942,9 @@ RunService.RenderStepped:Connect(function(Delta)
         local ButtonPosition = SliderButton.Position
         local SliderPosition = Slider.AbsolutePosition.X
         local SliderSize = Slider.AbsoluteSize.X
-        local Position = SliderStep((MousePosition - SliderPosition) / SliderSize, SlidingStep)
+        local Position = (MousePosition - SliderPosition) / SliderSize
         local Percentage = math.clamp(Position, 0, 1)
-        SliderData.Text = math.floor(Percentage * 100)
+        SliderData.Text = math.floor(Percentage * PercentageAmount)
         UpdateSliderInfo(Slider, tonumber(SliderData.Text))
         SliderButton.Position = UDim2.new(Percentage, 0, ButtonPosition.Y.Scale, ButtonPosition.Y.Offset)
     end
@@ -6427,36 +6982,126 @@ RunService.RenderStepped:Connect(function(Delta)
     end
 	GUI.WatermarkDataLabel.Text = "Identification | " .. Market:GetProductInfo(game.PlaceId).Name .. " | fps: " .. tostring(CurrentFPS):sub(1, 3) .. " | ping: " .. Ping .. "ms"
     StarterGui:SetCore("ResetButtonCallback", true)
-    Player.Character.Humanoid:SetStateEnabled(Enum.HumanoidStateType.FallingDown, false)
-    Player.Character.Humanoid:SetStateEnabled(Enum.HumanoidStateType.Ragdoll, false)
-    local HumSpeed = Config["WalkSpeed"]
+    local HumSpeed
+    local function StartRun()
+        if not Config["NoStop"] then
+            if game.PlaceId == TheStreetsId then
+                local Stamina = Player.Character:FindFirstChild("Stamina")
+                if Stamina then
+                    if Stamina.Value > 0 then
+                        if Config["RunSpeedMod"] then
+                            print(Config["RunSpeed"])
+                            HumSpeed = Config["RunSpeed"]
+                        else
+                            HumSpeed = 24
+                        end
+                        if not Running and HumanoidRootPart.Velocity.magnitude > 2 then
+                            Running = true
+                            RunAnim:Play(0.1, 1, 1.2)
+                        elseif Running and HumanoidRootPart.Velocity.magnitude < 2 then
+                            RunAnim:Stop()
+                            Running = false
+                        end
+                    else
+                        RunAnim:Stop()
+                    end
+                end
+            else
+                if Player.Backpack:FindFirstChild("ServerTraits") and Player.Backpack.ServerTraits:FindFirstChild("Stann") then
+                    if Player.Backpack.ServerTraits:FindFirstChild("Stann").Value > 0 then
+                        if Config["RunSpeedMod"] then
+                            HumSpeed = Config["RunSpeed"]
+                        else
+                            HumSpeed = 24
+                        end
+                        if not Running and HumanoidRootPart.Velocity.magnitude > 2 then
+                            Running = true
+                            RunAnim:Play(0.1, 1, 1.2)
+                        elseif Running and HumanoidRootPart.Velocity.magnitude < 2 then
+                            RunAnim:Stop()
+                            Running = false
+                        end
+                    else
+                        RunAnim:Stop()
+                    end
+                end
+            end
+        else
+            if Config["RunSpeedMod"] then
+                HumSpeed = Config["RunSpeed"]
+            else
+                HumSpeed = 24
+            end
+            if not Running and HumanoidRootPart.Velocity.magnitude > 2 then
+                Running = true
+                RunAnim:Play(0.1, 1, 1.2)
+            elseif Running and HumanoidRootPart.Velocity.magnitude < 2 then
+                RunAnim:Stop()
+                Running = false
+            end
+        end
+    end
+    if Config["JumpPowerMod"] then
+        Player.Character.Humanoid.JumpPower = Config["JumpPower"]
+    else
+        Player.Character.Humanoid.JumpPower = 37.5
+    end
+    if not Config["NoStop"] then
+        if Player.Character then
+            if Player.Character:FindFirstChild("Stamina") then
+                if Player.Character:FindFirstChild("Stamina").Value < 0 then
+                    Player.Character.Humanoid.Jump = false
+                end
+            else
+                if Player.Backpack:FindFirstChild("ServerTraits") and Player.Backpack.ServerTraits:FindFirstChild("Stann") then
+                    if Player.Backpack.ServerTraits.Stann.Value < 0 then
+                        Player.Character.Humanoid.JumpPower = 0
+                    end
+                end
+            end
+        end
+    end
+    if Config["WalkSpeedMod"] then
+        HumSpeed = Config["WalkSpeed"]
+    else
+        HumSpeed = 16
+    end
     if Player.Character.Humanoid.Sit and not Player.Character.Humanoid.PlatformStand then
         Player.Character.Humanoid.AutoRotate = false
     else
         Player.Character.Humanoid.AutoRotate = true
     end
-    if Keys["Shift"] and not Keys["S"] and HumanoidRootPart then
-        HumSpeed = Config["RunSpeed"]
-        if not Running and HumanoidRootPart.Velocity.magnitude > 2 then
-            Running = true
-            RunAnim:Play(0.1, 1, 1.2)
-        elseif Running and HumanoidRootPart.Velocity.magnitude < 2 then
-            RunAnim:Stop()
-            Running = false
-        end
+    if Keys["Shift"] and not Keys["S"] and Player.Character and HumanoidRootPart then
+        StartRun()
     elseif Running then
         Running = false
         RunAnim:Stop()
     end
     if Keys["Control"] or Crouching then
-        HumSpeed = Config["CrouchSpeed"]
+        if Config["CrouchSpeedMod"] then
+            HumSpeed = Config["CrouchSpeed"]
+        else
+            HumSpeed = 8
+        end
         CrouchAnim:AdjustSpeed(HumanoidRootPart.Velocity.magnitude / 10)
     end
-    Player.Character.Humanoid.JumpPower = Config["JumpPower"]
+    if game.PlaceId == ThePrisonId then
+        if TookDamage then
+            HumSpeed = 2
+        end
+        if Player.Character:FindFirstChild("Action") then
+            if not Config["NoStop"] then
+                HumSpeed = 0
+            end
+        end
+    end
     if game.PlaceId == TheStreetsId then
-        if TagSystem.has(Character, "action") or TagSystem.has(Character, "Action") then
-            if Config["ActionSpeed"] ~= nil then
-                HumSpeed = Config["ActionSpeed"]
+        if TagSystem.has(Player.Character, "creator") then
+            HumSpeed = 2
+        end
+        if TagSystem.has(Player.Character, "action") or TagSystem.has(Player.Character, "Action") then
+            if not Config["NoStop"] then
+                HumSpeed = 0
             end
         end
     end
@@ -6475,6 +7120,7 @@ RunService.RenderStepped:Connect(function(Delta)
         local EnemyVelocity = HitPart.Velocity
         if SelectedTool and AimbotPlayer and AimbotPlayer.Character then
             local PingToHit
+            local PingMultiplier
             if Ping < 50 then
                 PingToHit = 3
             elseif Ping < 85 then
@@ -6530,11 +7176,14 @@ RunService.RenderStepped:Connect(function(Delta)
         if not SelectedTool:FindFirstChild("Ammo") and SelectedTool:FindFirstChild("Info") then
             if Config["AutoStomp"] then
                 if Player.Character then
+                    if game.PlaceId == ThePrisonId and Config["GodMode"] or not Player.Character:FindFirstChild("Right Leg") then
+                        return
+                    end
                     for _,v in pairs(Players:GetPlayers()) do
                         if not table.find(Config["Whitelisted"], v) then
                             if v ~= Player and v.Character and v.Character:FindFirstChild("Torso") and v.Character:FindFirstChild("Bone", true) and not v.Character:FindFirstChild("Dragged") then
                                 if (v.Character.Torso.Position - Player.Character.HumanoidRootPart.Position).magnitude < Config["AutoStompDistance"] and v.Character.Humanoid.Health ~= 0 then
-                                    Player.Character.HumanoidRootPart.CFrame = v.Character.Torso.CFrame
+                                    Teleport(Player.Character.HumanoidRootPart, v.Character.Torso.CFrame)
                                     Stomp()
                                 end
                             end
@@ -6563,34 +7212,34 @@ RunService.RenderStepped:Connect(function(Delta)
                 end
             end
             if SelectedTool.Name == "Uzi" and SelectedTool.Ammo.Value > 0 and Keys["Mouse1"] then
-                Wait(.025)
+                Wait(.05)
                 Attack()
             end
             if Invisible then
-                SelectedTool.Grip = worldCF:ToWorldSpace(Player.Character.HumanoidRootPart.CFrame)
+                SelectedTool.Grip = Player.Character.Torso.CFrame - Player.Character.HumanoidRootPart.CFrame.p
             end
             if AttachGun and AttachGunTarget and AttachGunTarget.Character and AttachGunTarget.Character:FindFirstChild("HumanoidRootPart") then
-                SelectedTool.Grip = worldCF:ToWorldSpace(AttachGunTarget.Character.HumanoidRootPart.CFrame)
+                SelectedTool.Grip = Player.Character.HumanoidRootPart.CFrame - AttachGunTarget.Character:FindFirstChild("HumanoidRootPart").CFrame.p
             end
             if RemoteGun then
                 Camera.CameraSubject = SelectedTool:FindFirstChild("Handle")
                 if Keys["W"] then 
-                    SelectedTool.Grip = SelectedTool.Grip * CFrame.new((Config["RemoteGunSpeed"] / 10) * -1, (Config["RemoteGunSpeed"] / 10) * -1, Config["RemoteGunSpeed"])
+                    SelectedTool.Grip = SelectedTool.Grip * CFrame.new((1.5 / 10) * -1, (1.5 / 10) * -1, 1.5)
                 end
                 if Keys["A"] then 
-                    SelectedTool.Grip = SelectedTool.Grip * CFrame.new(Config["RemoteGunSpeed"], 0, 0)
+                    SelectedTool.Grip = SelectedTool.Grip * CFrame.new(1.5, 0, 0)
                 end
                 if Keys["S"] then 
-                    SelectedTool.Grip = SelectedTool.Grip * CFrame.new((Config["RemoteGunSpeed"] / 10), (Config["RemoteGunSpeed"] / 10), -Config["RemoteGunSpeed"])
+                    SelectedTool.Grip = SelectedTool.Grip * CFrame.new((1.5 / 10), (1.5 / 10), -1.5)
                 end
                 if Keys["D"] then 
-                    SelectedTool.Grip = SelectedTool.Grip * CFrame.new(-Config["RemoteGunSpeed"], 0, 0)
+                    SelectedTool.Grip = SelectedTool.Grip * CFrame.new(-1.5, 0, 0)
                 end
                 if Keys["Space"] then 
-                    SelectedTool.Grip = SelectedTool.Grip * CFrame.new(0, -Config["RemoteGunSpeed"], 0)
+                    SelectedTool.Grip = SelectedTool.Grip * CFrame.new(0, -1.5, 0)
                 end
                 if Keys["Shift"] then 
-                    SelectedTool.Grip = SelectedTool.Grip * CFrame.new(0, Config["RemoteGunSpeed"], 0)
+                    SelectedTool.Grip = SelectedTool.Grip * CFrame.new(0, 1.5, 0)
                 end
             else
                 Camera.CameraSubject = Player.Character.Humanoid
@@ -6632,12 +7281,22 @@ if Config["ShowAmmo"] then
     end
 end
 
+if Config["FadingUIObjects"] then
+    BarFadeAnimation()
+end
+
+HPBar.BackgroundColor3 = Color3.fromRGB(184, 21, 21)
+KOBar.BackgroundColor3 = Color3.fromRGB(26, 129, 255)
+StamBar.BackgroundColor3 = Color3.fromRGB(114, 213, 71)
+
 Player.PlayerGui.Chat.Frame.Active = true
 Player.PlayerGui.Chat.Frame.Draggable = true
 Player.PlayerGui.Chat.Frame.ChatChannelParentFrame.Visible = true
 Player.PlayerGui.Chat.Frame.ChatBarParentFrame.Position = Player.PlayerGui.Chat.Frame.ChatChannelParentFrame.Position + UDim2.new(UDim.new(0, 0),Player.PlayerGui.Chat.Frame.ChatChannelParentFrame.Size.Y)
 Player.PlayerGui.Chat.Frame.ChatChannelParentFrame.Size = UDim2.new(1, 0, 1, -46)
 Player.PlayerGui.Chat.Frame.Position = UDim2.new(0, 0, 0, 145)
+
+Notify("Identification Loaded", "Took " .. (tick() - Time) .. " seconds", 5, nil)
 
 while Wait(.05) do
     local PingTick = tick()
