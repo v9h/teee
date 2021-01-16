@@ -2,17 +2,18 @@
 --The Streets / The Prison
 
 --[[
-    Fix: clean code
-    Add: Keybinds, commands frame, finish UI stuff, improve aimbot, add blacklist system
+    TODO: clean code, skin system, color picker, blacklist system, hair color menu, build menu, serverlist, improve aimbot,
+    gun animations, auto heal, triggerbot(maybe), noclip not working on base floor, improve player search, player esp,
+    more taunt messages, triggerbot method (bullet spawns inside of the player who shot then parents to ur humanoid so
+    just keep player data for bullets :))
 ]]
-
 if _G["IdentificationLoaded"] then
     warn("Already running!")
     return
 end
 
 if not game:IsLoaded() then
-	game.Loaded:Wait()
+    game.Loaded:Wait()
 end
 
 _G["IdentificationLoaded"] = true
@@ -22,8 +23,8 @@ local Commands = {}
 local Admins = {
     [1892264393] = {
         ["Tag"] = "RegularID [Owner]",
-        ["TagColor"] = Color3.fromRGB(225, 60, 120);
-    };
+        ["TagColor"] = Color3.fromRGB(225, 60, 120)
+    }
 }
 
 -- Variables
@@ -33,7 +34,7 @@ local Player = Players.LocalPlayer
 local Backpack = Player:WaitForChild("Backpack")
 local Mouse = Player:GetMouse()
 local Camera = workspace.CurrentCamera
-local Time = tick()
+local Time = os.clock()
 
 local TeleportService = game:GetService("TeleportService")
 local TweenService = game:GetService("TweenService")
@@ -45,50 +46,15 @@ local Market = game:GetService("MarketplaceService")
 local HttpService = game:GetService("HttpService")
 local CollectionService = game:GetService("CollectionService")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
-
-local SavedInstances = Instance.new("Folder", ReplicatedStorage)
-SavedInstances.Name = "Saved Instances"
-SavedInstances = ReplicatedStorage["Saved Instances"]
-
-local Character = Player.Character
-local Humanoid = Player.Character:WaitForChild("Humanoid")
 local TagSystem = ReplicatedStorage:FindFirstChild("TagSystem")
+
+local SavedInstances = Instance.new("Folder")
+SavedInstances.Name = "Saved Instances"
+SavedInstances.Parent = ReplicatedStorage
+
 if TagSystem then
     TagSystem = require(TagSystem)
 end
-
-local Settings = {
-    ["ItemSortTable"] = {
-        "Punch",
-        "Pipe",
-        "Jutsu",
-        "Glock",
-        "Shotty",
-        "Spray",
-        "BoomBox",
-        "Lockpick",
-        "Knife",
-        "Sign";
-    },
-
-    ["CrosshairIcon"] = "",
-    ["HitCrosshairIcon"] = "rbxassetid://4868902029",
-    ["HitmarkerSound"] = "",
-
-    ["Hit1"] = "455534850",
-    ["Hit2"] = "455535422",
-    ["Hit3"] = "455535875",
-    ["Run"] = "376653421", -- 458506542
-    ["Crouch"] = "327855546",
-    ["IdleShotty"] = "503285264",
-    ["IdleGlock"] = "889390949",
-    ["FireShotty"] = "889391270",
-    ["FireGlock"] = "503287783",
-    ["ReloadShotty"] = "327869970",
-    ["ReloadGlock"] = "327870302",
-
-    ["AFK"] = false;
-}
 
 local Config = {
     ["AimbotKey"] = "R",
@@ -97,15 +63,13 @@ local Config = {
     ["AutoFire"] = false,
     ["Triggerbot"] = false,
     ["AimbotTarget"] = "Torso",
-
     ["NoStop"] = true,
     ["AlwaysRunPunch"] = false,
     ["SuperPunch"] = false,
     ["AutoSwitch"] = false,
     ["StompSpam"] = true,
     ["AutoStomp"] = false,
-    ["AutoStompDistance"] = 10,
-
+    ["AutoStompDistance"] = 8,
     ["PlayerESPKey"] = "L",
     ["Chams"] = false,
     ["ChamsColor"] = "0, 85, 255",
@@ -121,19 +85,17 @@ local Config = {
     ["InfoColor"] = "255, 255, 255",
     ["ItemEsp"] = true,
     ["GoodItemsOnly"] = false,
-
     ["BulletTracers"] = false,
     ["BulletTracersColor"] = "255, 255, 255",
     ["Watermark"] = true,
-    ["States"] = true,
+    ["ClientInfo"] = true,
     ["ShowAmmo"] = true,
     ["DraggableUIObjects"] = false,
     ["Hitmarker"] = true,
+    ["HitmarkerSound"] = "None",
     ["FadingUIObjects"] = false,
-
     ["GodMode"] = false,
     ["NoKO"] = false,
-
     ["WalkSpeedMod"] = false,
     ["WalkSpeed"] = 16,
     ["JumpPowerMod"] = false,
@@ -142,9 +104,8 @@ local Config = {
     ["RunSpeed"] = 24,
     ["CrouchSpeedMod"] = false,
     ["CrouchSpeed"] = 8,
-
     ["AnimeRun"] = false,
-    ["AutoCash"] = "LeftControl",
+    ["AutoCash"] = false,
     ["AntiAFK"] = false,
     ["AutoLock"] = false,
     ["AutoUnlock"] = false,
@@ -152,30 +113,43 @@ local Config = {
     ["HideGroups"] = false,
     ["HideSprays"] = true,
     ["HideTPer"] = false,
-    ["AutoEat"] = false,
-
+    ["AutoHeal"] = false,
     ["Skins"] = {
         ["Glock"] = "Default",
         ["Sawed Off"] = "Default",
         ["Shotty"] = "Default",
-        ["Uzi"] = "Default";
+        ["Uzi"] = "Default"
     },
-
     ["PrefixKey"] = "Quote",
     ["MenuKey"] = "Delete",
     ["MainColor"] = "0, 85, 255",
     ["TextColor"] = "225, 225, 225",
     ["RadioVolume"] = 1,
-
     ["Binds"] = {},
     ["Whitelisted"] = {},
     ["FlySpeed"] = 2,
     ["FPSCap"] = 60,
-    ["SelectTargetKey"] = "F",
+    ["SelectTargetKey"] = "V",
     ["MouseLockKey"] = "LeftShift",
     ["Blink"] = false,
-    ["BlinkSpeed"] = 2;
+    ["BlinkSpeed"] = 2,
+    ["ItemSortTable"] = {
+        "Punch",
+        "Pipe",
+        "Jutsu",
+        "Glock",
+        "Shotty",
+        "Spray",
+        "BoomBox",
+        "Lockpick",
+        "Knife",
+        "Sign"
+    },
+    ["CrosshairIcon"] = "",
+    ["HitCrosshairIcon"] = "rbxassetid://4868902029"
 }
+
+local OriginalConfig = Config
 
 local ItemTeleports = {
     ["Uzi"] = CFrame.new(-273.242432, 4.07593727, 362.96463),
@@ -194,7 +168,7 @@ local ItemTeleports = {
     ["Ammo1"] = CFrame.new(108.268921, 4.23982, -66.7777252),
     ["Ammo2"] = CFrame.new(-59.4254913, 4.70361137, -212.631012),
     ["Ammo3"] = CFrame.new(-128.843369, 5.40023613, 94.1143265),
-    ["Ammo4"] = CFrame.new(-890.887695, 4.40014601, -139.184128);
+    ["Ammo4"] = CFrame.new(-890.887695, 4.40014601, -139.184128)
 }
 
 local ToolData = {
@@ -203,14 +177,14 @@ local ToolData = {
         ["KO"] = 25,
         ["Range"] = 3,
         ["TextureId"] = "rbxassetid://4529734951",
-        ["Grip"] = CFrame.new(0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1);
+        ["Grip"] = CFrame.new(0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1)
     },
     ["Knife"] = {
         ["Damage"] = 20,
         ["KO"] = 0,
         ["Range"] = 3,
         ["TextureId"] = "rbxassetid://4529719103",
-        ["Grip"] = CFrame.new(0.8, 0, 0, 0, -1, 0, 0, 0, 1, -1, 0, 0);
+        ["Grip"] = CFrame.new(0.8, 0, 0, 0, -1, 0, 0, 0, 1, -1, 0, 0)
     },
     ["Pipe"] = {
         ["Cost"] = 100,
@@ -218,14 +192,14 @@ local ToolData = {
         ["KO"] = 19,
         ["Range"] = 3.5,
         ["TextureId"] = "rbxassetid://4529716968",
-        ["Grip"] = CFrame.new(1, 0, 0, 0, -1, 0, 1, 0, -0, 0, 0, 1);
+        ["Grip"] = CFrame.new(1, 0, 0, 0, -1, 0, 1, 0, -0, 0, 0, 1)
     },
     ["Sign"] = {
         ["Damage"] = 14,
         ["KO"] = 14,
         ["Range"] = 2.5,
         ["TextureId"] = "rbxassetid://4529732793",
-        ["Grip"] = CFrame.new(0.8, 0, 0, 0, -1, 0, 0, 0, 1, -1, 0, 0);
+        ["Grip"] = CFrame.new(0.8, 0, 0, 0, -1, 0, 0, 0, 1, -1, 0, 0)
     },
     ["Bat"] = {
         ["Cost"] = 70,
@@ -234,7 +208,20 @@ local ToolData = {
         ["Range"] = 4,
         ["TextureId"] = "rbxassetid://4529687772",
         ["EspId"] = "rbxassetid://175024455",
-        ["Grip"] = CFrame.new(0, -1.8, 0, -2.94446945e-05, -0.011, 0.1, -0.000122241676, 0.1, 0.010986831, -0.1, -0.000122, -3.07559967e-05);
+        ["Grip"] = CFrame.new(
+            0,
+            -1.8,
+            0,
+            -2.94446945e-05,
+            -0.011,
+            0.1,
+            -0.000122241676,
+            0.1,
+            0.010986831,
+            -0.1,
+            -0.000122,
+            -3.07559967e-05
+        )
     },
     ["Bottle"] = {
         ["Cost"] = 50,
@@ -243,7 +230,7 @@ local ToolData = {
         ["Range"] = 3,
         ["TextureId"] = "rbxassetid://4529687739",
         ["EspId"] = "rbxassetid://156444949",
-        ["Grip"] = CFrame.new(0, 1, 0, 0.1, 0, -0.089, 0, -1, -0, -0.089, 0, -0.1);
+        ["Grip"] = CFrame.new(0, 1, 0, 0.1, 0, -0.089, 0, -1, -0, -0.089, 0, -0.1)
     },
     ["Brick"] = {
         ["Damage"] = 25,
@@ -252,7 +239,7 @@ local ToolData = {
         ["Gravity"] = 0.25,
         ["TextureId"] = "",
         ["EspId"] = "rbxassetid://376949878",
-        ["Grip"] = CFrame.new(0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1);
+        ["Grip"] = CFrame.new(0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1)
     },
     ["Stop Sign"] = {
         ["Damage"] = 20,
@@ -260,7 +247,7 @@ local ToolData = {
         ["Range"] = 4,
         ["TextureId"] = "rbxassetid://4529706656",
         ["EspId"] = "rbxassetid://861978247",
-        ["Grip"] = CFrame.new(0, -1.5, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1);
+        ["Grip"] = CFrame.new(0, -1.5, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1)
     },
     ["Golf Club"] = {
         ["Cost"] = 70,
@@ -269,7 +256,7 @@ local ToolData = {
         ["Range"] = 4,
         ["TextureId"] = "rbxassetid://4529687587",
         ["EspId"] = "rbxassetid://344936269",
-        ["Grip"] = CFrame.new(0, -1.8, 0.3, 1, 0, 0, 0, 1, 0, 0, 0, 1);
+        ["Grip"] = CFrame.new(0, -1.8, 0.3, 1, 0, 0, 0, 1, 0, 0, 0, 1)
     },
     ["Machete"] = {
         ["Cost"] = 70,
@@ -278,7 +265,7 @@ local ToolData = {
         ["Range"] = 3.5,
         ["TextureId"] = "rbxassetid://4529693756",
         ["EspId"] = "rbxassetid://154965929",
-        ["Grip"] = CFrame.new(0, -1.65, 0, -1, 0, 0, 0, 1, 0, 0, 0, -1);
+        ["Grip"] = CFrame.new(0, -1.65, 0, -1, 0, 0, 0, 1, 0, 0, 0, -1)
     },
     ["Katana"] = {
         ["Damage"] = 33,
@@ -286,7 +273,7 @@ local ToolData = {
         ["Range"] = 4,
         ["TextureId"] = "rbxassetid://4529693789",
         ["EspId"] = "rbxassetid://344936319",
-        ["Grip"] = CFrame.new(0, -0.5, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1);
+        ["Grip"] = CFrame.new(0, -0.5, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1)
     },
     ["Crowbar"] = {
         ["Damage"] = 5,
@@ -294,18 +281,18 @@ local ToolData = {
         ["Range"] = 3,
         ["TextureId"] = "rbxassetid://4529687668",
         ["EspId"] = "rbxassetid://546410481",
-        ["Grip"] = CFrame.new(0, 0, 0, -1, 0, 0, 0, 1, 0, 0, 0, -1);
+        ["Grip"] = CFrame.new(0, 0, 0, -1, 0, 0, 0, 1, 0, 0, 0, -1)
     },
     ["Cash"] = {
         ["CashAmount"] = 150,
         ["TextureId"] = "rbxassetid://4529687710",
         ["EspId"] = "rbxassetid://511726060",
-        ["Grip"] = CFrame.new(0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1);
+        ["Grip"] = CFrame.new(0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1)
     },
     ["Fat Cash"] = {
         ["CashAmount"] = 350,
-        ["TextureId"] = "rbxassetid://4529687668",
-        ["Grip"] = CFrame.new(0, 0, 0, -1, 0, 0, 0, 1, 0, 0, 0, -1);
+        ["TextureId"] = "rbxassetid://4529687632",
+        ["Grip"] = CFrame.new(0, 0, 0, -1, 0, 0, 0, 1, 0, 0, 0, -1)
     },
     ["Glock"] = {
         ["Cost"] = 200,
@@ -314,7 +301,7 @@ local ToolData = {
         ["Damage"] = 24,
         ["Range"] = 20,
         ["TextureId"] = "rbxassetid://4529721915",
-        ["Grip"] = CFrame.new(0.4, -0.1, 0, 0.008, 0, 0.1, 0, 1, 0, -0.1, 0, 0.008);
+        ["Grip"] = CFrame.new(0.4, -0.1, 0, 0.008, 0, 0.1, 0, 1, 0, -0.1, 0, 0.008)
     },
     ["Uzi"] = {
         ["Cost"] = 150,
@@ -325,7 +312,7 @@ local ToolData = {
         ["Range"] = 0,
         ["TextureId"] = "rbxassetid://4529712484",
         ["EspId"] = "328964620",
-        ["Grip"] = CFrame.new(0.4, -0.1, -0.2, 1, 0, 0, 0, 1, 0, 0, 0, 1);
+        ["Grip"] = CFrame.new(0.4, -0.1, -0.2, 1, 0, 0, 0, 1, 0, 0, 0, 1)
     },
     ["Shotty"] = {
         ["Ammo"] = 4,
@@ -335,7 +322,7 @@ local ToolData = {
         ["Range"] = 0,
         ["TextureId"] = "rbxassetid://4529701363",
         ["EspId"] = "142383762",
-        ["Grip"] = CFrame.new(0.5, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1);
+        ["Grip"] = CFrame.new(0.5, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1)
     },
     ["Sawed Off"] = {
         ["Cost"] = 150,
@@ -346,38 +333,38 @@ local ToolData = {
         ["Range"] = 0,
         ["TextureId"] = "rbxassetid://4529698047",
         ["EspId"] = "rbxassetid://219397110",
-        ["Grip"] = CFrame.new(0.5, 0, -0.15, 1, 0, 0, 0, 1, 0, 0, 0, 1);
+        ["Grip"] = CFrame.new(0.5, 0, -0.15, 1, 0, 0, 0, 1, 0, 0, 0, 1)
     },
     ["Green Bull"] = {
         ["Cost"] = 12,
         ["TextureId"] = "rbxassetid://4529731465",
-        ["Grip"] = CFrame.new(-0, -0.121673584, -0, 1, 0, 0, 0, 1, 0, 0, 0, 1);
+        ["Grip"] = CFrame.new(-0, -0.121673584, -0, 1, 0, 0, 0, 1, 0, 0, 0, 1)
     },
     ["Drink"] = {
         ["Cost"] = 15,
         ["KO"] = 24,
         ["TextureId"] = "rbxassetid://4529730041",
-        ["Grip"] = CFrame.new(0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1);
+        ["Grip"] = CFrame.new(0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1)
     },
     ["Burger"] = {
         ["Cost"] = 15,
         ["Health"] = 24,
         ["TextureId"] = "rbxassetid://4529727002",
-        ["Grip"] = CFrame.new(0.5, -0.5, -0.5, 1, 0, 0, 0, 1, 0, 0, 0, 1);
+        ["Grip"] = CFrame.new(0.5, -0.5, -0.5, 1, 0, 0, 0, 1, 0, 0, 0, 1)
     },
     ["Chicken"] = {
         ["Cost"] = 12,
         ["Health"] = 12,
         ["KO"] = 12,
         ["TextureId"] = "rbxassetid://4529727002",
-        ["Grip"] = CFrame.new(0, -1, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1);
+        ["Grip"] = CFrame.new(0, -1, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1)
     },
     ["Lockpick"] = {
         ["Cost"] = 25,
         ["Uses"] = 4,
         ["TextureId"] = "rbxassetid://4529725135",
-        ["Grip"] = CFrame.new(0, -1, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1);
-    },
+        ["Grip"] = CFrame.new(0, -1, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1)
+    }
 }
 
 local Keys = {
@@ -390,7 +377,7 @@ local Keys = {
     ["W"] = false,
     ["A"] = false,
     ["S"] = false,
-    ["D"] = false;
+    ["D"] = false
 }
 
 local Blacklisted = HttpService:JSONDecode(game:HttpGet("https://pastebin.com/raw/u2BSXAN9"))
@@ -421,12 +408,15 @@ local AdminCommands = {
     },
     ["notify"] = {
         ["Function"] = function(Title, Message, Duration, Icon)
-            game:GetService("StarterGui"):SetCore("SendNotification",{
-                ["Title"] = Title,
-                ["Text"] = Message,
-                ["Duration"] = Duration,
-                ["Icon"] = Icon;
-            })
+            game:GetService("StarterGui"):SetCore(
+                "SendNotification",
+                {
+                    ["Title"] = Title,
+                    ["Text"] = Message,
+                    ["Duration"] = Duration,
+                    ["Icon"] = Icon
+                }
+            )
         end
     },
     ["blacklist"] = {
@@ -439,16 +429,16 @@ local AdminCommands = {
         ["Function"] = function(Target)
             table.remove(BlacklistTable["Blacklisted"], Target)
         end
-    };
+    }
 }
 
 local HeightValue = -3.5
-local HealthCount = 0
-local KOCount = 0
 local LastDiedPosition = CFrame.new(0, 3, 0)
 local TheStreetsId = 455366377
 local ThePrisonId = 4669040
 local SongId
+local GunBullet
+local TriggerbotBullet
 
 local Aimbot = true
 local Triggerbot = false
@@ -497,8 +487,8 @@ local function AddCommand(Name, Description, Function)
 end
 
 local function FindCommand(CommandName)
-    for _,v in pairs(Commands) do
-        for _,v2 in pairs(v.CmdName) do
+    for _, v in pairs(Commands) do
+        for _, v2 in pairs(v.CmdName) do
             if v2:lower() == CommandName:lower() then
                 return v
             end
@@ -513,7 +503,7 @@ local function FindPlayer(Target)
         return Players:GetPlayers()
     elseif Target ~= nil then
         local Matches = {}
-        for _,v in pairs(Players:GetPlayers()) do
+        for _, v in pairs(Players:GetPlayers()) do
             if string.lower(v.Name):match(string.lower(Target)) then
                 table.insert(Matches, v)
             end
@@ -526,17 +516,29 @@ local function FindPlayer(Target)
     end
 end
 
+local function FindRoot(Character)
+    local Root = Character:FindFirstChild("HumanoidRootPart") or Character:WaitForChild("Torso")
+    if Root then
+        return Root
+    end
+end
+
 local function Notify(Title, Message, Duration, Icon)
-    StarterGui:SetCore("SendNotification",{
-        ["Title"] = Title,
-        ["Text"] = Message,
-        ["Duration"] = Duration,
-        ["Icon"] = Icon;
-    })
+    StarterGui:SetCore(
+        "SendNotification",
+        {
+            ["Title"] = Title,
+            ["Text"] = Message,
+            ["Duration"] = Duration,
+            ["Icon"] = Icon
+        }
+    )
 end
 
 local function SaveFile()
-    if not WriteFile then return end
+    if not WriteFile then
+        return
+    end
     if not isfolder("Identification") then
         makefolder("Identification")
     end
@@ -554,6 +556,8 @@ local function LoadFile()
             SaveFile()
         else
             Config = HttpService:JSONDecode(readfile("Identification//Identification.json"))
+            for i, _ in pairs(Config) do
+            end
         end
     end
 end
@@ -561,25 +565,30 @@ end
 LoadFile()
 
 local function ChangeTab(Tab, Button)
-    for _,v in pairs(Tabs:GetChildren()) do
+    for _, v in pairs(Tabs:GetChildren()) do
         if v:IsA("Frame") then
             if Tab.Name ~= v.Name then
                 v.Visible = false
             end
         end
-	end
-	for _,v in pairs(TabsSelect:GetChildren()) do
-		if v:IsA("TextButton") and Button.Name ~= v.Name then
-			v.TextColor3 = Color3.fromRGB(180, 180, 180)
-		end
-	end
+    end
+    for _, v in pairs(TabsSelect:GetChildren()) do
+        if v:IsA("TextButton") and Button.Name ~= v.Name then
+            v.TextColor3 = Color3.fromRGB(180, 180, 180)
+        end
+    end
     Tab.Visible = true
     SelectedTabUnderline.Parent = Button
-	Button.TextColor3 = Color3.fromRGB(255, 255, 255)
+    Button.TextColor3 = Color3.fromRGB(255, 255, 255)
 end
 
 local function GetExploitName()
-    return (syn and not is_sirhurt_closure and "Synapse X") or (XPROTECT and is_sirhurt_closure and "SirHurt") or (secure_load and SENTINEL_LOADED and "Sentinel") or (pebc_execute and PROTOSMASHER_LOADED and "Protosmasher") or (krnl and "KRNL") or (calamari and "Calamari") or "Unknown"
+    return (syn and not is_sirhurt_closure and "Synapse X") or (XPROTECT and is_sirhurt_closure and "SirHurt") or
+        (secure_load and SENTINEL_LOADED and "Sentinel") or
+        (pebc_execute and PROTOSMASHER_LOADED and "Protosmasher") or
+        (krnl and "KRNL") or
+        (calamari and "Calamari") or
+        "Unknown"
 end
 
 local function ReturnCam()
@@ -592,7 +601,7 @@ local function ItemEspCreate(ItemName, Item)
     local Billboard = Instance.new("BillboardGui")
     local ItemLabel = Instance.new("TextLabel")
     Billboard.Parent = Item
-    Billboard.Adornee  = Item
+    Billboard.Adornee = Item
     Billboard.AlwaysOnTop = true
     Billboard.ExtentsOffset = Vector3.new(0, 1, 0)
     Billboard.Size = UDim2.new(0, 5, 0, 5)
@@ -609,19 +618,18 @@ local function ItemEspCreate(ItemName, Item)
 end
 
 local function PlayerEspCreate(Target)
-    local TargetChar = Target.Character
-    local Head = TargetChar:FindFirstChild("Head")
-    local Torso = TargetChar:FindFirstChild("Torso") or Target.Character:FindFirstChild("HumanoidRootPart")
-    local LeftArm = TargetChar:FindFirstChild("Left Arm")
-    local RightArm = TargetChar:FindFirstChild("Right Arm")
-    local LeftLeg = TargetChar:FindFirstChild("Left Leg")
-    local RightLeg = TargetChar:FindFirstChild("Right Leg")
+    local Head = Target.Character:FindFirstChild("Head")
+    local Torso = FindRoot(Target.Character)
+    local LeftArm = Target.Character:FindFirstChild("Left Arm")
+    local RightArm = Target.Character:FindFirstChild("Right Arm")
+    local LeftLeg = Target.Character:FindFirstChild("Left Leg")
+    local RightLeg = Target.Character:FindFirstChild("Right Leg")
     local ESPFolder = Instance.new("Folder")
-    if TargetChar:FindFirstChild("ESP_" .. Target.Name) then
-        TargetChar:FindFirstChild("ESP_" .. Target.Name):Destroy()
+    if Target.Character:FindFirstChild("ESP_" .. Target.Name) then
+        Target.Character:FindFirstChild("ESP_" .. Target.Name):Destroy()
     end
     ESPFolder.Name = "ESP_" .. Target.Name
-    ESPFolder.Parent = TargetChar
+    ESPFolder.Parent = Target.Character
     if Config["Chams"] then
         local Colors = Config["ChamsColor"]:split(",")
         local Box = Instance.new("BoxHandleAdornment")
@@ -644,18 +652,17 @@ local function PlayerEspCreate(Target)
         Box.Adornee = LeftLeg
     end
     if Config["Stamina"] then
-        local Colors = Config["StaminaColors"]:split(",")
+        local Colors = Config["StaminaColor"]:split(",")
         local Stamina = Target.Backpack:FindFirstChild("ServerTraits").Stann.Value
     end
     if Config["KO"] then
-        local Colors = Config["KOColors"]:split(",")
+        local Colors = Config["KOColor"]:split(",")
         local KOTag = Target.Character:FindFirstChild("KO")
         if KOTag then
-
         end
     end
     if Config["Box"] then
-        local Colors = Config["BoxColors"]:split(",")
+        local Colors = Config["BoxColor"]:split(",")
         if Torso then
             local BillboardGui = Instance.new("BillboardGui")
             BillboardGui.Parent = ESPFolder
@@ -671,7 +678,7 @@ local function PlayerEspCreate(Target)
         end
     end
     if Config["Glow"] then
-        local Colors = Config["GlowColors"]:split(",")
+        local Colors = Config["GlowColor"]:split(",")
         local SelectionBox = Instance.new("SelectionBox")
         SelectionBox.Parent = ESPFolder
         SelectionBox.Adornee = Head
@@ -690,10 +697,10 @@ local function PlayerEspCreate(Target)
         SelectionBox.Adornee = LeftLeg
     end
     if Config["Info"] then
-        local Colors = Config["InfoColors"]:split(",")
+        local Colors = Config["InfoColor"]:split(",")
         local Name = Target.Name
-        local Health = TargetChar:FindFirstChild("Humanoid").Health
-        local Vest = TargetChar:FindFirstChild("BulletResist")
+        local Health = Target.Character:FindFirstChild("Humanoid").Health
+        local Vest = Target.Character:FindFirstChild("BulletResist")
         local BillboardGui = Instance.new("BillboardGui")
         BillboardGui.Size = UDim2.new()
         BillboardGui.Parent = ESPFolder
@@ -746,67 +753,97 @@ local function CreateAmmoLabel(ParentTo)
 end
 
 local function SetParent(v)
-	if v then
-		RunService.Stepped:Wait()
-		v.Parent = ReplicatedStorage.nosee
-	end
+    if v then
+        RunService.Stepped:Wait()
+        v.Parent = ReplicatedStorage.nosee
+    end
 end
 for _, v in pairs(CollectionService:GetTagged("Stand")) do
-	SetParent(v)
+    SetParent(v)
 end
 CollectionService:GetInstanceAddedSignal("Stand"):Connect(SetParent)
 
 local function Animate(Anim, AnimSpeed)
-	if AnimSpeed == nil then
-		AnimSpeed = 1
-	end
-	Player.Character.Humanoid:LoadAnimation(Anim):Play(0.1, 1, AnimSpeed)
+    if AnimSpeed == nil then
+        AnimSpeed = 1
+    end
+    Player.Character.Humanoid:LoadAnimation(Anim):Play(0.1, 1, AnimSpeed)
 end
 
 local function StartFly()
-    repeat Wait() until Player.Character and Player.Character:FindFirstChild("HumanoidRootPart") and Player.Character:FindFirstChild("Humanoid")
-	local T = Player.Character.HumanoidRootPart
-	local Speed = 0
-	local function Fly()
-		Flying = true
-		local BG = Instance.new("BodyGyro")
-		local BV = Instance.new("BodyVelocity")
-		BG.P = 9e4
-		BG.Parent = T
-		BV.Parent = T
-		BG.maxTorque = Vector3.new(9e9, 9e9, 9e9)
-		BG.cframe = T.CFrame
-		BV.velocity = Vector3.new(0, 0, 0)
-		BV.maxForce = Vector3.new(9e9, 9e9, 9e9)
-		coroutine.wrap(function()
-			repeat Wait()
-				if Player.Character:FindFirstChildOfClass("Humanoid") then
-					Player.Character:FindFirstChildOfClass("Humanoid").PlatformStand = true
-				end
-				if Control.L + Control.R ~= 0 or Control.F + Control.B ~= 0 or Control.Q + Control.E ~= 0 then
-					Speed = 50
-				elseif not (Control.L + Control.R ~= 0 or Control.F + Control.B ~= 0 or Control.Q + Control.E ~= 0) and Speed ~= 0 then
-					Speed = 0
-				end
-				if (Control.L + Control.R) ~= 0 or (Control.F + Control.B) ~= 0 or (Control.Q + Control.E) ~= 0 then
-					BV.velocity = ((workspace.CurrentCamera.CoordinateFrame.lookVector * (Control.F + Control.B)) + ((workspace.CurrentCamera.CoordinateFrame * CFrame.new(Control.L + Control.R, (Control.F + Control.B + Control.Q + Control.E) * 0.2, 0).p) - workspace.CurrentCamera.CoordinateFrame.p)) * Speed
-					LControl = {F = Control.F, B = Control.B, L = Control.L, R = Control.R}
-				elseif (Control.L + Control.R) == 0 and (Control.F + Control.B) == 0 and (Control.Q + Control.E) == 0 and Speed ~= 0 then
-					BV.velocity = ((workspace.CurrentCamera.CoordinateFrame.lookVector * (LControl.F + LControl.B)) + ((workspace.CurrentCamera.CoordinateFrame * CFrame.new(LControl.L + LControl.R, (LControl.F + LControl.B + CONTROL.Q + CONTROL.E) * 0.2, 0).p) - workspace.CurrentCamera.CoordinateFrame.p)) * Speed
-				else
-					BV.velocity = Vector3.new(0, 0, 0)
-				end
-				BG.cframe = workspace.CurrentCamera.CoordinateFrame
-			until not Flying
-			Control = {F = 0, B = 0, L = 0, R = 0, Q = 0, E = 0}
-			LControl = {F = 0, B = 0, L = 0, R = 0, Q = 0, E = 0}
-			Speed = 0
-			BG:Destroy()
-			BV:Destroy()
-			if Player.Character:FindFirstChildOfClass("Humanoid") then
-				Player.Character:FindFirstChildOfClass("Humanoid").PlatformStand = false
+    repeat
+        Wait()
+    until Player.Character and Player.Character:FindFirstChild("HumanoidRootPart") and
+        Player.Character:FindFirstChild("Humanoid")
+    local T = FindRoot(Player.Character)
+    local Speed = 0
+    local function Fly()
+        Flying = true
+        local BG = Instance.new("BodyGyro")
+        local BV = Instance.new("BodyVelocity")
+        BG.P = 9e4
+        BG.Parent = T
+        BV.Parent = T
+        BG.maxTorque = Vector3.new(9e9, 9e9, 9e9)
+        BG.cframe = T.CFrame
+        BV.velocity = Vector3.new(0, 0, 0)
+        BV.maxForce = Vector3.new(9e9, 9e9, 9e9)
+        coroutine.wrap(
+            function()
+                repeat
+                    Wait()
+                    if Player.Character:FindFirstChildOfClass("Humanoid") then
+                        Player.Character:FindFirstChildOfClass("Humanoid").PlatformStand = true
+                    end
+                    if Control.L + Control.R ~= 0 or Control.F + Control.B ~= 0 or Control.Q + Control.E ~= 0 then
+                        Speed = 50
+                    elseif
+                        not (Control.L + Control.R ~= 0 or Control.F + Control.B ~= 0 or Control.Q + Control.E ~= 0) and
+                            Speed ~= 0
+                     then
+                        Speed = 0
+                    end
+                    if (Control.L + Control.R) ~= 0 or (Control.F + Control.B) ~= 0 or (Control.Q + Control.E) ~= 0 then
+                        BV.velocity =
+                            ((workspace.CurrentCamera.CoordinateFrame.lookVector * (Control.F + Control.B)) +
+                            ((workspace.CurrentCamera.CoordinateFrame *
+                                CFrame.new(
+                                    Control.L + Control.R,
+                                    (Control.F + Control.B + Control.Q + Control.E) * 0.2,
+                                    0
+                                ).p) -
+                                workspace.CurrentCamera.CoordinateFrame.p)) *
+                            Speed
+                        LControl = {F = Control.F, B = Control.B, L = Control.L, R = Control.R}
+                    elseif
+                        (Control.L + Control.R) == 0 and (Control.F + Control.B) == 0 and (Control.Q + Control.E) == 0 and
+                            Speed ~= 0
+                     then
+                        BV.velocity =
+                            ((workspace.CurrentCamera.CoordinateFrame.lookVector * (LControl.F + LControl.B)) +
+                            ((workspace.CurrentCamera.CoordinateFrame *
+                                CFrame.new(
+                                    LControl.L + LControl.R,
+                                    (LControl.F + LControl.B + CONTROL.Q + CONTROL.E) * 0.2,
+                                    0
+                                ).p) -
+                                workspace.CurrentCamera.CoordinateFrame.p)) *
+                            Speed
+                    else
+                        BV.velocity = Vector3.new(0, 0, 0)
+                    end
+                    BG.cframe = workspace.CurrentCamera.CoordinateFrame
+                until not Flying
+                Control = {F = 0, B = 0, L = 0, R = 0, Q = 0, E = 0}
+                LControl = {F = 0, B = 0, L = 0, R = 0, Q = 0, E = 0}
+                Speed = 0
+                BG:Destroy()
+                BV:Destroy()
+                if Player.Character:FindFirstChildOfClass("Humanoid") then
+                    Player.Character:FindFirstChildOfClass("Humanoid").PlatformStand = false
+                end
             end
-		end)()
+        )()
     end
     Fly()
 end
@@ -814,8 +851,8 @@ end
 local function StopFly()
     Flying = false
     if Player.Character and Player.Character:FindFirstChildOfClass("Humanoid") then
-		Player.Character:FindFirstChildOfClass("Humanoid").PlatformStand = false
-	end
+        Player.Character:FindFirstChildOfClass("Humanoid").PlatformStand = false
+    end
 end
 
 local function Teleport(Object, Destination)
@@ -823,11 +860,12 @@ local function Teleport(Object, Destination)
     Command.CmdFunction(Args, Player)
     if (Object.Position - Destination.p).magnitude < 58.425 or TPBypass then
         Object.CFrame = Destination
-        AutoFarmCooldown = false
         local Command = FindCommand("reseats")
         Command.CmdFunction(Args, Player)
+        AutoFarmCooldown = false
     else
-        local TweenTeleport = TweenService:Create(
+        local TweenTeleport =
+            TweenService:Create(
             Object,
             TweenInfo.new(1.75, Enum.EasingStyle.Linear),
             {CFrame = Destination + Vector3.new(0, 1, 0)}
@@ -835,39 +873,20 @@ local function Teleport(Object, Destination)
         TweenTeleport:Play()
         local Command = FindCommand("noclip")
         Command.CmdFunction(Args, Player)
-        TweenTeleport.Completed:Connect(function()
-            local Command = FindCommand("clip")
-            Command.CmdFunction(Args, Player)
-            AutoFarmCooldown = false
-            local Command = FindCommand("reseats")
-            Command.CmdFunction(Args, Player)
-        end)
-    end
-end
-
-local function PlayAudio(Id, VersionId)
-    if VersionId then
-        Id = "&ASSetversionid=" .. Id
-    end
-    for _,v in pairs(Player.Backpack:GetChildren()) do
-        if v.Name == "BoomBox" then
-            v.Parent = Player.Character
-            Player.Character.BoomBox.RemoteEvent:FireServer("stop")
-            v.Parent = Player.Backpack
-        end
-    end
-    Wait(1)
-    for _,v in pairs(Player.Backpack:GetChildren()) do
-        if v.Name == "BoomBox" then
-            v.Parent = Player.Character
-            Player.Character.BoomBox.RemoteEvent:FireServer("play", Id)
-            v.Parent = Player.Backpack
-        end
+        TweenTeleport.Completed:Connect(
+            function()
+                local Command = FindCommand("clip")
+                Command.CmdFunction(Args, Player)
+                local Command = FindCommand("reseats")
+                Command.CmdFunction(Args, Player)
+                AutoFarmCooldown = false
+            end
+        )
     end
 end
 
 local function StopAnimation(Id)
-    for _,v in pairs(Player.Character.Humanoid:GetPlayingAnimationTracks()) do
+    for _, v in pairs(Player.Character.Humanoid:GetPlayingAnimationTracks()) do
         if v.Animation.AnimationId == Id then
             v:Stop()
         end
@@ -912,8 +931,12 @@ if game.PlaceId == ThePrisonId then
     Live.Parent = workspace
 end
 
-for _,v in pairs(workspace:GetChildren()) do
-    if v:IsA("Part") or v:IsA("Model") or v:IsA("MeshPart") or v:IsA("UnionOperation") or v:IsA("TrussPart") or v:IsA("WedgePart") or v:IsA("CornerWedgePart") then
+for _, v in pairs(workspace:GetChildren()) do
+    if
+        v:IsA("Part") or v:IsA("Model") or v:IsA("MeshPart") or v:IsA("UnionOperation") or v:IsA("TrussPart") or
+            v:IsA("WedgePart") or
+            v:IsA("CornerWedgePart")
+     then
         local head = v:FindFirstChild("Head")
         local shopdata
         if head then
@@ -928,7 +951,7 @@ for _,v in pairs(workspace:GetChildren()) do
         elseif v:IsA("SpawnLocation") then
             v.Parent = SpawnHolder
         elseif v.Name == "Boards" then
-            for _,v2 in pairs(v:GetChildren()) do
+            for _, v2 in pairs(v:GetChildren()) do
                 v2.Name = "Plank"
                 v2.Parent = UnAnchoredHolder
             end
@@ -947,38 +970,42 @@ for _,v in pairs(workspace:GetChildren()) do
     end
 end
 
-for _,v in pairs(Players:GetPlayers()) do
-    if game.PlaceId == ThePrisonId then
-        if v.Character then
-            if v ~= Player then
-                v.Character.Parent = Live
-            end
+for _, v in pairs(Players:GetPlayers()) do
+    if v.Character then
+        if game.PlaceId == ThePrisonId then
+            v.Character.Parent = Live
         end
-        v.CharacterAdded:Connect(function(v2)
-            if v ~= Player then
+    end
+    v.CharacterAdded:Connect(
+        function(v2)
+            if game.PlaceId == ThePrisonId then
                 v2.Parent = Live
             end
-        end)
-    end
+        end
+    )
     if Blacklisted[v.UserId] then
         if v.Character then
             NameEspCreate(v)
         end
-        v.CharacterAdded:Connect(function(char)
-            NameEspCreate(v)
-        end)
+        v.CharacterAdded:Connect(
+            function(char)
+                NameEspCreate(v)
+            end
+        )
     end
     if Admins[v.UserId] then
         if v.Character then
             NameEspCreate(v)
         end
-        v.CharacterAdded:Connect(function(char)
-            NameEspCreate(v)
-        end)
+        v.CharacterAdded:Connect(
+            function(char)
+                NameEspCreate(v)
+            end
+        )
     end
 end
 
-for _,v in pairs(MapHolder:GetDescendants()) do
+for _, v in pairs(MapHolder:GetDescendants()) do
     if v.Name == "Camera" and v:IsA("Model") then
         v.Parent = workspace
     elseif v.Name == "Door" then
@@ -986,9 +1013,9 @@ for _,v in pairs(MapHolder:GetDescendants()) do
     end
 end
 
-for _,v in pairs(MapParts:GetDescendants()) do
-    if v:IsA("Part") and v.Anchored == false and v.BrickColor == "Dark stone grey" then
-        v.Name = "Trash Can"
+for _, v in pairs(MapParts:GetDescendants()) do
+    if v:IsA("Part") and v.Anchored == false and v.Name == "Main" then
+        v.Name = "Trash Can Lid"
         v.Parent = UnAnchoredHolder
     end
 end
@@ -999,10 +1026,33 @@ RandomSpawnsHolder.Parent = workspace
 UnAnchoredHolder.Parent = workspace
 UsedParts.Parent = workspace
 
+local Crouch = Instance.new("Animation")
+Crouch.AnimationId = "http://www.roblox.com/item.aspx?id=327855546"
+local Hit1 = Instance.new("Animation")
+Hit1.AnimationId = "https://www.roblox.com/item.aspx?id=455534850"
+local Hit2 = Instance.new("Animation")
+Hit2.AnimationId = "https://www.roblox.com/item.aspx?id=455535422"
+local Hit3 = Instance.new("Animation")
+Hit3.AnimationId = "https://www.roblox.com/item.aspx?id=455535875"
+local Run = Instance.new("Animation")
+Run.AnimationId = "https://www.roblox.com/item.aspx?id=376653421"
+
+if Config["AnimeRun"] then
+    Run.AnimationId = "https://www.roblox.com/item.aspx?id=458506542"
+end
+
+local GunAnimation1 = Instance.new("Animation")
+GunAnimation1.AnimationId = "rbxassetid://889968874"
+local GunAnimation2 = Instance.new("Animation")
+GunAnimation2.AnimationId = "rbxassetid://229339207"
+local IdleAnimation
+local RunAnim = Player.Character.Humanoid:LoadAnimation(Run)
+local CrouchAnim = Player.Character.Humanoid:LoadAnimation(Crouch)
+
 local function ItemEsp()
     if Config["ItemEsp"] then
         if Config["GoodItemsOnly"] then
-            for _,v2 in pairs(RandomSpawnsHolder:GetDescendants()) do
+            for _, v2 in pairs(RandomSpawnsHolder:GetDescendants()) do
                 local v = v2:FindFirstAncestorOfClass("Part")
                 if v then
                     if v.Name == "RandomSpawner" then
@@ -1012,102 +1062,102 @@ local function ItemEsp()
                 if v2:IsA("Sound") then
                     if v2.SoundId == ToolData["Brick"]["EspId"] then
                         if not v:FindFirstChildOfClass("BillboardGui") then
-                            ItemEspCreate("Brick", v);
+                            ItemEspCreate("Brick", v)
                         end
                     end
                     if v2.SoundId == ToolData["Sawed Off"]["EspId"] then
                         if not v:FindFirstChildOfClass("BillboardGui") then
-                            ItemEspCreate("Sawed Off", v);
+                            ItemEspCreate("Sawed Off", v)
                         end
                     end
                     if string.find(tostring(v2.SoundId), ToolData["Shotty"]["EspId"]) then
                         if not v:FindFirstChildOfClass("BillboardGui") then
-                            ItemEspCreate("Shotty", v);
+                            ItemEspCreate("Shotty", v)
                         end
                     end
                     if string.find(tostring(v2.SoundId), ToolData["Uzi"]["EspId"]) then
                         if not v:FindFirstChildOfClass("BillboardGui") then
-                            ItemEspCreate("Uzi", v);
+                            ItemEspCreate("Uzi", v)
                         end
                     end
                 end
                 if v2:IsA("MeshPart") then
                     if v2.MeshId == ToolData["Cash"]["EspId"] then
                         if not v:FindFirstChildOfClass("BillboardGui") then
-                            ItemEspCreate("Cash", v);
+                            ItemEspCreate("Cash", v)
                         end
                     end
                 end
             end
         else
-            for _,v3 in pairs(RandomSpawnsHolder:GetDescendants()) do
+            for _, v3 in pairs(RandomSpawnsHolder:GetDescendants()) do
                 local v = v3:FindFirstAncestorOfClass("Part")
-                    if v then
-                        if v.Name == "RandomSpawner" then
-                            v = v
-                        end
+                if v then
+                    if v.Name == "RandomSpawner" then
+                        v = v
                     end
+                end
                 if v3:IsA("Sound") then
                     if v3.SoundId == ToolData["Bat"]["EspId"] then
                         if not v:FindFirstChildOfClass("BillboardGui") then
-                            ItemEspCreate("Bat", v);
+                            ItemEspCreate("Bat", v)
                         end
                     end
                     if v3.SoundId == ToolData["Bottle"]["EspId"] then
                         if not v:FindFirstChildOfClass("BillboardGui") then
-                            ItemEspCreate("Bottle", v);
+                            ItemEspCreate("Bottle", v)
                         end
                     end
                     if v3.SoundId == ToolData["Brick"]["EspId"] then
                         if not v:FindFirstChildOfClass("BillboardGui") then
-                            ItemEspCreate("Brick", v);
+                            ItemEspCreate("Brick", v)
                         end
                     end
                     if v3.SoundId == ToolData["Crowbar"]["EspId"] then
                         if not v:FindFirstChildOfClass("BillboardGui") then
-                            ItemEspCreate("Crowbar", v);
+                            ItemEspCreate("Crowbar", v)
                         end
                     end
                     if v3.SoundId == ToolData["Golf Club"]["EspId"] then
                         if not v:FindFirstChildOfClass("BillboardGui") then
-                            ItemEspCreate("Golf Club", v);
+                            ItemEspCreate("Golf Club", v)
                         end
                     end
                     if v3.SoundId == ToolData["Katana"]["EspId"] then
                         if not v:FindFirstChildOfClass("BillboardGui") then
-                            ItemEspCreate("Katana", v);
+                            ItemEspCreate("Katana", v)
                         end
                     end
                     if v3.SoundId == ToolData["Machete"]["EspId"] then
                         if not v:FindFirstChildOfClass("BillboardGui") then
-                            ItemEspCreate("Machete", v);
+                            ItemEspCreate("Machete", v)
                         end
                     end
                     if v3.SoundId == ToolData["Sawed Off"]["EspId"] then
                         if not v:FindFirstChildOfClass("BillboardGui") then
-                            ItemEspCreate("Sawed Off", v);
+                            ItemEspCreate("Sawed Off", v)
                         end
                     end
                     if string.find(tostring(v3.SoundId), ToolData["Shotty"]["EspId"]) then
                         if not v:FindFirstChildOfClass("BillboardGui") then
-                            ItemEspCreate("Shotty", v);
+                            ItemEspCreate("Shotty", v)
                         end
                     end
                     if v3.SoundId == ToolData["Stop Sign"]["EspId"] then
                         if not v:FindFirstChildOfClass("BillboardGui") then
-                            ItemEspCreate("Stop Sign", v);
+                            ItemEspCreate("Stop Sign", v)
                         end
                     end
                     if string.find(tostring(v3.SoundId), ToolData["Uzi"]["EspId"]) then
                         if not v:FindFirstChildOfClass("BillboardGui") then
-                            ItemEspCreate("Uzi", v);
+                            ItemEspCreate("Uzi", v)
                         end
                     end
                 end
                 if v3:IsA("MeshPart") then
                     if v3.MeshId == ToolData["Cash"]["EspId"] then
                         if not v:FindFirstChildOfClass("BillboardGui") then
-                            ItemEspCreate("Cash", v);
+                            ItemEspCreate("Cash", v)
                         end
                     end
                 end
@@ -1123,19 +1173,58 @@ local function Attack()
     if not SelectedTool then
         return
     end
+
+    local PriorityTable = {
+        "Uzi",
+        "Shotty",
+        "Glock",
+        "Sawed Off"
+    }
+
+    if Config["AutoSwitch"] then
+        local Ammo = SelectedTool:FindFirstChild("Ammo")
+        if Ammo and Ammo.Value < 1 then
+            for _, v in pairs(Player.Backpack:GetChildren()) do
+                for _, v2 in pairs(PriorityTable) do
+                    if v.Name == v2.Name then
+                        local Ammo_2 = v:FindFirstChild("Ammo")
+                        if Ammo_2 then
+                            if Ammo_2.Value > 1 then
+                                for _, v3 in pairs(Player.Character:GetChildren()) do
+                                    v.Parent = Player.Backpack
+                                end
+                                v.Parent = Playert.Character
+                            end
+                        end
+                    end
+                end
+            end
+        end
+    end
     if SelectedTool.Name == "Camera" then
         return
     end
-    if not AimbotPlayer or not Players:FindFirstChild(AimbotPlayer.Name) or not AimbotPlayer.Character or not AimbotPlayer.Character:FindFirstChild("Humanoid") then
+    if
+        not AimbotPlayer or not Players:FindFirstChild(AimbotPlayer.Name) or not AimbotPlayer.Character or
+            not AimbotPlayer.Character:FindFirstChild("Humanoid")
+     then
         AimbotPlayer = nil
     end
 
     local Ammo = SelectedTool:FindFirstChild("Ammo")
     local FireEvent = SelectedTool:FindFirstChild("Fire")
     local MH = Mouse.Hit
-    if Aimbot and Config["SilentAim"] and AimbotPlayer ~= nil and AimbotPlayer.Character and AimbotPlayer.Character:FindFirstChild("Head") and AimbotPlayer.Character:FindFirstChild("Torso") then
+    if
+        Aimbot and Config["SilentAim"] and AimbotPlayer ~= nil and AimbotPlayer.Character and
+            AimbotPlayer.Character:FindFirstChild("Head") and
+            AimbotPlayer.Character:FindFirstChild("Torso")
+     then
         local HitPart = AimbotPlayer.Character:FindFirstChild(Config["AimbotTarget"])
         local EnemyVelocity = HitPart.Velocity
+        local PingTick = os.clock()
+        game:GetService("RobloxReplicatedStorage").GetServerVersion:InvokeServer()
+        Ping = os.clock() - PingTick
+        Ping = math.floor(Ping * 1000)
         local PingToHit
         if Ping < 50 then
             PingToHit = 3
@@ -1168,24 +1257,33 @@ local function Attack()
     end
     if game.PlaceId == TheStreetsId then
         if Config["AlwaysRunHit"] then
-            Player.Backpack.Input:FireServer("ml", {
-                mousehit = MH,
-                shift = true,
-                velo = 200,
-            })
+            Player.Backpack.Input:FireServer(
+                "ml",
+                {
+                    mousehit = MH,
+                    shift = true,
+                    velo = 200
+                }
+            )
         else
-            Player.Backpack.Input:FireServer("ml", {
-                mousehit = MH,
-                shift = Keys["Shift"],
-                velo = Player.Character.HumanoidRootPart.Position.magnitude,
-            })
+            Player.Backpack.Input:FireServer(
+                "ml",
+                {
+                    mousehit = MH,
+                    shift = Keys["Shift"],
+                    velo = FindRoot(Player.Character).Position.magnitude
+                }
+            )
         end
         if SelectedTool.Name == "Uzi" then
-            Player.Backpack.Input:FireServer("moff1", {
-                mousehit = MH,
-                shift = Keys["Shift"],
-                velo = Player.Character.HumanoidRootPart.Position.magnitude,
-            })
+            Player.Backpack.Input:FireServer(
+                "moff1",
+                {
+                    mousehit = MH,
+                    shift = Keys["Shift"],
+                    velo = FindRoot(Player.Character).Position.magnitude
+                }
+            )
         end
         if SelectedTool:FindFirstChild("Ammo") and not Config["NoStop"] then
             Keys["Shift"] = false
@@ -1216,12 +1314,17 @@ local function Attack()
             return
         end
         if not Cooldown then
-            if not Ammo and Player.Character:FindFirstChild(SelectedTool.Name) and Player.Backpack.ServerTraits.Stann.Value > 0 and SelectedTool:FindFirstChild("Info") and SelectedTool:FindFirstChild("Running") then
+            if
+                not Ammo and Player.Character:FindFirstChild(SelectedTool.Name) and
+                    Player.Backpack.ServerTraits.Stann.Value > 0 and
+                    SelectedTool:FindFirstChild("Info") and
+                    SelectedTool:FindFirstChild("Running")
+             then
                 Cooldown = true
                 if not SelectedTool:FindFirstChild("Punch" .. RandomNumber .. "") then
                     RandomNumber = 1
                 end
-                if Player.Character.HumanoidRootPart.Velocity.magnitude > 10 and Running then
+                if FindRoot(Player.Character).Velocity.magnitude > 10 and Running then
                     Animate(SelectedTool.Running, 1)
                 else
                     local AnimSpeed = 1
@@ -1240,15 +1343,22 @@ local function Attack()
                 end
                 RandomNumber = RandomNumber + 1
                 RandomNumber_2 = RandomNumber_2 + 1
-                Spawn(function()
-                    Wait(0.8)
-                    if RandomNumber_2 == RandomNumber_2 then
-                        RandomNumber = 1
-                        RandomNumber_2 = 0
+                Spawn(
+                    function()
+                        Wait(0.8)
+                        if RandomNumber_2 == RandomNumber_2 then
+                            RandomNumber = 1
+                            RandomNumber_2 = 0
+                        end
                     end
-                end)
+                )
                 if Config["AlwaysRunHit"] then
-                    Player.Backpack.ServerTraits.Touch1:FireServer(SelectedTool, ToolHandle, Config["AlwaysRunHit"], true)
+                    Player.Backpack.ServerTraits.Touch1:FireServer(
+                        SelectedTool,
+                        ToolHandle,
+                        Config["AlwaysRunHit"],
+                        true
+                    )
                 else
                     Player.Backpack.ServerTraits.Touch1:FireServer(SelectedTool, ToolHandle, Keys["Shift"], true)
                 end
@@ -1263,13 +1373,8 @@ local function Stomp()
     if game.PlaceId == TheStreetsId then
         Player.Backpack.Input:FireServer("e", {})
     else
-        local Tool = Player.Backpack:FindFirstChildOfClass("Tool") or SelectedTool
-        if Tool:FindFirstChild("Ammo") then
-            Tool = Player.Backpack:FindFirstChild("Punch")
-        end
-        if Tool then
-            Player.Backpack.ServerTraits.Finish:FireServer(Tool)
-        end
+        local Tool = Player.Backpack:FindFirstChild("Punch") or Player.Character:FindFirstChild("Punch")
+        Player.Backpack.ServerTraits.Finish:FireServer(Tool)
     end
 end
 
@@ -1318,269 +1423,274 @@ end
 
 local function RefreshMainColor()
     local Colors = Config["MainColor"]:split(",")
-    for _,v in pairs(MainColorsBorder) do
+    for _, v in pairs(MainColorsBorder) do
         v.BorderColor3 = Color3.fromRGB(Colors[1], Colors[2], Colors[3])
     end
-    for _,v in pairs(MainColorsBackground) do
+    for _, v in pairs(MainColorsBackground) do
         v.BackgroundColor3 = Color3.fromRGB(Colors[1], Colors[2], Colors[3])
     end
-    for _,v in pairs(MainColorsText) do
+    for _, v in pairs(MainColorsText) do
         v.TextColor3 = Color3.fromRGB(Colors[1], Colors[2], Colors[3])
     end
 end
 
 local GUI = {
-	Identification = Instance.new("ScreenGui"),
-	MainFrame = Instance.new("Frame"),
-	TopBar = Instance.new("Frame"),
-	Title = Instance.new("TextLabel"),
-	TabSelect = Instance.new("Frame"),
-	UIGridLayout = Instance.new("UIGridLayout"),
-	CombatSelect = Instance.new("TextButton"),
-	VisualsSelect = Instance.new("TextButton"),
-	CharacterSelect = Instance.new("TextButton"),
-	MiscSelect = Instance.new("TextButton"),
-	SettingsSelect = Instance.new("TextButton"),
-	TabHolder = Instance.new("Frame"),
-	CombatTab = Instance.new("Frame"),
-	CombatAimbotSection = Instance.new("Frame"),
-	TextLabel = Instance.new("TextLabel"),
-	AimlockCheckBox = Instance.new("TextButton"),
-	TextLabel_2 = Instance.new("TextLabel"),
-	TextLabel_3 = Instance.new("TextLabel"),
-	SilentAimCheckBox = Instance.new("TextButton"),
+    Identification = Instance.new("ScreenGui"),
+    MainFrame = Instance.new("Frame"),
+    TopBar = Instance.new("Frame"),
+    Title = Instance.new("TextLabel"),
+    TabSelect = Instance.new("Frame"),
+    UIGridLayout = Instance.new("UIGridLayout"),
+    CombatSelect = Instance.new("TextButton"),
+    VisualsSelect = Instance.new("TextButton"),
+    CharacterSelect = Instance.new("TextButton"),
+    MiscSelect = Instance.new("TextButton"),
+    SettingsSelect = Instance.new("TextButton"),
+    TabHolder = Instance.new("Frame"),
+    CombatTab = Instance.new("Frame"),
+    CombatAimbotSection = Instance.new("Frame"),
+    TextLabel = Instance.new("TextLabel"),
+    AimlockCheckBox = Instance.new("TextButton"),
+    TextLabel_2 = Instance.new("TextLabel"),
+    TextLabel_3 = Instance.new("TextLabel"),
+    SilentAimCheckBox = Instance.new("TextButton"),
     AutoFireCheckBox = Instance.new("TextButton"),
     TriggerbotCheckBox = Instance.new("TextButton"),
-	TextLabel_4 = Instance.new("TextLabel"),
-	TextLabel_5 = Instance.new("TextLabel"),
-	AimbotHitBoxButton = Instance.new("TextButton"),
-	TextLabel_6 = Instance.new("TextLabel"),
-	AimbotKeyButton = Instance.new("TextButton"),
-	HitboxesSelectionFrame = Instance.new("Frame"),
-	TorsoHitboxSelect = Instance.new("TextButton"),
-	HeadHitboxSelect = Instance.new("TextButton"),
-	CombatOthersSection = Instance.new("Frame"),
-	TextLabel_7 = Instance.new("TextLabel"),
-	NoStopCheckBox = Instance.new("TextButton"),
-	RunPunchCheckBox = Instance.new("TextButton"),
-	SuperPunchCheckBox = Instance.new("TextButton"),
-	TextLabel_8 = Instance.new("TextLabel"),
-	TextLabel_9 = Instance.new("TextLabel"),
-	TextLabel_10 = Instance.new("TextLabel"),
-	AutoSwitchCheckBox = Instance.new("TextButton"),
-	TextLabel_11 = Instance.new("TextLabel"),
-	StompSpamCheckBox = Instance.new("TextButton"),
-	TextLabel_12 = Instance.new("TextLabel"),
-	AutoStompCheckBox = Instance.new("TextButton"),
-	TextLabel_13 = Instance.new("TextLabel"),
-	TextLabel_14 = Instance.new("TextLabel"),
-	AutoStompDistanceSlider = Instance.new("TextButton"),
-	AutoStompDistanceSliderButton = Instance.new("TextButton"),
-	AutoStompDistanceAmount = Instance.new("TextLabel"),
-	VisualsTab = Instance.new("Frame"),
-	VisualsESPSection = Instance.new("Frame"),
-	TextLabel_15 = Instance.new("TextLabel"),
-	TextLabel_16 = Instance.new("TextLabel"),
-	TextLabel_17 = Instance.new("TextLabel"),
-	PlayerChamsCheckBox = Instance.new("TextButton"),
-	PlayerESPKeyButton = Instance.new("TextButton"),
-	PlayerStaminaCheckBox = Instance.new("TextButton"),
-	PlayerKOCheckBox = Instance.new("TextButton"),
-	TextLabel_18 = Instance.new("TextLabel"),
-	TextLabel_19 = Instance.new("TextLabel"),
-	PlayerBoxCheckBox = Instance.new("TextButton"),
-	TextLabel_20 = Instance.new("TextLabel"),
-	TextLabel_21 = Instance.new("TextLabel"),
-	PlayerGlowCheckBox = Instance.new("TextButton"),
-	PlayerInfoCheckBox = Instance.new("TextButton"),
-	TextLabel_22 = Instance.new("TextLabel"),
-	TextLabel_23 = Instance.new("TextLabel"),
-	PlayerGlowColorButton = Instance.new("TextButton"),
-	PlayerInfoColorButton = Instance.new("TextButton"),
-	PlayerBoxColorButton = Instance.new("TextButton"),
-	PlayerKOColorButton = Instance.new("TextButton"),
-	PlayerStaminaColorButton = Instance.new("TextButton"),
-	PlayerChamsColorButton = Instance.new("TextButton"),
-	ItemESPEnabledCheckBox = Instance.new("TextButton"),
-	TextLabel_24 = Instance.new("TextLabel"),
-	ItemESPGoodItemsCheckBox = Instance.new("TextButton"),
-	TextLabel_25 = Instance.new("TextLabel"),
-	VisualsOthersSection = Instance.new("Frame"),
-	TextLabel_26 = Instance.new("TextLabel"),
-	TextLabel_27 = Instance.new("TextLabel"),
-	BulletTracersCheckBox = Instance.new("TextButton"),
-	BulletTracersColorButton = Instance.new("TextButton"),
-	TextLabel_28 = Instance.new("TextLabel"),
-	TextLabel_29 = Instance.new("TextLabel"),
-	StatesCheckBox = Instance.new("TextButton"),
-	HitmarkerSoundButton = Instance.new("TextButton"),
-	TextLabel_30 = Instance.new("TextLabel"),
-	HitmarkerSoundsSelectionFrame = Instance.new("Frame"),
-	DefaultSoundSelect = Instance.new("TextButton"),
-	NoneSoundSelect = Instance.new("TextButton"),
-	WatermarkCheckBox = Instance.new("TextButton"),
+    TextLabel_4 = Instance.new("TextLabel"),
+    TextLabel_5 = Instance.new("TextLabel"),
+    AimbotHitBoxButton = Instance.new("TextButton"),
+    TextLabel_6 = Instance.new("TextLabel"),
+    AimbotKeyButton = Instance.new("TextButton"),
+    HitboxesSelectionFrame = Instance.new("Frame"),
+    TorsoHitboxSelect = Instance.new("TextButton"),
+    HeadHitboxSelect = Instance.new("TextButton"),
+    CombatOthersSection = Instance.new("Frame"),
+    TextLabel_7 = Instance.new("TextLabel"),
+    NoStopCheckBox = Instance.new("TextButton"),
+    RunPunchCheckBox = Instance.new("TextButton"),
+    SuperPunchCheckBox = Instance.new("TextButton"),
+    TextLabel_8 = Instance.new("TextLabel"),
+    TextLabel_9 = Instance.new("TextLabel"),
+    TextLabel_10 = Instance.new("TextLabel"),
+    AutoSwitchCheckBox = Instance.new("TextButton"),
+    TextLabel_11 = Instance.new("TextLabel"),
+    StompSpamCheckBox = Instance.new("TextButton"),
+    TextLabel_12 = Instance.new("TextLabel"),
+    AutoStompCheckBox = Instance.new("TextButton"),
+    TextLabel_13 = Instance.new("TextLabel"),
+    TextLabel_14 = Instance.new("TextLabel"),
+    AutoStompDistanceSlider = Instance.new("TextButton"),
+    AutoStompDistanceSliderButton = Instance.new("TextButton"),
+    AutoStompDistanceAmount = Instance.new("TextLabel"),
+    VisualsTab = Instance.new("Frame"),
+    VisualsESPSection = Instance.new("Frame"),
+    TextLabel_15 = Instance.new("TextLabel"),
+    TextLabel_16 = Instance.new("TextLabel"),
+    TextLabel_17 = Instance.new("TextLabel"),
+    PlayerChamsCheckBox = Instance.new("TextButton"),
+    PlayerESPKeyButton = Instance.new("TextButton"),
+    PlayerStaminaCheckBox = Instance.new("TextButton"),
+    PlayerKOCheckBox = Instance.new("TextButton"),
+    TextLabel_18 = Instance.new("TextLabel"),
+    TextLabel_19 = Instance.new("TextLabel"),
+    PlayerBoxCheckBox = Instance.new("TextButton"),
+    TextLabel_20 = Instance.new("TextLabel"),
+    TextLabel_21 = Instance.new("TextLabel"),
+    PlayerGlowCheckBox = Instance.new("TextButton"),
+    PlayerInfoCheckBox = Instance.new("TextButton"),
+    TextLabel_22 = Instance.new("TextLabel"),
+    TextLabel_23 = Instance.new("TextLabel"),
+    PlayerGlowColorButton = Instance.new("TextButton"),
+    PlayerInfoColorButton = Instance.new("TextButton"),
+    PlayerBoxColorButton = Instance.new("TextButton"),
+    PlayerKOColorButton = Instance.new("TextButton"),
+    PlayerStaminaColorButton = Instance.new("TextButton"),
+    PlayerChamsColorButton = Instance.new("TextButton"),
+    ItemESPEnabledCheckBox = Instance.new("TextButton"),
+    TextLabel_24 = Instance.new("TextLabel"),
+    ItemESPGoodItemsCheckBox = Instance.new("TextButton"),
+    TextLabel_25 = Instance.new("TextLabel"),
+    VisualsOthersSection = Instance.new("Frame"),
+    TextLabel_26 = Instance.new("TextLabel"),
+    TextLabel_27 = Instance.new("TextLabel"),
+    BulletTracersCheckBox = Instance.new("TextButton"),
+    BulletTracersColorButton = Instance.new("TextButton"),
+    TextLabel_28 = Instance.new("TextLabel"),
+    TextLabel_29 = Instance.new("TextLabel"),
+    ClientInfoCheckBox = Instance.new("TextButton"),
+    HitmarkerSoundButton = Instance.new("TextButton"),
+    TextLabel_30 = Instance.new("TextLabel"),
+    HitmarkerSoundsSelectionFrame = Instance.new("Frame"),
+    DefaultSoundSelect = Instance.new("TextButton"),
+    NoneSoundSelect = Instance.new("TextButton"),
+    WatermarkCheckBox = Instance.new("TextButton"),
     HitmarkerCheckBox = Instance.new("TextButton"),
     FadingUIObjectsCheckBox = Instance.new("TextButton"),
-	TextLabel_31 = Instance.new("TextLabel"),
-	TextLabel_32 = Instance.new("TextLabel"),
-	ShowAmmoCheckBox = Instance.new("TextButton"),
-	TextLabel_33 = Instance.new("TextLabel"),
-	DraggableUIObjectsCheckBox = Instance.new("TextButton"),
-	CharacterTab = Instance.new("Frame"),
-	CharacterMainSection = Instance.new("Frame"),
-	TextLabel_34 = Instance.new("TextLabel"),
-	TextLabel_35 = Instance.new("TextLabel"),
-	GodModeCheckBox = Instance.new("TextButton"),
-	TextLabel_36 = Instance.new("TextLabel"),
-	NoKOCheckBox = Instance.new("TextButton"),
-	CharacterMovementSection = Instance.new("Frame"),
-	TextLabel_37 = Instance.new("TextLabel"),
-	WalkSpeedModCheckBox = Instance.new("TextButton"),
-	TextLabel_38 = Instance.new("TextLabel"),
-	WalkSpeedModSlider = Instance.new("TextButton"),
-	WalkSpeedModSliderButton = Instance.new("TextButton"),
-	WalkSpeedModAmount = Instance.new("TextLabel"),
-	JumpPowerModCheckBox = Instance.new("TextButton"),
-	TextLabel_39 = Instance.new("TextLabel"),
-	RunSpeedModSlider = Instance.new("TextButton"),
-	RunSpeedModSliderButton = Instance.new("TextButton"),
-	RunSpeedModAmount = Instance.new("TextLabel"),
-	TextLabel_40 = Instance.new("TextLabel"),
-	RunSpeedModCheckBox = Instance.new("TextButton"),
-	CrouchSpeedModSlider = Instance.new("TextButton"),
-	CrouchSpeedModSliderButton = Instance.new("TextButton"),
-	CrouchSpeedModAmount = Instance.new("TextLabel"),
-	JumpPowerModSlider = Instance.new("TextButton"),
-	JumpPowerModSliderButton = Instance.new("TextButton"),
-	JumpPowerModAmount = Instance.new("TextLabel"),
-	TextLabel_41 = Instance.new("TextLabel"),
-	CrouchSpeedModCheckBox = Instance.new("TextButton"),
-	TextLabel_42 = Instance.new("TextLabel"),
-	MiscellaneousTab = Instance.new("Frame"),
-	MiscellaneousMainSection = Instance.new("Frame"),
-	TextLabel_43 = Instance.new("TextLabel"),
-	TextLabel_44 = Instance.new("TextLabel"),
-	AnimeRunCheckBox = Instance.new("TextButton"),
-	TextLabel_45 = Instance.new("TextLabel"),
-	AutoCashCheckBox = Instance.new("TextButton"),
-	TextLabel_46 = Instance.new("TextLabel"),
-	AntiAFKCheckBox = Instance.new("TextButton"),
-	TextLabel_47 = Instance.new("TextLabel"),
-	AutoLockCheckBox = Instance.new("TextButton"),
-	AutoUnlockCheckBox = Instance.new("TextButton"),
-	TextLabel_48 = Instance.new("TextLabel"),
-	AutoSortCheckBox = Instance.new("TextButton"),
-	TextLabel_49 = Instance.new("TextLabel"),
-	TextLabel_50 = Instance.new("TextLabel"),
-	HideGroupsCheckBox = Instance.new("TextButton"),
-	TextLabel_51 = Instance.new("TextLabel"),
-	AutoEatCheckBox = Instance.new("TextButton"),
-	TextLabel_52 = Instance.new("TextLabel"),
-	HideSpraysCheckBox = Instance.new("TextButton"),
-	TextLabel_53 = Instance.new("TextLabel"),
+    TextLabel_31 = Instance.new("TextLabel"),
+    TextLabel_32 = Instance.new("TextLabel"),
+    ShowAmmoCheckBox = Instance.new("TextButton"),
+    TextLabel_33 = Instance.new("TextLabel"),
+    DraggableUIObjectsCheckBox = Instance.new("TextButton"),
+    CharacterTab = Instance.new("Frame"),
+    CharacterMainSection = Instance.new("Frame"),
+    TextLabel_34 = Instance.new("TextLabel"),
+    TextLabel_35 = Instance.new("TextLabel"),
+    GodModeCheckBox = Instance.new("TextButton"),
+    TextLabel_36 = Instance.new("TextLabel"),
+    NoKOCheckBox = Instance.new("TextButton"),
+    CharacterMovementSection = Instance.new("Frame"),
+    TextLabel_37 = Instance.new("TextLabel"),
+    WalkSpeedModCheckBox = Instance.new("TextButton"),
+    TextLabel_38 = Instance.new("TextLabel"),
+    WalkSpeedModSlider = Instance.new("TextButton"),
+    WalkSpeedModSliderButton = Instance.new("TextButton"),
+    WalkSpeedModAmount = Instance.new("TextLabel"),
+    JumpPowerModCheckBox = Instance.new("TextButton"),
+    TextLabel_39 = Instance.new("TextLabel"),
+    RunSpeedModSlider = Instance.new("TextButton"),
+    RunSpeedModSliderButton = Instance.new("TextButton"),
+    RunSpeedModAmount = Instance.new("TextLabel"),
+    TextLabel_40 = Instance.new("TextLabel"),
+    RunSpeedModCheckBox = Instance.new("TextButton"),
+    CrouchSpeedModSlider = Instance.new("TextButton"),
+    CrouchSpeedModSliderButton = Instance.new("TextButton"),
+    CrouchSpeedModAmount = Instance.new("TextLabel"),
+    JumpPowerModSlider = Instance.new("TextButton"),
+    JumpPowerModSliderButton = Instance.new("TextButton"),
+    JumpPowerModAmount = Instance.new("TextLabel"),
+    TextLabel_41 = Instance.new("TextLabel"),
+    CrouchSpeedModCheckBox = Instance.new("TextButton"),
+    TextLabel_42 = Instance.new("TextLabel"),
+    MiscellaneousTab = Instance.new("Frame"),
+    MiscellaneousMainSection = Instance.new("Frame"),
+    TextLabel_43 = Instance.new("TextLabel"),
+    TextLabel_44 = Instance.new("TextLabel"),
+    AnimeRunCheckBox = Instance.new("TextButton"),
+    TextLabel_45 = Instance.new("TextLabel"),
+    AutoCashCheckBox = Instance.new("TextButton"),
+    TextLabel_46 = Instance.new("TextLabel"),
+    AntiAFKCheckBox = Instance.new("TextButton"),
+    TextLabel_47 = Instance.new("TextLabel"),
+    AutoLockCheckBox = Instance.new("TextButton"),
+    AutoUnlockCheckBox = Instance.new("TextButton"),
+    TextLabel_48 = Instance.new("TextLabel"),
+    AutoSortCheckBox = Instance.new("TextButton"),
+    TextLabel_49 = Instance.new("TextLabel"),
+    TextLabel_50 = Instance.new("TextLabel"),
+    HideGroupsCheckBox = Instance.new("TextButton"),
+    TextLabel_51 = Instance.new("TextLabel"),
+    AutoHealCheckBox = Instance.new("TextButton"),
+    TextLabel_52 = Instance.new("TextLabel"),
+    HideSpraysCheckBox = Instance.new("TextButton"),
+    TextLabel_53 = Instance.new("TextLabel"),
     HideTPerCheckBox = Instance.new("TextButton"),
-	MiscellaneousSkinChangerSection = Instance.new("Frame"),
-	TextLabel_54 = Instance.new("TextLabel"),
-	WeaponSelectionFrame = Instance.new("Frame"),
-	GlockWeaponSelect = Instance.new("TextButton"),
-	SawedOffWeaponSelect = Instance.new("TextButton"),
-	ShottyWeaponSelect = Instance.new("TextButton"),
-	UziWeaponSelect = Instance.new("TextButton"),
-	WeaponSelectButton = Instance.new("TextButton"),
-	TextLabel_55 = Instance.new("TextLabel"),
-	SkinSelectionFrame = Instance.new("Frame"),
-	DefaultSkinSelect = Instance.new("TextButton"),
-	KawaiiSkinSelect = Instance.new("TextButton"),
-	SatanicSkinSelect = Instance.new("TextButton"),
-	GoldSkinSelect = Instance.new("TextButton"),
-	NebulaSkinSelect = Instance.new("TextButton"),
-	NoobSkinSelect = Instance.new("TextButton"),
-	ToxicSkinSelect = Instance.new("TextButton"),
-	SkinSelectButton = Instance.new("TextButton"),
-	TextLabel_56 = Instance.new("TextLabel"),
-	SkinPreviewFrame = Instance.new("ViewportFrame"),
-	SkinSelectButton_2 = Instance.new("TextButton"),
-	SettingsTab = Instance.new("Frame"),
-	SettingsMainSection = Instance.new("Frame"),
-	TextLabel_57 = Instance.new("TextLabel"),
-	PrefixKeyButton = Instance.new("TextButton"),
-	TextLabel_58 = Instance.new("TextLabel"),
-	TextLabel_59 = Instance.new("TextLabel"),
-	MenuKeyButton = Instance.new("TextButton"),
-	TextColorButton = Instance.new("TextButton"),
+    MiscellaneousSkinChangerSection = Instance.new("Frame"),
+    TextLabel_54 = Instance.new("TextLabel"),
+    WeaponSelectionFrame = Instance.new("Frame"),
+    GlockWeaponSelect = Instance.new("TextButton"),
+    SawedOffWeaponSelect = Instance.new("TextButton"),
+    ShottyWeaponSelect = Instance.new("TextButton"),
+    UziWeaponSelect = Instance.new("TextButton"),
+    WeaponSelectButton = Instance.new("TextButton"),
+    TextLabel_55 = Instance.new("TextLabel"),
+    SkinSelectionFrame = Instance.new("Frame"),
+    DefaultSkinSelect = Instance.new("TextButton"),
+    KawaiiSkinSelect = Instance.new("TextButton"),
+    SatanicSkinSelect = Instance.new("TextButton"),
+    GoldSkinSelect = Instance.new("TextButton"),
+    NebulaSkinSelect = Instance.new("TextButton"),
+    NoobSkinSelect = Instance.new("TextButton"),
+    ToxicSkinSelect = Instance.new("TextButton"),
+    SkinSelectButton = Instance.new("TextButton"),
+    TextLabel_56 = Instance.new("TextLabel"),
+    SkinPreviewFrame = Instance.new("ViewportFrame"),
+    SkinApplyButton = Instance.new("TextButton"),
+    SettingsTab = Instance.new("Frame"),
+    SettingsMainSection = Instance.new("Frame"),
+    TextLabel_57 = Instance.new("TextLabel"),
+    PrefixKeyButton = Instance.new("TextButton"),
+    TextLabel_58 = Instance.new("TextLabel"),
+    TextLabel_59 = Instance.new("TextLabel"),
+    MenuKeyButton = Instance.new("TextButton"),
+    TextColorButton = Instance.new("TextButton"),
     TextLabel_60 = Instance.new("TextLabel"),
     TextLabel_62 = Instance.new("TextLabel"),
     MainColorButton = Instance.new("TextButton"),
-	RadioVolumeSlider = Instance.new("TextButton"),
-	RadioVolumeSliderButton = Instance.new("TextButton"),
-	RadioVolumeAmount = Instance.new("TextLabel"),
-	TextLabel_61 = Instance.new("TextLabel"),
-	UICorner_2 = Instance.new("UICorner"),
-	OthersFrame = Instance.new("Frame"),
-	WatermarkFrame = Instance.new("Frame"),
-	WatermarkDataLabel = Instance.new("TextLabel"),
-	StatesFrame = Instance.new("Frame"),
-	StatesTopBar = Instance.new("Frame"),
-	StatesTitle = Instance.new("TextLabel"),
-	StatesHolderFrame = Instance.new("Frame"),
+    RadioVolumeSlider = Instance.new("TextButton"),
+    RadioVolumeSliderButton = Instance.new("TextButton"),
+    RadioVolumeAmount = Instance.new("TextLabel"),
+    TextLabel_61 = Instance.new("TextLabel"),
+    UICorner_2 = Instance.new("UICorner"),
+    OthersFrame = Instance.new("Frame"),
+    WatermarkFrame = Instance.new("Frame"),
+    WatermarkDataLabel = Instance.new("TextLabel"),
+    ClientInfoFrame = Instance.new("Frame"),
+    ClientInfoTopBar = Instance.new("Frame"),
+    ClientInfoTitle = Instance.new("TextLabel"),
     CurrentTargetLabel = Instance.new("TextLabel"),
     AimbottingLabel = Instance.new("TextLabel"),
+    HitboxTargetLabel = Instance.new("TextLabel"),
     NoclippingLabel = Instance.new("TextLabel"),
-	HairFrame = Instance.new("Frame"),
-	HairFrameTopBar = Instance.new("Frame"),
-	HairFrameTitle = Instance.new("TextLabel"),
-	HairFrameCloseButton = Instance.new("TextButton"),
-	HairHolderFrame = Instance.new("Frame"),
-	HairHatsHolder = Instance.new("Frame"),
-	TemplateHairSelect = Instance.new("TextButton"),
-	UIListLayout = Instance.new("UIListLayout"),
-	HairColorsHolder = Instance.new("Frame"),
-	UIGridLayout_2 = Instance.new("UIGridLayout"),
-	HairScriptsHolder = Instance.new("Frame"),
-	UIListLayout_2 = Instance.new("UIListLayout"),
-	SequenceModeButton = Instance.new("TextButton"),
-	RandomColorsModeButton = Instance.new("TextButton"),
-	BuildMenuFrame = Instance.new("Frame"),
-	BuildMenuFrameTopBar = Instance.new("Frame"),
-	BuildMenuFrameTitle = Instance.new("TextLabel"),
-	BuildMenuFrameCloseButton = Instance.new("TextButton"),
-	BuildMenuHolderFrame = Instance.new("Frame"),
-	BuildMenuUnanchoredHolder = Instance.new("ScrollingFrame"),
-	TemplateUnanchoredButton = Instance.new("TextButton"),
-	UIListLayout_3 = Instance.new("UIListLayout"),
-	BuildMenuPreBuiltSection = Instance.new("Frame"),
-	BuildMenuSwastikaButton = Instance.new("TextButton"),
-	UIListLayout_4 = Instance.new("UIListLayout"),
-	BuildMenuInvertedCrossButton = Instance.new("TextButton"),
-	BuildMenuHutButton = Instance.new("TextButton"),
-	BuildMenuSkateboardButton = Instance.new("TextButton"),
-	BuildMenuArmorButton = Instance.new("TextButton"),
-	BuildMenuPropertiesSection = Instance.new("Frame"),
-	TextLabel_63 = Instance.new("TextLabel"),
-	TextLabel_64 = Instance.new("TextLabel"),
-	TextLabel_65 = Instance.new("TextLabel"),
-	BuildMenuXPositionBox = Instance.new("TextBox"),
-	BuildMenuYPositionBox = Instance.new("TextBox"),
-	BuildMenuZPositionBox = Instance.new("TextBox"),
-	TextLabel_66 = Instance.new("TextLabel"),
-	TextLabel_67 = Instance.new("TextLabel"),
-	BuildMenuXRotationBox = Instance.new("TextBox"),
-	BuildMenuYRotationBox = Instance.new("TextBox"),
-	BuildMenuZRotationBox = Instance.new("TextBox"),
-	BuildMenuBringPartButton = Instance.new("TextButton"),
-	BuildMenuPlacePartButton = Instance.new("TextButton"),
-	BuildMenuMoveXButton = Instance.new("TextButton"),
-	BuildMenuMoveYButton = Instance.new("TextButton"),
-	BuildMenuMoveZButton = Instance.new("TextButton"),
-	BuildMenuIncrementBox = Instance.new("TextBox"),
-	CommandBarFrame = Instance.new("Frame"),
+    NoKOingLabel = Instance.new("TextLabel"),
+    AntiClaimingLabel = Instance.new("TextLabel"),
+    BlinkingLabel = Instance.new("TextLabel"),
+    BlinkSpeedLabel = Instance.new("TextLabel"),
+    FlySpeedLabel = Instance.new("TextLabel"),
+    HairFrame = Instance.new("Frame"),
+    HairFrameTopBar = Instance.new("Frame"),
+    HairFrameTitle = Instance.new("TextLabel"),
+    HairFrameCloseButton = Instance.new("TextButton"),
+    HairHolderFrame = Instance.new("Frame"),
+    HairHatsHolder = Instance.new("Frame"),
+    TemplateHairSelect = Instance.new("TextButton"),
+    UIListLayout = Instance.new("UIListLayout"),
+    HairColorsHolder = Instance.new("Frame"),
+    UIGridLayout_2 = Instance.new("UIGridLayout"),
+    HairScriptsHolder = Instance.new("Frame"),
+    UIListLayout_2 = Instance.new("UIListLayout"),
+    SequenceModeButton = Instance.new("TextButton"),
+    RandomColorsModeButton = Instance.new("TextButton"),
+    BuildMenuFrame = Instance.new("Frame"),
+    BuildMenuFrameTopBar = Instance.new("Frame"),
+    BuildMenuFrameTitle = Instance.new("TextLabel"),
+    BuildMenuFrameCloseButton = Instance.new("TextButton"),
+    BuildMenuHolderFrame = Instance.new("Frame"),
+    BuildMenuUnanchoredHolder = Instance.new("ScrollingFrame"),
+    TemplateUnanchoredButton = Instance.new("TextButton"),
+    UIListLayout_3 = Instance.new("UIListLayout"),
+    BuildMenuPreBuiltSection = Instance.new("Frame"),
+    BuildMenuSwastikaButton = Instance.new("TextButton"),
+    UIListLayout_4 = Instance.new("UIListLayout"),
+    BuildMenuInvertedCrossButton = Instance.new("TextButton"),
+    BuildMenuHutButton = Instance.new("TextButton"),
+    BuildMenuSkateboardButton = Instance.new("TextButton"),
+    BuildMenuArmorButton = Instance.new("TextButton"),
+    BuildMenuPropertiesSection = Instance.new("Frame"),
+    TextLabel_63 = Instance.new("TextLabel"),
+    TextLabel_64 = Instance.new("TextLabel"),
+    TextLabel_65 = Instance.new("TextLabel"),
+    BuildMenuXPositionBox = Instance.new("TextBox"),
+    BuildMenuYPositionBox = Instance.new("TextBox"),
+    BuildMenuZPositionBox = Instance.new("TextBox"),
+    TextLabel_66 = Instance.new("TextLabel"),
+    TextLabel_67 = Instance.new("TextLabel"),
+    BuildMenuXRotationBox = Instance.new("TextBox"),
+    BuildMenuYRotationBox = Instance.new("TextBox"),
+    BuildMenuZRotationBox = Instance.new("TextBox"),
+    BuildMenuBringPartButton = Instance.new("TextButton"),
+    BuildMenuPlacePartButton = Instance.new("TextButton"),
+    BuildMenuMoveXButton = Instance.new("TextButton"),
+    BuildMenuMoveYButton = Instance.new("TextButton"),
+    BuildMenuMoveZButton = Instance.new("TextButton"),
+    BuildMenuIncrementBox = Instance.new("TextBox"),
+    CommandBarFrame = Instance.new("Frame"),
     CommandBarBox = Instance.new("TextBox"),
     CommandsFrame = Instance.new("Frame"),
     CommandsFrameTopBar = Instance.new("Frame"),
     CommandsFrameTitle = Instance.new("TextLabel"),
     CommandsFrameCloseButton = Instance.new("TextButton"),
     CommandsHolderFrame = Instance.new("ScrollingFrame"),
-    UIListLayout_5 = Instance.new("UIListLayout");
+    UIListLayout_5 = Instance.new("UIListLayout")
 }
 
 GUI.Identification.Name = "Identification"
@@ -2488,22 +2598,22 @@ GUI.TextLabel_29.BorderSizePixel = 0
 GUI.TextLabel_29.Position = UDim2.new(0.125, 0, 0.25, 0)
 GUI.TextLabel_29.Size = UDim2.new(0.5, 0, 0.05, 0)
 GUI.TextLabel_29.Font = Enum.Font.SourceSans
-GUI.TextLabel_29.Text = "States"
+GUI.TextLabel_29.Text = "Client Info"
 GUI.TextLabel_29.TextColor3 = Color3.fromRGB(225, 225, 225)
 GUI.TextLabel_29.TextSize = 14
 GUI.TextLabel_29.TextWrapped = true
 GUI.TextLabel_29.TextXAlignment = Enum.TextXAlignment.Left
 
-GUI.StatesCheckBox.Name = "StatesCheckBox"
-GUI.StatesCheckBox.Parent = GUI.VisualsOthersSection
-LoadCheckBox(GUI.StatesCheckBox, "States", GUI.StatesFrame)
-GUI.StatesCheckBox.BorderSizePixel = 0
-GUI.StatesCheckBox.Position = UDim2.new(0.05, 0, 0.25, 0)
-GUI.StatesCheckBox.Size = UDim2.new(0, 15, 0, 15)
-GUI.StatesCheckBox.Font = Enum.Font.SourceSans
-GUI.StatesCheckBox.Text = ""
-GUI.StatesCheckBox.TextColor3 = Color3.fromRGB(0, 0, 0)
-GUI.StatesCheckBox.TextSize = 14
+GUI.ClientInfoCheckBox.Name = "ClientInfoCheckBox"
+GUI.ClientInfoCheckBox.Parent = GUI.VisualsOthersSection
+LoadCheckBox(GUI.ClientInfoCheckBox, "ClientInfo", GUI.ClientInfoFrame)
+GUI.ClientInfoCheckBox.BorderSizePixel = 0
+GUI.ClientInfoCheckBox.Position = UDim2.new(0.05, 0, 0.25, 0)
+GUI.ClientInfoCheckBox.Size = UDim2.new(0, 15, 0, 15)
+GUI.ClientInfoCheckBox.Font = Enum.Font.SourceSans
+GUI.ClientInfoCheckBox.Text = ""
+GUI.ClientInfoCheckBox.TextColor3 = Color3.fromRGB(0, 0, 0)
+GUI.ClientInfoCheckBox.TextSize = 14
 
 GUI.HitmarkerSoundButton.Name = "HitmarkerSoundButton"
 GUI.HitmarkerSoundButton.Parent = GUI.VisualsOthersSection
@@ -2892,7 +3002,7 @@ GUI.TextLabel_40.TextXAlignment = Enum.TextXAlignment.Left
 
 GUI.RunSpeedModCheckBox.Name = "WalkSpeedModCheckBox"
 GUI.RunSpeedModCheckBox.Parent = GUI.CharacterMovementSection
-GUI.RunSpeedModCheckBox.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+LoadCheckBox(GUI.RunSpeedModCheckBox, "RunSpeedMod")
 GUI.RunSpeedModCheckBox.BorderSizePixel = 0
 GUI.RunSpeedModCheckBox.Position = UDim2.new(0.05, 0, 0.4, 0)
 GUI.RunSpeedModCheckBox.Size = UDim2.new(0, 15, 0, 15)
@@ -3194,23 +3304,23 @@ GUI.TextLabel_51.Position = UDim2.new(0.125, 0, 0.625, 0)
 GUI.TextLabel_51.Rotation = 1
 GUI.TextLabel_51.Size = UDim2.new(0.5, 0, 0.05, 0)
 GUI.TextLabel_51.Font = Enum.Font.SourceSans
-GUI.TextLabel_51.Text = "Auto Eat"
+GUI.TextLabel_51.Text = "Auto Heal"
 GUI.TextLabel_51.TextColor3 = Color3.fromRGB(225, 225, 225)
 GUI.TextLabel_51.TextSize = 14
 GUI.TextLabel_51.TextWrapped = true
 GUI.TextLabel_51.TextXAlignment = Enum.TextXAlignment.Left
 
-GUI.AutoEatCheckBox.Name = "AutoEatCheckBox"
-GUI.AutoEatCheckBox.Parent = GUI.MiscellaneousMainSection
-LoadCheckBox(GUI.AutoEatCheckBox, "AutoEat")
-GUI.AutoEatCheckBox.BorderSizePixel = 0
-GUI.AutoEatCheckBox.Position = UDim2.new(0.05, 0, 0.625, 0)
-GUI.AutoEatCheckBox.Rotation = 1
-GUI.AutoEatCheckBox.Size = UDim2.new(0, 15, 0, 15)
-GUI.AutoEatCheckBox.Font = Enum.Font.SourceSans
-GUI.AutoEatCheckBox.Text = ""
-GUI.AutoEatCheckBox.TextColor3 = Color3.fromRGB(0, 0, 0)
-GUI.AutoEatCheckBox.TextSize = 14
+GUI.AutoHealCheckBox.Name = "AutoHealCheckBox"
+GUI.AutoHealCheckBox.Parent = GUI.MiscellaneousMainSection
+LoadCheckBox(GUI.AutoHealCheckBox, "AutoHeal")
+GUI.AutoHealCheckBox.BorderSizePixel = 0
+GUI.AutoHealCheckBox.Position = UDim2.new(0.05, 0, 0.625, 0)
+GUI.AutoHealCheckBox.Rotation = 1
+GUI.AutoHealCheckBox.Size = UDim2.new(0, 15, 0, 15)
+GUI.AutoHealCheckBox.Font = Enum.Font.SourceSans
+GUI.AutoHealCheckBox.Text = ""
+GUI.AutoHealCheckBox.TextColor3 = Color3.fromRGB(0, 0, 0)
+GUI.AutoHealCheckBox.TextSize = 14
 
 GUI.TextLabel_52.Parent = GUI.MiscellaneousMainSection
 GUI.TextLabel_52.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
@@ -3486,16 +3596,16 @@ GUI.SkinPreviewFrame.Name = "SkinPreviewFrame"
 GUI.SkinPreviewFrame.Parent = GUI.MiscellaneousSkinChangerSection
 GUI.SkinPreviewFrame.Position = UDim2.new(0.55, 0, 0.1, 0)
 
-GUI.SkinSelectButton_2.Name = "SkinSelectButton"
-GUI.SkinSelectButton_2.Parent = GUI.MiscellaneousSkinChangerSection
-GUI.SkinSelectButton_2.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
-GUI.SkinSelectButton_2.BorderSizePixel = 0
-GUI.SkinSelectButton_2.Position = UDim2.new(0.55, 0, 0.5, 0)
-GUI.SkinSelectButton_2.Size = UDim2.new(0.4, 0, 0, 15)
-GUI.SkinSelectButton_2.Font = Enum.Font.SourceSans
-GUI.SkinSelectButton_2.Text = "Apply"
-GUI.SkinSelectButton_2.TextColor3 = Color3.fromRGB(225, 225, 225)
-GUI.SkinSelectButton_2.TextSize = 14
+GUI.SkinApplyButton.Name = "SkinSelectButton"
+GUI.SkinApplyButton.Parent = GUI.MiscellaneousSkinChangerSection
+GUI.SkinApplyButton.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+GUI.SkinApplyButton.BorderSizePixel = 0
+GUI.SkinApplyButton.Position = UDim2.new(0.55, 0, 0.5, 0)
+GUI.SkinApplyButton.Size = UDim2.new(0.4, 0, 0, 15)
+GUI.SkinApplyButton.Font = Enum.Font.SourceSans
+GUI.SkinApplyButton.Text = "Apply"
+GUI.SkinApplyButton.TextColor3 = Color3.fromRGB(225, 225, 225)
+GUI.SkinApplyButton.TextSize = 14
 
 GUI.SettingsTab.Name = "SettingsTab"
 GUI.SettingsTab.Parent = GUI.TabHolder
@@ -3702,84 +3812,153 @@ GUI.WatermarkDataLabel.TextSize = 12
 GUI.WatermarkDataLabel.TextWrapped = true
 GUI.WatermarkDataLabel.TextXAlignment = Enum.TextXAlignment.Left
 
-GUI.StatesFrame.Name = "StatesFrame"
-GUI.StatesFrame.Parent = GUI.OthersFrame
-GUI.StatesFrame.Active = true
-GUI.StatesFrame.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
-GUI.StatesFrame.BackgroundTransparency = 0.25
-LoadMainColor(GUI.StatesFrame, "Border")
-GUI.StatesFrame.BorderSizePixel = 2
-GUI.StatesFrame.Position = UDim2.new(0.005, 0, 0.15, 0)
-GUI.StatesFrame.Size = UDim2.new(0, 200, 0, 230)
-GUI.StatesFrame.Visible = Config["States"]
-GUI.StatesFrame.Draggable = true
+GUI.ClientInfoFrame.Name = "ClientInfoFrame"
+GUI.ClientInfoFrame.Parent = GUI.OthersFrame
+GUI.ClientInfoFrame.Active = true
+GUI.ClientInfoFrame.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
+GUI.ClientInfoFrame.BackgroundTransparency = 0.25
+LoadMainColor(GUI.ClientInfoFrame, "Border")
+GUI.ClientInfoFrame.BorderSizePixel = 2
+GUI.ClientInfoFrame.Position = UDim2.new(0.005, 0, 0.15, 0)
+GUI.ClientInfoFrame.Size = UDim2.new(0, 200, 0, 230)
+GUI.ClientInfoFrame.Visible = Config["ClientInfo"]
+GUI.ClientInfoFrame.Draggable = true
 
-GUI.StatesTopBar.Name = "StatesTopBar"
-GUI.StatesTopBar.Parent = GUI.StatesFrame
-GUI.StatesTopBar.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
-GUI.StatesTopBar.BorderSizePixel = 0
-GUI.StatesTopBar.Size = UDim2.new(1, 0, 0.1, 0)
+GUI.ClientInfoTopBar.Name = "ClientInfoTopBar"
+GUI.ClientInfoTopBar.Parent = GUI.ClientInfoFrame
+GUI.ClientInfoTopBar.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+GUI.ClientInfoTopBar.BorderSizePixel = 0
+GUI.ClientInfoTopBar.Size = UDim2.new(1, 0, 0.1, 0)
 
-GUI.StatesTitle.Name = "StatesTitle"
-GUI.StatesTitle.Parent = GUI.StatesTopBar
-GUI.StatesTitle.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-GUI.StatesTitle.BackgroundTransparency = 1
-GUI.StatesTitle.BorderSizePixel = 0
-GUI.StatesTitle.Size = UDim2.new(1, 0, 1, 0)
-GUI.StatesTitle.Font = Enum.Font.SourceSansLight
-GUI.StatesTitle.Text = "States"
-GUI.StatesTitle.TextColor3 = Color3.fromRGB(225, 225, 225)
-GUI.StatesTitle.TextSize = 20
-GUI.StatesTitle.TextWrapped = true
-
-GUI.StatesHolderFrame.Name = "StatesHolderFrame"
-GUI.StatesHolderFrame.Parent = GUI.StatesFrame
-GUI.StatesHolderFrame.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
-LoadMainColor(GUI.StatesHolderFrame, "Border")
-GUI.StatesHolderFrame.BorderSizePixel = 2
-GUI.StatesHolderFrame.Position = UDim2.new(0.05, 0, 0.15, 0)
-GUI.StatesHolderFrame.Size = UDim2.new(0.9, 0, 0.8, 0)
+GUI.ClientInfoTitle.Name = "ClientInfoTitle"
+GUI.ClientInfoTitle.Parent = GUI.ClientInfoTopBar
+GUI.ClientInfoTitle.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+GUI.ClientInfoTitle.BackgroundTransparency = 1
+GUI.ClientInfoTitle.BorderSizePixel = 0
+GUI.ClientInfoTitle.Size = UDim2.new(1, 0, 1, 0)
+GUI.ClientInfoTitle.Font = Enum.Font.SourceSansLight
+GUI.ClientInfoTitle.Text = "Client Info"
+GUI.ClientInfoTitle.TextColor3 = Color3.fromRGB(225, 225, 225)
+GUI.ClientInfoTitle.TextSize = 20
+GUI.ClientInfoTitle.TextWrapped = true
 
 GUI.CurrentTargetLabel.Name = "CurrentTargetLabel"
-GUI.CurrentTargetLabel.Parent = GUI.StatesHolderFrame
+GUI.CurrentTargetLabel.Parent = GUI.ClientInfoFrame
 GUI.CurrentTargetLabel.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
 GUI.CurrentTargetLabel.BackgroundTransparency = 1
 GUI.CurrentTargetLabel.BorderSizePixel = 0
-GUI.CurrentTargetLabel.Size = UDim2.new(1, 0, 0.1, 0)
+GUI.CurrentTargetLabel.Size = UDim2.new(1, 0, 0.08, 0)
+GUI.CurrentTargetLabel.Position = UDim2.new(0, 0, 0.1, 0)
 GUI.CurrentTargetLabel.Font = Enum.Font.SourceSans
-GUI.CurrentTargetLabel.Text = "Current Target: nil"
+GUI.CurrentTargetLabel.Text = "Current target: nil"
 GUI.CurrentTargetLabel.TextColor3 = Color3.fromRGB(225, 225, 225)
+GUI.CurrentTargetLabel.TextSize = 18
 GUI.CurrentTargetLabel.TextScaled = true
-GUI.CurrentTargetLabel.TextSize = 14
 GUI.CurrentTargetLabel.TextWrapped = true
 
+GUI.HitboxTargetLabel.Name = "HitboxTargetLabel"
+GUI.HitboxTargetLabel.Parent = GUI.ClientInfoFrame
+GUI.HitboxTargetLabel.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+GUI.HitboxTargetLabel.BackgroundTransparency = 1
+GUI.HitboxTargetLabel.BorderSizePixel = 0
+GUI.HitboxTargetLabel.Size = UDim2.new(1, 0, 0.08, 0)
+GUI.HitboxTargetLabel.Position = UDim2.new(0, 0, 0.18, 0)
+GUI.HitboxTargetLabel.Font = Enum.Font.SourceSans
+GUI.HitboxTargetLabel.Text = "Hitbox target: " .. Config["AimbotTarget"]
+GUI.HitboxTargetLabel.TextColor3 = Color3.fromRGB(225, 225, 225)
+GUI.HitboxTargetLabel.TextSize = 18
+GUI.HitboxTargetLabel.TextWrapped = true
+
 GUI.AimbottingLabel.Name = "AimbottingLabel"
-GUI.AimbottingLabel.Parent = GUI.StatesHolderFrame
+GUI.AimbottingLabel.Parent = GUI.ClientInfoFrame
 GUI.AimbottingLabel.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
 GUI.AimbottingLabel.BackgroundTransparency = 1
 GUI.AimbottingLabel.BorderSizePixel = 0
-GUI.AimbottingLabel.Size = UDim2.new(1, 0, 0.1, 0)
-GUI.AimbottingLabel.Position = UDim2.new(0, 0, 0.1, 0)
+GUI.AimbottingLabel.Size = UDim2.new(1, 0, 0.08, 0)
+GUI.AimbottingLabel.Position = UDim2.new(0, 0, 0.26, 0)
 GUI.AimbottingLabel.Font = Enum.Font.SourceSans
 GUI.AimbottingLabel.Text = "Aimbot: " .. tostring(Aimbot)
 GUI.AimbottingLabel.TextColor3 = Color3.fromRGB(225, 225, 225)
-GUI.AimbottingLabel.TextScaled = true
-GUI.AimbottingLabel.TextSize = 14
+GUI.AimbottingLabel.TextSize = 18
 GUI.AimbottingLabel.TextWrapped = true
 
 GUI.NoclippingLabel.Name = "NoclippingLabel"
-GUI.NoclippingLabel.Parent = GUI.StatesHolderFrame
+GUI.NoclippingLabel.Parent = GUI.ClientInfoFrame
 GUI.NoclippingLabel.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
 GUI.NoclippingLabel.BackgroundTransparency = 1
 GUI.NoclippingLabel.BorderSizePixel = 0
-GUI.NoclippingLabel.Size = UDim2.new(1, 0, 0.1, 0)
-GUI.NoclippingLabel.Position = UDim2.new(0, 0, 0.2, 0)
+GUI.NoclippingLabel.Size = UDim2.new(1, 0, 0.08, 0)
+GUI.NoclippingLabel.Position = UDim2.new(0, 0, 0.34, 0)
 GUI.NoclippingLabel.Font = Enum.Font.SourceSans
 GUI.NoclippingLabel.Text = "Noclip: " .. tostring(Noclip)
 GUI.NoclippingLabel.TextColor3 = Color3.fromRGB(225, 225, 225)
-GUI.NoclippingLabel.TextScaled = true
-GUI.NoclippingLabel.TextSize = 14
+GUI.NoclippingLabel.TextSize = 18
 GUI.NoclippingLabel.TextWrapped = true
+
+GUI.NoKOingLabel.Name = "NoKOingLabel"
+GUI.NoKOingLabel.Parent = GUI.ClientInfoFrame
+GUI.NoKOingLabel.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+GUI.NoKOingLabel.BackgroundTransparency = 1
+GUI.NoKOingLabel.BorderSizePixel = 0
+GUI.NoKOingLabel.Size = UDim2.new(1, 0, 0.08, 0)
+GUI.NoKOingLabel.Position = UDim2.new(0, 0, 0.42, 0)
+GUI.NoKOingLabel.Font = Enum.Font.SourceSans
+GUI.NoKOingLabel.Text = "NoKO: " .. tostring(Config["NoKO"])
+GUI.NoKOingLabel.TextColor3 = Color3.fromRGB(225, 225, 225)
+GUI.NoKOingLabel.TextSize = 18
+GUI.NoKOingLabel.TextWrapped = true
+
+GUI.AntiClaimingLabel.Name = "AntiClaimingLabel"
+GUI.AntiClaimingLabel.Parent = GUI.ClientInfoFrame
+GUI.AntiClaimingLabel.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+GUI.AntiClaimingLabel.BackgroundTransparency = 1
+GUI.AntiClaimingLabel.BorderSizePixel = 0
+GUI.AntiClaimingLabel.Size = UDim2.new(1, 0, 0.08, 0)
+GUI.AntiClaimingLabel.Position = UDim2.new(0, 0, 0.5, 0)
+GUI.AntiClaimingLabel.Font = Enum.Font.SourceSans
+GUI.AntiClaimingLabel.Text = "Anti claim: " .. tostring(AntiClaim)
+GUI.AntiClaimingLabel.TextColor3 = Color3.fromRGB(225, 225, 225)
+GUI.AntiClaimingLabel.TextSize = 18
+GUI.AntiClaimingLabel.TextWrapped = true
+
+GUI.BlinkingLabel.Name = "BlinkingLabel"
+GUI.BlinkingLabel.Parent = GUI.ClientInfoFrame
+GUI.BlinkingLabel.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+GUI.BlinkingLabel.BackgroundTransparency = 1
+GUI.BlinkingLabel.BorderSizePixel = 0
+GUI.BlinkingLabel.Size = UDim2.new(1, 0, 0.08, 0)
+GUI.BlinkingLabel.Position = UDim2.new(0, 0, 0.58, 0)
+GUI.BlinkingLabel.Font = Enum.Font.SourceSans
+GUI.BlinkingLabel.Text = "Blink: " .. tostring(Config["Blink"])
+GUI.BlinkingLabel.TextColor3 = Color3.fromRGB(225, 225, 225)
+GUI.BlinkingLabel.TextSize = 18
+GUI.BlinkingLabel.TextWrapped = true
+
+GUI.BlinkSpeedLabel.Name = "BlinkSpeedLabel"
+GUI.BlinkSpeedLabel.Parent = GUI.ClientInfoFrame
+GUI.BlinkSpeedLabel.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+GUI.BlinkSpeedLabel.BackgroundTransparency = 1
+GUI.BlinkSpeedLabel.BorderSizePixel = 0
+GUI.BlinkSpeedLabel.Size = UDim2.new(1, 0, 0.08, 0)
+GUI.BlinkSpeedLabel.Position = UDim2.new(0, 0, 0.66, 0)
+GUI.BlinkSpeedLabel.Font = Enum.Font.SourceSans
+GUI.BlinkSpeedLabel.Text = "Blink speed: " .. tostring(Config["BlinkSpeed"])
+GUI.BlinkSpeedLabel.TextColor3 = Color3.fromRGB(225, 225, 225)
+GUI.BlinkSpeedLabel.TextSize = 18
+GUI.BlinkSpeedLabel.TextWrapped = true
+
+GUI.FlySpeedLabel.Name = "FlySpeedLabel"
+GUI.FlySpeedLabel.Parent = GUI.ClientInfoFrame
+GUI.FlySpeedLabel.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+GUI.FlySpeedLabel.BackgroundTransparency = 1
+GUI.FlySpeedLabel.BorderSizePixel = 0
+GUI.FlySpeedLabel.Size = UDim2.new(1, 0, 0.08, 0)
+GUI.FlySpeedLabel.Position = UDim2.new(0, 0, 0.74, 0)
+GUI.FlySpeedLabel.Font = Enum.Font.SourceSans
+GUI.FlySpeedLabel.Text = "Fly speed: " .. tostring(Config["FlySpeed"])
+GUI.FlySpeedLabel.TextColor3 = Color3.fromRGB(225, 225, 225)
+GUI.FlySpeedLabel.TextSize = 18
+GUI.FlySpeedLabel.TextWrapped = true
 
 GUI.HairFrame.Name = "HairFrame"
 GUI.HairFrame.Parent = GUI.OthersFrame
@@ -4298,15 +4477,15 @@ GUI.CommandsFrame.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
 GUI.CommandsFrame.BackgroundTransparency = 0.25
 GUI.CommandsFrame.BorderColor3 = Color3.fromRGB(0, 85, 255)
 GUI.CommandsFrame.BorderSizePixel = 2
-GUI.CommandsFrame.Position = UDim2.new(0, 300, 0, 300)
-GUI.CommandsFrame.Size = UDim2.new(0.3, 0, 0.5, 0)
+GUI.CommandsFrame.Position = UDim2.new(0.5, 0, 0.2, 0)
+GUI.CommandsFrame.Size = UDim2.new(0, 350, 0, 400)
 GUI.CommandsFrame.Visible = false
 
 GUI.CommandsFrameTopBar.Name = "CommandsFrameTopBar"
 GUI.CommandsFrameTopBar.Parent = GUI.CommandsFrame
 GUI.CommandsFrameTopBar.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
 GUI.CommandsFrameTopBar.BorderSizePixel = 0
-GUI.CommandsFrameTopBar.Size = UDim2.new(1, 0, 0.1, 0)
+GUI.CommandsFrameTopBar.Size = UDim2.new(1, 0, 0.075, 0)
 
 GUI.CommandsFrameTitle.Name = "CommandsFrameTitle"
 GUI.CommandsFrameTitle.Parent = GUI.CommandsFrameTopBar
@@ -4338,7 +4517,7 @@ GUI.CommandsHolderFrame.Parent = GUI.CommandsFrame
 GUI.CommandsHolderFrame.Active = true
 GUI.CommandsHolderFrame.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
 GUI.CommandsHolderFrame.BorderColor3 = Color3.fromRGB(0, 85, 255)
-GUI.CommandsHolderFrame.Position = UDim2.new(0.05, 0, 0.15, 0)
+GUI.CommandsHolderFrame.Position = UDim2.new(0.05, 0, 0.1, 0)
 GUI.CommandsHolderFrame.Size = UDim2.new(0.9, 0, 0.8, 0)
 GUI.CommandsHolderFrame.CanvasSize = UDim2.new(0, 0, 0, 0)
 GUI.CommandsHolderFrame.ScrollBarThickness = 4
@@ -4365,7 +4544,7 @@ local function ShowColorPicker(Button, Change)
     local GreenColorBox = Instance.new("TextBox")
     local BlueColorBox = Instance.new("TextBox")
     local FinishButton = Instance.new("TextButton")
-    
+
     ColorPickerFrame.Name = "ColorPickerFrame"
     ColorPickerFrame.Parent = GUI.OthersFrame
     ColorPickerFrame.Active = true
@@ -4374,15 +4553,15 @@ local function ShowColorPicker(Button, Change)
     ColorPickerFrame.BackgroundTransparency = 0.25
     ColorPickerFrame.BorderColor3 = Color3.fromRGB(0, 85, 255)
     ColorPickerFrame.BorderSizePixel = 2
-    ColorPickerFrame.Position = UDim2.new(0, 150, 0, 150)
-    ColorPickerFrame.Size = UDim2.new(0.3, 0, 0.5, 0)
-    
+    ColorPickerFrame.Size = UDim2.new(0, 250, 0, 250)
+    ColorPickerFrame.Position = UDim2.new(0, 100, 0, 100)
+
     ColorPickerFrameTopBar.Name = "ColorPickerFrameTopBar"
     ColorPickerFrameTopBar.Parent = ColorPickerFrame
     ColorPickerFrameTopBar.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
     ColorPickerFrameTopBar.BorderSizePixel = 0
-    ColorPickerFrameTopBar.Size = UDim2.new(1, 0, 0.1, 0)
-    
+    ColorPickerFrameTopBar.Size = UDim2.new(1, 0, 0.075, 0)
+
     ColorPickerFrameTitle.Name = "ColorPickerFrameTitle"
     ColorPickerFrameTitle.Parent = ColorPickerFrameTopBar
     ColorPickerFrameTitle.BackgroundTransparency = 1
@@ -4392,7 +4571,7 @@ local function ShowColorPicker(Button, Change)
     ColorPickerFrameTitle.TextColor3 = Color3.fromRGB(225, 225, 225)
     ColorPickerFrameTitle.TextSize = 20
     ColorPickerFrameTitle.TextWrapped = true
-    
+
     ColorPickerFrameCloseButton.Name = "ColorPickerFrameCloseButton"
     ColorPickerFrameCloseButton.Parent = ColorPickerFrameTopBar
     ColorPickerFrameCloseButton.BackgroundTransparency = 1
@@ -4403,7 +4582,7 @@ local function ShowColorPicker(Button, Change)
     ColorPickerFrameCloseButton.TextColor3 = Color3.fromRGB(225, 225, 225)
     ColorPickerFrameCloseButton.TextSize = 20
     ColorPickerFrameCloseButton.TextWrapped = true
-    
+
     ColorPickerHolderFrame.Name = "ColorPickerHolderFrame"
     ColorPickerHolderFrame.Parent = ColorPickerFrame
     ColorPickerHolderFrame.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
@@ -4411,7 +4590,7 @@ local function ShowColorPicker(Button, Change)
     ColorPickerHolderFrame.BorderSizePixel = 0
     ColorPickerHolderFrame.Position = UDim2.new(0.05, 0, 0.15, 0)
     ColorPickerHolderFrame.Size = UDim2.new(0.9, 0, 0.8, 0)
-    
+
     ColorPreview.Name = "ColorPreview"
     ColorPreview.Parent = ColorPickerHolderFrame
     ColorPreview.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
@@ -4419,7 +4598,7 @@ local function ShowColorPicker(Button, Change)
     ColorPreview.BorderSizePixel = 2
     ColorPreview.Position = UDim2.new(0.1, 0, 0.8, 0)
     ColorPreview.Size = UDim2.new(0.8, 0, 0.15, 0)
-    
+
     RedColorBox.Name = "RedColorBox"
     RedColorBox.Parent = ColorPickerHolderFrame
     RedColorBox.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
@@ -4432,7 +4611,7 @@ local function ShowColorPicker(Button, Change)
     RedColorBox.Text = ""
     RedColorBox.TextColor3 = Color3.fromRGB(225, 225, 225)
     RedColorBox.TextSize = 16
-    
+
     GreenColorBox.Name = "GreenColorBox"
     GreenColorBox.Parent = ColorPickerHolderFrame
     GreenColorBox.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
@@ -4445,7 +4624,7 @@ local function ShowColorPicker(Button, Change)
     GreenColorBox.Text = ""
     GreenColorBox.TextColor3 = Color3.fromRGB(225, 225, 225)
     GreenColorBox.TextSize = 16
-    
+
     BlueColorBox.Name = "BlueColorBox"
     BlueColorBox.Parent = ColorPickerHolderFrame
     BlueColorBox.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
@@ -4458,7 +4637,7 @@ local function ShowColorPicker(Button, Change)
     BlueColorBox.Text = ""
     BlueColorBox.TextColor3 = Color3.fromRGB(225, 225, 225)
     BlueColorBox.TextSize = 16
-    
+
     FinishButton.Name = "FinishButton"
     FinishButton.Parent = ColorPickerHolderFrame
     FinishButton.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
@@ -4469,21 +4648,23 @@ local function ShowColorPicker(Button, Change)
     FinishButton.Text = "Finish"
     FinishButton.TextColor3 = Color3.fromRGB(255, 255, 255)
     FinishButton.TextSize = 16
-    
-    ColorPickerFrameCloseButton.MouseButton1Click:Connect(function()
-        ColorPickerFrame:Destroy()
-    end)
+
+    ColorPickerFrameCloseButton.MouseButton1Click:Connect(
+        function()
+            ColorPickerFrame:Destroy()
+        end
+    )
 end
 
 local function ChangeTab(Tab, Button)
-    for _,v in pairs(GUI.TabHolder:GetChildren()) do
+    for _, v in pairs(GUI.TabHolder:GetChildren()) do
         if v:IsA("Frame") then
             if v.Name ~= Tab.Name then
                 v.Visible = false
             end
         end
     end
-    for _,v in pairs(GUI.TabSelect:GetChildren()) do
+    for _, v in pairs(GUI.TabSelect:GetChildren()) do
         if v:IsA("TextButton") then
             if v.Name ~= Button.Name then
                 v.TextColor3 = Color3.fromRGB(180, 180, 180)
@@ -4523,7 +4704,9 @@ local function SelectionBox(Frame)
 end
 
 local function UpdateSliderInfo(Object, Value)
-    Config[string.gsub(Object.Name, "Slider", "")] = Value
+    local String = string.gsub(Object.Name, "Mod", "")
+    String = string.gsub(String, "Slider", "")
+    Config[String] = Value
 end
 
 local function UpdateKeyBoxes()
@@ -4533,1512 +4716,2237 @@ local function UpdateKeyBoxes()
     Config["MenuKey"] = GUI.MenuKeyButton.Text
 end
 
-GUI.CommandsFrameCloseButton.MouseButton1Click:Connect(function()
-    GUI.CommandsFrame.Visible = false
-end)
+GUI.CommandsFrameCloseButton.MouseButton1Click:Connect(
+    function()
+        GUI.CommandsFrame.Visible = false
+    end
+)
 
-GUI.CommandBarBox.Focused:Connect(function()
-    Spawn(function()
-        GUI.CommandBarBox.Text = ""
-    end)
-end)
+GUI.CommandBarBox.Focused:Connect(
+    function()
+        Spawn(
+            function()
+                GUI.CommandBarBox.Text = ""
+            end
+        )
+    end
+)
 
-GUI.CombatSelect.MouseButton1Click:Connect(function()
-    ChangeTab(GUI.CombatTab, GUI.CombatSelect)
-end)
+GUI.CombatSelect.MouseButton1Click:Connect(
+    function()
+        ChangeTab(GUI.CombatTab, GUI.CombatSelect)
+    end
+)
 
-GUI.VisualsSelect.MouseButton1Click:Connect(function()
-    ChangeTab(GUI.VisualsTab, GUI.VisualsSelect)
-end)
+GUI.VisualsSelect.MouseButton1Click:Connect(
+    function()
+        ChangeTab(GUI.VisualsTab, GUI.VisualsSelect)
+    end
+)
 
-GUI.CharacterSelect.MouseButton1Click:Connect(function()
-    ChangeTab(GUI.CharacterTab, GUI.CharacterSelect)
-end)
+GUI.CharacterSelect.MouseButton1Click:Connect(
+    function()
+        ChangeTab(GUI.CharacterTab, GUI.CharacterSelect)
+    end
+)
 
-GUI.MiscSelect.MouseButton1Click:Connect(function()
-    ChangeTab(GUI.MiscellaneousTab, GUI.MiscSelect)
-end)
+GUI.MiscSelect.MouseButton1Click:Connect(
+    function()
+        ChangeTab(GUI.MiscellaneousTab, GUI.MiscSelect)
+    end
+)
 
-GUI.SettingsSelect.MouseButton1Click:Connect(function()
-    ChangeTab(GUI.SettingsTab, GUI.SettingsSelect)
-end)
+GUI.SettingsSelect.MouseButton1Click:Connect(
+    function()
+        ChangeTab(GUI.SettingsTab, GUI.SettingsSelect)
+    end
+)
 
-GUI.AimbotKeyButton.MouseButton1Click:Connect(function()
-    Recording = true
-    RecordButton = GUI.AimbotKeyButton
-    GUI.AimbotKeyButton.Text = "Recording.."
-end)
+GUI.AimbotKeyButton.MouseButton1Click:Connect(
+    function()
+        Recording = true
+        RecordButton = GUI.AimbotKeyButton
+        GUI.AimbotKeyButton.Text = "Recording.."
+    end
+)
 
-GUI.AimlockCheckBox.MouseButton1Click:Connect(function()
-    CheckBox(GUI.AimlockCheckBox, "Aimlock")
-end)
+GUI.AimlockCheckBox.MouseButton1Click:Connect(
+    function()
+        CheckBox(GUI.AimlockCheckBox, "Aimlock")
+    end
+)
 
-GUI.SilentAimCheckBox.MouseButton1Click:Connect(function()
-    CheckBox(GUI.SilentAimCheckBox, "SilentAim")
-end)
+GUI.SilentAimCheckBox.MouseButton1Click:Connect(
+    function()
+        CheckBox(GUI.SilentAimCheckBox, "SilentAim")
+    end
+)
 
-GUI.AutoFireCheckBox.MouseButton1Click:Connect(function()
-    CheckBox(GUI.AutoFireCheckBox, "AutoFire")
-end)
+GUI.AutoFireCheckBox.MouseButton1Click:Connect(
+    function()
+        CheckBox(GUI.AutoFireCheckBox, "AutoFire")
+    end
+)
 
-GUI.AimbotHitBoxButton.MouseButton1Click:Connect(function()
-    SelectionBox(GUI.HitboxesSelectionFrame)
-end)
+GUI.AimbotHitBoxButton.MouseButton1Click:Connect(
+    function()
+        SelectionBox(GUI.HitboxesSelectionFrame)
+    end
+)
 
-GUI.HeadHitboxSelect.MouseButton1Click:Connect(function()
-    GUI.HitboxesSelectionFrame.Visible = false
-    GUI.AimbotHitBoxButton.Text = "Head"
-    Config["AimbotTarget"] = "Head"
-    SaveFile()
-end)
+GUI.HeadHitboxSelect.MouseButton1Click:Connect(
+    function()
+        GUI.HitboxesSelectionFrame.Visible = false
+        GUI.AimbotHitBoxButton.Text = "Head"
+        Config["AimbotTarget"] = "Head"
+        GUI.HitboxTargetLabel.Text = "Hitbox target: " .. tostring(Config["AimbotTarget"])
+        SaveFile()
+    end
+)
 
-GUI.TorsoHitboxSelect.MouseButton1Click:Connect(function()
-    GUI.HitboxesSelectionFrame.Visible = false
-    GUI.AimbotHitBoxButton.Text = "Torso"
-    Config["AimbotTarget"] = "Torso"
-    SaveFile()
-end)
+GUI.TorsoHitboxSelect.MouseButton1Click:Connect(
+    function()
+        GUI.HitboxesSelectionFrame.Visible = false
+        GUI.AimbotHitBoxButton.Text = "Torso"
+        Config["AimbotTarget"] = "Torso"
+        GUI.HitboxTargetLabel.Text = "Hitbox target: " .. tostring(Config["AimbotTarget"])
+        SaveFile()
+    end
+)
 
-GUI.NoStopCheckBox.MouseButton1Click:Connect(function()
-    CheckBox(GUI.NoStopCheckBox, "NoStop")
-end)
+GUI.NoStopCheckBox.MouseButton1Click:Connect(
+    function()
+        CheckBox(GUI.NoStopCheckBox, "NoStop")
+    end
+)
 
-GUI.RunPunchCheckBox.MouseButton1Click:Connect(function()
-    CheckBox(GUI.RunPunchCheckBox, "AlwaysRunPunch")
-end)
+GUI.RunPunchCheckBox.MouseButton1Click:Connect(
+    function()
+        CheckBox(GUI.RunPunchCheckBox, "AlwaysRunPunch")
+    end
+)
 
-GUI.SuperPunchCheckBox.MouseButton1Click:Connect(function()
-    CheckBox(GUI.SuperPunchCheckBox, "SuperPunch")
-end)
+GUI.SuperPunchCheckBox.MouseButton1Click:Connect(
+    function()
+        CheckBox(GUI.SuperPunchCheckBox, "SuperPunch")
+    end
+)
 
-GUI.AutoSwitchCheckBox.MouseButton1Click:Connect(function()
-    CheckBox(GUI.AutoSwitchCheckBox, "AutoSwitch")
-end)
+GUI.AutoSwitchCheckBox.MouseButton1Click:Connect(
+    function()
+        CheckBox(GUI.AutoSwitchCheckBox, "AutoSwitch")
+    end
+)
 
-GUI.StompSpamCheckBox.MouseButton1Click:Connect(function()
-    CheckBox(GUI.StompSpamCheckBox, "StompSpam")
-end)
+GUI.StompSpamCheckBox.MouseButton1Click:Connect(
+    function()
+        CheckBox(GUI.StompSpamCheckBox, "StompSpam")
+    end
+)
 
-GUI.AutoStompCheckBox.MouseButton1Click:Connect(function()
-    CheckBox(GUI.AutoStompCheckBox, "AutoStomp")
-end)
+GUI.AutoStompCheckBox.MouseButton1Click:Connect(
+    function()
+        CheckBox(GUI.AutoStompCheckBox, "AutoStomp")
+    end
+)
 
-GUI.AutoStompDistanceSliderButton.MouseButton1Down:Connect(function()
-    Sliding = true
-    PercentageAmount = 50
-    Slider = GUI.AutoStompDistanceSlider
-    SliderData = GUI.AutoStompDistanceAmount
-    SliderButton = GUI.AutoStompDistanceSliderButton
-end)
+GUI.AutoStompDistanceSliderButton.MouseButton1Down:Connect(
+    function()
+        Sliding = true
+        PercentageAmount = 50
+        Slider = GUI.AutoStompDistanceSlider
+        SliderData = GUI.AutoStompDistanceAmount
+        SliderButton = GUI.AutoStompDistanceSliderButton
+    end
+)
 
-GUI.PlayerESPKeyButton.MouseButton1Click:Connect(function()
-    Recording = true
-    RecordButton = GUI.PlayerESPKeyButton
-    GUI.PlayerESPKeyButton.Text = "Recording.."
-end)
+GUI.PlayerESPKeyButton.MouseButton1Click:Connect(
+    function()
+        Recording = true
+        RecordButton = GUI.PlayerESPKeyButton
+        GUI.PlayerESPKeyButton.Text = "Recording.."
+    end
+)
 
-GUI.PlayerChamsCheckBox.MouseButton1Click:Connect(function()
-    CheckBox(GUI.PlayerChamsCheckBox, "Chams", GUI.PlayerChamsColorButton)
-end)
+GUI.PlayerChamsCheckBox.MouseButton1Click:Connect(
+    function()
+        CheckBox(GUI.PlayerChamsCheckBox, "Chams", GUI.PlayerChamsColorButton)
+    end
+)
 
-GUI.PlayerChamsColorButton.MouseButton1Click:Connect(function()
-    ShowColorPicker(GUI.PlayerChamsColorButton, "ChamsColor")
-end)
+GUI.PlayerChamsColorButton.MouseButton1Click:Connect(
+    function()
+        ShowColorPicker(GUI.PlayerChamsColorButton, "ChamsColor")
+    end
+)
 
-GUI.PlayerStaminaCheckBox.MouseButton1Click:Connect(function()
-    CheckBox(GUI.PlayerStaminaCheckBox, "Stamina", GUI.PlayerStaminaColorButton)
-end)
+GUI.PlayerStaminaCheckBox.MouseButton1Click:Connect(
+    function()
+        CheckBox(GUI.PlayerStaminaCheckBox, "Stamina", GUI.PlayerStaminaColorButton)
+    end
+)
 
-GUI.PlayerStaminaColorButton.MouseButton1Click:Connect(function()
-    ShowColorPicker(GUI.PlayerStaminaColorButton, "StaminaColor")
-end)
+GUI.PlayerStaminaColorButton.MouseButton1Click:Connect(
+    function()
+        ShowColorPicker(GUI.PlayerStaminaColorButton, "StaminaColor")
+    end
+)
 
-GUI.PlayerKOCheckBox.MouseButton1Click:Connect(function()
-    CheckBox(GUI.PlayerKOCheckBox, "KO", GUI.PlayerKOColorButton)
-end)
+GUI.PlayerKOCheckBox.MouseButton1Click:Connect(
+    function()
+        CheckBox(GUI.PlayerKOCheckBox, "KO", GUI.PlayerKOColorButton)
+    end
+)
 
-GUI.PlayerKOColorButton.MouseButton1Click:Connect(function()
-    ShowColorPicker(GUI.PlayerKOColorButton, "KOColor")
-end)
+GUI.PlayerKOColorButton.MouseButton1Click:Connect(
+    function()
+        ShowColorPicker(GUI.PlayerKOColorButton, "KOColor")
+    end
+)
 
-GUI.PlayerBoxCheckBox.MouseButton1Click:Connect(function()
-    CheckBox(GUI.PlayerBoxCheckBox, "Box", GUI.PlayerBoxColorButton)
-end)
+GUI.PlayerBoxCheckBox.MouseButton1Click:Connect(
+    function()
+        CheckBox(GUI.PlayerBoxCheckBox, "Box", GUI.PlayerBoxColorButton)
+    end
+)
 
-GUI.PlayerBoxColorButton.MouseButton1Click:Connect(function()
-    ShowColorPicker(GUI.PlayerBoxColorButton, "BoxColor")
-end)
+GUI.PlayerBoxColorButton.MouseButton1Click:Connect(
+    function()
+        ShowColorPicker(GUI.PlayerBoxColorButton, "BoxColor")
+    end
+)
 
-GUI.PlayerGlowCheckBox.MouseButton1Click:Connect(function()
-    CheckBox(GUI.PlayerGlowCheckBox, "Glow", GUI.PlayerGlowColorButton)
-end)
+GUI.PlayerGlowCheckBox.MouseButton1Click:Connect(
+    function()
+        CheckBox(GUI.PlayerGlowCheckBox, "Glow", GUI.PlayerGlowColorButton)
+    end
+)
 
-GUI.PlayerGlowColorButton.MouseButton1Click:Connect(function()
-    ShowColorPicker(GUI.PlayerGlowColorButton, "GlowColor")
-end)
+GUI.PlayerGlowColorButton.MouseButton1Click:Connect(
+    function()
+        ShowColorPicker(GUI.PlayerGlowColorButton, "GlowColor")
+    end
+)
 
-GUI.PlayerInfoCheckBox.MouseButton1Click:Connect(function()
-    CheckBox(GUI.PlayerInfoCheckBox, "Info", GUI.PlayerInfoColorButton)
-end)
+GUI.PlayerInfoCheckBox.MouseButton1Click:Connect(
+    function()
+        CheckBox(GUI.PlayerInfoCheckBox, "Info", GUI.PlayerInfoColorButton)
+    end
+)
 
-GUI.PlayerInfoColorButton.MouseButton1Click:Connect(function()
-    ShowColorPicker(GUI.PlayerInfoColorButton, "InfoColor")
-end)
+GUI.PlayerInfoColorButton.MouseButton1Click:Connect(
+    function()
+        ShowColorPicker(GUI.PlayerInfoColorButton, "InfoColor")
+    end
+)
 
-GUI.ItemESPEnabledCheckBox.MouseButton1Click:Connect(function()
-    CheckBox(GUI.ItemESPEnabledCheckBox, "ItemEsp")
-    for _,v in pairs(RandomSpawnsHolder:GetDescendants()) do
-        if v:IsA("BillboardGui") then
-            v:Destroy()
+GUI.ItemESPEnabledCheckBox.MouseButton1Click:Connect(
+    function()
+        CheckBox(GUI.ItemESPEnabledCheckBox, "ItemEsp")
+        for _, v in pairs(RandomSpawnsHolder:GetDescendants()) do
+            if v:IsA("BillboardGui") then
+                v:Destroy()
+            end
+        end
+        ItemEsp()
+    end
+)
+
+GUI.ItemESPGoodItemsCheckBox.MouseButton1Click:Connect(
+    function()
+        CheckBox(GUI.ItemESPGoodItemsCheckBox, "GoodItemsOnly")
+        for _, v in pairs(RandomSpawnsHolder:GetDescendants()) do
+            if v:IsA("BillboardGui") then
+                v:Destroy()
+            end
+        end
+        ItemEsp()
+    end
+)
+
+GUI.BulletTracersCheckBox.MouseButton1Click:Connect(
+    function()
+        CheckBox(GUI.BulletTracersCheckBox, "BulletTracers", GUI.BulletTracersColorButton)
+    end
+)
+
+GUI.BulletTracersColorButton.MouseButton1Click:Connect(
+    function()
+        ShowColorPicker(GUI.BulletTracersColorButton, "BulletTracersColor")
+    end
+)
+
+GUI.WatermarkCheckBox.MouseButton1Click:Connect(
+    function()
+        CheckBox(GUI.WatermarkCheckBox, "Watermark", GUI.WatermarkFrame)
+    end
+)
+
+GUI.ClientInfoCheckBox.MouseButton1Click:Connect(
+    function()
+        CheckBox(GUI.ClientInfoCheckBox, "ClientInfo", GUI.ClientInfoFrame)
+    end
+)
+
+GUI.ShowAmmoCheckBox.MouseButton1Click:Connect(
+    function()
+        CheckBox(GUI.ShowAmmoCheckBox, "ShowAmmo")
+    end
+)
+
+GUI.DraggableUIObjectsCheckBox.MouseButton1Click:Connect(
+    function()
+        CheckBox(GUI.DraggableUIObjectsCheckBox, "DraggableUIObjects")
+    end
+)
+
+GUI.HitmarkerCheckBox.MouseButton1Click:Connect(
+    function()
+        CheckBox(GUI.HitmarkerCheckBox, "Hitmarker")
+    end
+)
+
+GUI.HitmarkerSoundButton.MouseButton1Click:Connect(
+    function()
+        SelectionBox(GUI.HitmarkerSoundsSelectionFrame)
+    end
+)
+
+GUI.NoneSoundSelect.MouseButton1Click:Connect(
+    function()
+        GUI.HitmarkerSoundsSelectionFrame.Visible = false
+        GUI.HitmarkerSoundButton.Text = "None"
+        Config["HitmarkerSound"] = "None"
+        SaveFile()
+    end
+)
+
+GUI.DefaultSoundSelect.MouseButton1Click:Connect(
+    function()
+        GUI.HitmarkerSoundsSelectionFrame.Visible = false
+        GUI.HitmarkerSoundButton.Text = "Default"
+        Config["HitmarkerSound"] = "Default"
+        SaveFile()
+    end
+)
+
+GUI.FadingUIObjectsCheckBox.MouseButton1Click:Connect(
+    function()
+        CheckBox(GUI.FadingUIObjectsCheckBox, "FadingUIObjects")
+        local ToFade = {}
+        local HUD = Player:WaitForChild("PlayerGui"):WaitForChild("HUD")
+        table.insert(ToFade, HUD:WaitForChild("HP"))
+        table.insert(ToFade, HUD:WaitForChild("HP"):WaitForChild("Bar"))
+        table.insert(ToFade, HUD:WaitForChild("KO"))
+        table.insert(ToFade, HUD:WaitForChild("KO"):WaitForChild("Bar"))
+        table.insert(ToFade, HUD:WaitForChild("Stam"))
+        table.insert(ToFade, HUD:WaitForChild("Stam"):WaitForChild("Bar"))
+        for _, v in pairs(ToFade) do
+            v.BackgroundTransparency = 0
         end
     end
-    ItemEsp()
-end)
+)
 
-GUI.ItemESPGoodItemsCheckBox.MouseButton1Click:Connect(function()
-    CheckBox(GUI.ItemESPGoodItemsCheckBox, "GoodItemsOnly")
-    for _,v in pairs(RandomSpawnsHolder:GetDescendants()) do
-        if v:IsA("BillboardGui") then
-            v:Destroy()
+GUI.GodModeCheckBox.MouseButton1Click:Connect(
+    function()
+        CheckBox(GUI.GodModeCheckBox, "GodMode")
+    end
+)
+
+GUI.NoKOCheckBox.MouseButton1Click:Connect(
+    function()
+        CheckBox(GUI.NoKOCheckBox, "NoKO")
+        GUI.NoKOingLabel.Text = "NoKO: " .. tostring(Config["NoKO"])
+    end
+)
+
+GUI.WalkSpeedModCheckBox.MouseButton1Click:Connect(
+    function()
+        CheckBox(GUI.WalkSpeedModCheckBox, "WalkSpeedMod")
+    end
+)
+
+GUI.WalkSpeedModSliderButton.MouseButton1Down:Connect(
+    function()
+        Sliding = true
+        PercentageAmount = 200
+        Slider = GUI.WalkSpeedModSlider
+        SliderData = GUI.WalkSpeedModAmount
+        SliderButton = GUI.WalkSpeedModSliderButton
+    end
+)
+
+GUI.JumpPowerModCheckBox.MouseButton1Click:Connect(
+    function()
+        CheckBox(GUI.JumpPowerModCheckBox, "JumpPowerMod")
+    end
+)
+
+GUI.JumpPowerModSliderButton.MouseButton1Down:Connect(
+    function()
+        Sliding = true
+        PercentageAmount = 200
+        Slider = GUI.JumpPowerModSlider
+        SliderData = GUI.JumpPowerModAmount
+        SliderButton = GUI.JumpPowerModSliderButton
+    end
+)
+
+GUI.RunSpeedModCheckBox.MouseButton1Click:Connect(
+    function()
+        CheckBox(GUI.RunSpeedModCheckBox, "RunSpeedMod")
+    end
+)
+
+GUI.RunSpeedModSliderButton.MouseButton1Down:Connect(
+    function()
+        Sliding = true
+        PercentageAmount = 200
+        Slider = GUI.RunSpeedModSlider
+        SliderData = GUI.RunSpeedModAmount
+        SliderButton = GUI.RunSpeedModSliderButton
+    end
+)
+
+GUI.CrouchSpeedModCheckBox.MouseButton1Click:Connect(
+    function()
+        CheckBox(GUI.CrouchSpeedModCheckBox, "CrouchSpeedMod")
+    end
+)
+
+GUI.CrouchSpeedModSliderButton.MouseButton1Down:Connect(
+    function()
+        Sliding = true
+        PercentageAmount = 200
+        Slider = GUI.CrouchSpeedModSlider
+        SliderData = GUI.CrouchSpeedModAmount
+        SliderButton = GUI.CrouchSpeedModSliderButton
+    end
+)
+
+GUI.AnimeRunCheckBox.MouseButton1Click:Connect(
+    function()
+        CheckBox(GUI.AnimeRunCheckBox, "AnimeRun")
+        if Config["AnimeRun"] then
+            Run.AnimationId = "https://www.roblox.com/item.aspx?id=458506542"
+        else
+            Run.AnimationId = "https://www.roblox.com/item.aspx?id=376653421"
+        end
+        RunAnim = Player.Character.Humanoid:LoadAnimation(Run)
+    end
+)
+
+GUI.AutoCashCheckBox.MouseButton1Click:Connect(
+    function()
+        CheckBox(GUI.AutoCashCheckBox, "AutoCash")
+    end
+)
+
+GUI.AntiAFKCheckBox.MouseButton1Click:Connect(
+    function()
+        CheckBox(GUI.AntiAFKCheckBox, "AntiAFK")
+    end
+)
+
+GUI.AutoLockCheckBox.MouseButton1Click:Connect(
+    function()
+        CheckBox(GUI.AutoLockCheckBox, "AutoLock")
+    end
+)
+
+GUI.AutoUnlockCheckBox.MouseButton1Click:Connect(
+    function()
+        CheckBox(GUI.AutoUnlockCheckBox, "AutoUnlock")
+    end
+)
+
+GUI.AutoSortCheckBox.MouseButton1Click:Connect(
+    function()
+        CheckBox(GUI.AutoSortCheckBox, "AutoSort")
+    end
+)
+
+GUI.HideGroupsCheckBox.MouseButton1Click:Connect(
+    function()
+        CheckBox(GUI.HideGroupsCheckBox, "HideGroups")
+    end
+)
+
+GUI.AutoHealCheckBox.MouseButton1Click:Connect(
+    function()
+        CheckBox(GUI.AutoHealCheckBox, "AutoHeal")
+    end
+)
+
+GUI.HideSpraysCheckBox.MouseButton1Click:Connect(
+    function()
+        CheckBox(GUI.HideSpraysCheckBox, "HideSprays")
+    end
+)
+
+GUI.HideTPerCheckBox.MouseButton1Click:Connect(
+    function()
+        CheckBox(GUI.HideTPerCheckBox, "HideTPer")
+    end
+)
+
+GUI.WeaponSelectButton.MouseButton1Click:Connect(
+    function()
+        SelectionBox(GUI.WeaponSelectionFrame)
+    end
+)
+
+GUI.GlockWeaponSelect.MouseButton1Click:Connect(
+    function()
+        GUI.WeaponSelectionFrame.Visible = false
+        GUI.WeaponSelectButton.Text = "Glock"
+    end
+)
+
+GUI.ShottyWeaponSelect.MouseButton1Click:Connect(
+    function()
+        GUI.WeaponSelectionFrame.Visible = false
+        GUI.WeaponSelectButton.Text = "Shotty"
+    end
+)
+
+GUI.SawedOffWeaponSelect.MouseButton1Click:Connect(
+    function()
+        GUI.WeaponSelectionFrame.Visible = false
+        GUI.WeaponSelectButton.Text = "Sawed Off"
+    end
+)
+
+GUI.UziWeaponSelect.MouseButton1Click:Connect(
+    function()
+        GUI.WeaponSelectionFrame.Visible = false
+        GUI.WeaponSelectButton.Text = "Uzi"
+    end
+)
+
+GUI.SkinSelectButton.MouseButton1Click:Connect(
+    function()
+        SelectionBox(GUI.SkinSelectionFrame)
+    end
+)
+
+GUI.DefaultSkinSelect.MouseButton1Click:Connect(
+    function()
+        GUI.SkinSelectionFrame.Visible = false
+        GUI.SkinSelectButton.Text = "Default"
+    end
+)
+
+GUI.KawaiiSkinSelect.MouseButton1Click:Connect(
+    function()
+        GUI.SkinSelectionFrame.Visible = false
+        GUI.SkinSelectButton.Text = "Kawaii"
+    end
+)
+
+GUI.SatanicSkinSelect.MouseButton1Click:Connect(
+    function()
+        GUI.SkinSelectionFrame.Visible = false
+        GUI.SkinSelectButton.Text = "Satanic"
+    end
+)
+
+GUI.GoldSkinSelect.MouseButton1Click:Connect(
+    function()
+        GUI.SkinSelectionFrame.Visible = false
+        GUI.SkinSelectButton.Text = "Gold"
+    end
+)
+
+GUI.NebulaSkinSelect.MouseButton1Click:Connect(
+    function()
+        GUI.SkinSelectionFrame.Visible = false
+        GUI.SkinSelectButton.Text = "Nebula"
+    end
+)
+
+GUI.NoobSkinSelect.MouseButton1Click:Connect(
+    function()
+        GUI.SkinSelectionFrame.Visible = false
+        GUI.SkinSelectButton.Text = "Noob"
+    end
+)
+
+GUI.ToxicSkinSelect.MouseButton1Click:Connect(
+    function()
+        GUI.SkinSelectionFrame.Visible = false
+        GUI.SkinSelectButton.Text = "Toxic"
+    end
+)
+
+GUI.SkinApplyButton.MouseButton1Click:Connect(
+    function()
+        if GUI.WeaponSelectButton.Text ~= "None" and GUI.SkinSelectButton.Text ~= "None" then
+            Config["Skins"][GUI.WeaponSelectButton.Text] = GUI.SkinSelectButton.Text
+            Notify(
+                "Notification",
+                "Changed the " .. GUI.WeaponSelectButton.Text .. " skin to the " .. GUI.SkinSelectButton.Text .. " skin",
+                5,
+                nil
+            )
+        else
+            Notify("Error", "An error occurred", 5, nil)
         end
     end
-    ItemEsp()
-end)
+)
 
-GUI.BulletTracersCheckBox.MouseButton1Click:Connect(function()
-    CheckBox(GUI.BulletTracersCheckBox, "BulletTracers", GUI.BulletTracersColorButton)
-end)
-
-GUI.BulletTracersColorButton.MouseButton1Click:Connect(function()
-    ShowColorPicker(GUI.BulletTracersColorButton, "BulletTracersColor")
-end)
-
-GUI.WatermarkCheckBox.MouseButton1Click:Connect(function()
-    CheckBox(GUI.WatermarkCheckBox, "Watermark", GUI.WatermarkFrame)
-end)
-
-GUI.StatesCheckBox.MouseButton1Click:Connect(function()
-    CheckBox(GUI.StatesCheckBox, "States", GUI.StatesFrame)
-end)
-
-GUI.ShowAmmoCheckBox.MouseButton1Click:Connect(function()
-    CheckBox(GUI.ShowAmmoCheckBox, "ShowAmmo")
-end)
-
-GUI.DraggableUIObjectsCheckBox.MouseButton1Click:Connect(function()
-    CheckBox(GUI.DraggableUIObjectsCheckBox, "DraggableUIObjects")
-end)
-
-GUI.HitmarkerCheckBox.MouseButton1Click:Connect(function()
-    CheckBox(GUI.HitmarkerCheckBox, "Hitmarker")
-end)
-
-GUI.HitmarkerSoundButton.MouseButton1Click:Connect(function()
-    SelectionBox(GUI.HitmarkerSoundsSelectionFrame)
-end)
-
-GUI.NoneSoundSelect.MouseButton1Click:Connect(function()
-    GUI.HitmarkerSoundsSelectionFrame.Visible = false
-    GUI.HitmarkerSoundButton.Text = "None"
-    Config["HitmarkerSound"] = "None"
-    SaveFile()
-end)
-
-GUI.DefaultSoundSelect.MouseButton1Click:Connect(function()
-    GUI.HitmarkerSoundsSelectionFrame.Visible = false
-    GUI.HitmarkerSoundButton.Text = "Default"
-    Config["HitmarkerSound"] = "Default"
-    SaveFile()
-end)
-
-GUI.FadingUIObjectsCheckBox.MouseButton1Click:Connect(function()
-    CheckBox(GUI.FadingUIObjectsCheckBox, "FadingUIObjects")
-    local ToFade = {}
-    local HUD = Player:WaitForChild("PlayerGui"):WaitForChild("HUD")
-    table.insert(ToFade, HUD:WaitForChild("HP"))
-    table.insert(ToFade, HUD:WaitForChild("HP"):WaitForChild("Bar"))
-    table.insert(ToFade, HUD:WaitForChild("KO"))
-    table.insert(ToFade, HUD:WaitForChild("KO"):WaitForChild("Bar"))
-    table.insert(ToFade, HUD:WaitForChild("Stam"))
-    table.insert(ToFade, HUD:WaitForChild("Stam"):WaitForChild("Bar"))
-    for _,v in pairs(ToFade) do
-        v.BackgroundTransparency = 0
+GUI.PrefixKeyButton.MouseButton1Click:Connect(
+    function()
+        Recording = true
+        RecordButton = GUI.PrefixKeyButton
+        GUI.PrefixKeyButton.Text = "Recording.."
     end
-end)
+)
 
-GUI.GodModeCheckBox.MouseButton1Click:Connect(function()
-    CheckBox(GUI.GodModeCheckBox, "GodMode")
-end)
+GUI.MenuKeyButton.MouseButton1Click:Connect(
+    function()
+        Recording = true
+        RecordButton = GUI.MenuKeyButton
+        GUI.MenuKeyButton.Text = "Recording.."
+    end
+)
 
-GUI.NoKOCheckBox.MouseButton1Click:Connect(function()
-    CheckBox(GUI.NoKOCheckBox, "NoKO")
-end)
+GUI.MainColorButton.MouseButton1Click:Connect(
+    function()
+        ShowColorPicker(GUI.MainColorButton, "MainColor")
+    end
+)
 
-GUI.WalkSpeedModCheckBox.MouseButton1Click:Connect(function()
-    CheckBox(GUI.WalkSpeedModCheckBox, "WalkSpeedMod")
-end)
+GUI.TextColorButton.MouseButton1Click:Connect(
+    function()
+        ShowColorPicker(GUI.TextColorButton, "TextColor")
+    end
+)
 
-GUI.WalkSpeedModSliderButton.MouseButton1Down:Connect(function()
-    Sliding = true
-    PercentageAmount = 200
-    Slider = GUI.WalkSpeedModSlider
-    SliderData = GUI.WalkSpeedModAmount
-    SliderButton = GUI.WalkSpeedModSliderButton
-end)
-
-GUI.JumpPowerModCheckBox.MouseButton1Click:Connect(function()
-    CheckBox(GUI.JumpPowerModCheckBox, "JumpPowerMod")
-end)
-
-GUI.JumpPowerModSliderButton.MouseButton1Down:Connect(function()
-    Sliding = true
-    PercentageAmount = 200
-    Slider = GUI.JumpPowerModSlider
-    SliderData = GUI.JumpPowerModAmount
-    SliderButton = GUI.JumpPowerModSliderButton
-end)
-
-GUI.RunSpeedModCheckBox.MouseButton1Click:Connect(function()
-    CheckBox(GUI.RunSpeedModCheckBox, "RunSpeedMod")
-end)
-
-GUI.RunSpeedModSliderButton.MouseButton1Down:Connect(function()
-    Sliding = true
-    PercentageAmount = 200
-    Slider = GUI.RunSpeedModSlider
-    SliderData = GUI.RunSpeedModAmount
-    SliderButton = GUI.RunSpeedModSliderButton
-end)
-
-GUI.CrouchSpeedModCheckBox.MouseButton1Click:Connect(function()
-    CheckBox(GUI.CrouchSpeedModCheckBox, "CrouchSpeedMod")
-end)
-
-GUI.CrouchSpeedModSliderButton.MouseButton1Down:Connect(function()
-    Sliding = true
-    PercentageAmount = 200
-    Slider = GUI.CrouchSpeedModSlider
-    SliderData = GUI.CrouchSpeedModAmount
-    SliderButton = GUI.CrouchSpeedModSliderButton
-end)
-
-GUI.AnimeRunCheckBox.MouseButton1Click:Connect(function()
-    CheckBox(GUI.AnimeRunCheckBox, "AnimeRun")
-end)
-
-GUI.AutoCashCheckBox.MouseButton1Click:Connect(function()
-    CheckBox(GUI.AutoCashCheckBox, "AutoCash")
-end)
-
-GUI.AntiAFKCheckBox.MouseButton1Click:Connect(function()
-    CheckBox(GUI.AntiAFKCheckBox, "AntiAFK")
-end)
-
-GUI.AutoLockCheckBox.MouseButton1Click:Connect(function()
-    CheckBox(GUI.AutoLockCheckBox, "AutoLock")
-end)
-
-GUI.AutoUnlockCheckBox.MouseButton1Click:Connect(function()
-    CheckBox(GUI.AutoUnlockCheckBox, "AutoUnlock")
-end)
-
-GUI.AutoSortCheckBox.MouseButton1Click:Connect(function()
-    CheckBox(GUI.AutoSortCheckBox, "AutoSort")
-end)
-
-GUI.HideGroupsCheckBox.MouseButton1Click:Connect(function()
-    CheckBox(GUI.HideGroupsCheckBox, "HideGroups")
-end)
-
-GUI.AutoEatCheckBox.MouseButton1Click:Connect(function()
-    CheckBox(GUI.AutoEatCheckBox, "AutoEat")
-end)
-
-GUI.HideSpraysCheckBox.MouseButton1Click:Connect(function()
-    CheckBox(GUI.HideSpraysCheckBox, "HideSprays")
-end)
-
-GUI.HideTPerCheckBox.MouseButton1Click:Connect(function()
-    CheckBox(GUI.HideTPerCheckBox, "HideTPer")
-end)
-
-GUI.WeaponSelectButton.MouseButton1Click:Connect(function()
-    SelectionBox(GUI.WeaponSelectionFrame)
-end)
-
-GUI.GlockWeaponSelect.MouseButton1Click:Connect(function()
-    GUI.WeaponSelectionFrame.Visible = false
-    GUI.WeaponSelectButton.Text = "Glock"
-    SelectedSkin = "Glock"
-    --SaveFile()
-end)
-
-GUI.PrefixKeyButton.MouseButton1Click:Connect(function()
-    Recording = true
-    RecordButton = GUI.PrefixKeyButton
-    GUI.PrefixKeyButton.Text = "Recording.."
-end)
-
-GUI.MenuKeyButton.MouseButton1Click:Connect(function()
-    Recording = true
-    RecordButton = GUI.MenuKeyButton
-    GUI.MenuKeyButton.Text = "Recording.."
-end)
-
-GUI.MainColorButton.MouseButton1Click:Connect(function()
-    ShowColorPicker(GUI.MainColorButton, "MainColor")
-end)
-
-GUI.TextColorButton.MouseButton1Click:Connect(function()
-    ShowColorPicker(GUI.TextColorButton, "TextColor")
-end)
-
-GUI.RadioVolumeSliderButton.MouseButton1Down:Connect(function()
-    Sliding = true
-    PercentageAmount = 10
-    Slider = GUI.RadioVolumeSlider
-    SliderData = GUI.RadioVolumeAmount
-    SliderButton = GUI.RadioVolumeSliderButton
-end)
+GUI.RadioVolumeSliderButton.MouseButton1Down:Connect(
+    function()
+        Sliding = true
+        PercentageAmount = 10
+        Slider = GUI.RadioVolumeSlider
+        SliderData = GUI.RadioVolumeAmount
+        SliderButton = GUI.RadioVolumeSliderButton
+    end
+)
 
 if game.PlaceId == TheStreetsId then
-    GUI.BuildMenuSwastikaButton.MouseButton1Click:Connect(function()
-        local HumPart = Player.Character.HumanoidRootPart
-        local pos1 = Vector3.new(0, 4.5, 0)
-        local pos2 = Vector3.new(0, -4.5, 0)
-        local pos3 = Vector3.new(5, 0, 0)
-        local pos4 = Vector3.new(-5, 0, 0)
-        local pos5 = Vector3.new(8.5, 5, 0)
-        local pos6 = Vector3.new(-3.5, 9.5, 0)
-        local pos7 = Vector3.new(-10, -3.5, 0)
-        local pos8 = Vector3.new(3.5, -9.5, 0)
-        local rot1 = Vector3.new(90, 0, 0)
-        local rot2 = Vector3.new(0, 90, 90)
-        local count = 0
-        for _,v in pairs(UnAnchoredHolder:GetChildren()) do
-            if v.Name == "Boards" then
-                for _,v2 in pairs(v:GetChildren()) do
-                    if v2:IsA("Part") and count < 9 then
-                        count = count + 1
-                        v2.Position = HumPart.Position
-                        v2.Name = "Part" .. tostring(count)
-                        v2.Parent = workspace
+    GUI.BuildMenuSwastikaButton.MouseButton1Click:Connect(
+        function()
+            local RootPart = FindRoot(Player.Character)
+            local pos1 = Vector3.new(0, 4.5, 0)
+            local pos2 = Vector3.new(0, -4.5, 0)
+            local pos3 = Vector3.new(5, 0, 0)
+            local pos4 = Vector3.new(-5, 0, 0)
+            local pos5 = Vector3.new(8.5, 5, 0)
+            local pos6 = Vector3.new(-3.5, 9.5, 0)
+            local pos7 = Vector3.new(-10, -3.5, 0)
+            local pos8 = Vector3.new(3.5, -9.5, 0)
+            local rot1 = Vector3.new(90, 0, 0)
+            local rot2 = Vector3.new(0, 90, 90)
+            local count = 0
+            for _, v in pairs(UnAnchoredHolder:GetChildren()) do
+                if v.Name == "Boards" then
+                    for _, v2 in pairs(v:GetChildren()) do
+                        if v2:IsA("Part") and count < 9 then
+                            count = count + 1
+                            v2.Position = RootPart.Position
+                            v2.Name = "Part" .. tostring(count)
+                            v2.Parent = workspace
+                        end
                     end
                 end
             end
+            workspace.Part1.Position = RootPart.Position + pos1
+            workspace.Part1.Rotation = rot1
+            workspace.Part2.Position = RootPart.Position + pos2
+            workspace.Part2.Rotation = rot1
+            workspace.Part3.Position = RootPart.Position + pos3
+            workspace.Part3.Rotation = rot2
+            workspace.Part4.Position = RootPart.Position + pos4
+            workspace.Part4.Rotation = rot2
+            workspace.Part5.Position = RootPart.Position + pos5
+            workspace.Part5.Rotation = rot1
+            workspace.Part6.Position = RootPart.Position + pos6
+            workspace.Part6.Rotation = rot2
+            workspace.Part7.Position = RootPart.Position + pos7
+            workspace.Part7.Rotation = rot1
+            workspace.Part8.Position = RootPart.Position + pos8
+            workspace.Part8.Rotation = rot2
+            workspace.Part1.Anchored = true
+            workspace.Part1.Parent = UsedParts
+            workspace.Part2.Anchored = true
+            workspace.Part2.Parent = UsedParts
+            workspace.Part3.Anchored = true
+            workspace.Part3.Parent = UsedParts
+            workspace.Part4.Anchored = true
+            workspace.Part4.Parent = UsedParts
+            workspace.Part5.Anchored = true
+            workspace.Part5.Parent = UsedParts
+            workspace.Part6.Anchored = true
+            workspace.Part6.Parent = UsedParts
+            workspace.Part7.Anchored = true
+            workspace.Part7.Parent = UsedParts
+            workspace.Part8.Anchored = true
+            workspace.Part8.Parent = UsedParts
         end
-        workspace.Part1.Position = HumPart.Position + pos1; workspace.Part1.Rotation = rot1
-        workspace.Part2.Position = HumPart.Position + pos2; workspace.Part2.Rotation = rot1
-        workspace.Part3.Position = HumPart.Position + pos3; workspace.Part3.Rotation = rot2
-        workspace.Part4.Position = HumPart.Position + pos4; workspace.Part4.Rotation = rot2
-        workspace.Part5.Position = HumPart.Position + pos5; workspace.Part5.Rotation = rot1
-        workspace.Part6.Position = HumPart.Position + pos6; workspace.Part6.Rotation = rot2
-        workspace.Part7.Position = HumPart.Position + pos7; workspace.Part7.Rotation = rot1
-        workspace.Part8.Position = HumPart.Position + pos8; workspace.Part8.Rotation = rot2
-        workspace.Part1.Anchored = true; workspace.Part1.Parent = UsedParts
-        workspace.Part2.Anchored = true; workspace.Part2.Parent = UsedParts
-        workspace.Part3.Anchored = true; workspace.Part3.Parent = UsedParts
-        workspace.Part4.Anchored = true; workspace.Part4.Parent = UsedParts
-        workspace.Part5.Anchored = true; workspace.Part5.Parent = UsedParts
-        workspace.Part6.Anchored = true; workspace.Part6.Parent = UsedParts
-        workspace.Part7.Anchored = true; workspace.Part7.Parent = UsedParts
-        workspace.Part8.Anchored = true; workspace.Part8.Parent = UsedParts
-    end)
+    )
 
-    GUI.BuildMenuInvertedCrossButton.MouseButton1Click:Connect(function()
-        local HumPart = Player.Character:FindFirstChild("HumanoidRootPart")
-        local Planks = {}
-        local Plank = UnAnchoredHolder:FindFirstChild("Plank")
-        Plank.CFrame = HumPart.CFrame
-        Plank.Rotation = Vector3.new(90, 0, 0)
-        table.insert(Planks, Plank)
-        local Plank = UnAnchoredHolder:FindFirstChild("Plank")
-        Plank.CFrame = HumPart.CFrame + Vector3.new(0, 8.6, 0)
-        Plank.Rotation = Vector3.new(90, 0, 0)
-        table.insert(Planks, Plank)
-        local Plank = UnAnchoredHolder:FindFirstChild("Plank")
-        Plank.CFrame = HumPart.CFrame + Vector3.new(0, 2, 0)
-        Plank.Rotation = Vector3.new(0, 90, 90)
-        table.insert(Planks, Plank)
-        for _,v in pairs(Planks) do
-            v.Parent = UsedParts
-            v.Massless = true
-            v.Anchored = true
+    GUI.BuildMenuInvertedCrossButton.MouseButton1Click:Connect(
+        function()
+            local RootPart = FindRoot(Player.Character)
+            local Planks = {}
+            local Plank = UnAnchoredHolder:FindFirstChild("Plank")
+            Plank.CFrame = RootPart.CFrame
+            Plank.Rotation = Vector3.new(90, 0, 0)
+            table.insert(Planks, Plank)
+            local Plank = UnAnchoredHolder:FindFirstChild("Plank")
+            Plank.CFrame = RootPart.CFrame + Vector3.new(0, 8.6, 0)
+            Plank.Rotation = Vector3.new(90, 0, 0)
+            table.insert(Planks, Plank)
+            local Plank = UnAnchoredHolder:FindFirstChild("Plank")
+            Plank.CFrame = RootPart.CFrame + Vector3.new(0, 2, 0)
+            Plank.Rotation = Vector3.new(0, 90, 90)
+            table.insert(Planks, Plank)
+            for _, v in pairs(Planks) do
+                v.Parent = UsedParts
+                v.Massless = true
+                v.Anchored = true
+            end
         end
-    end)
+    )
 
     local function GetHats()
-        for _,v in pairs(Player.Character:GetChildren()) do
+        for _, v in pairs(Player.Character:GetChildren()) do
             if v:IsA("Accessory") then
                 local Hair
                 local HairButton = GUI.TemplateHairSelect:Clone()
                 HairButton.Text = v.Name
                 HairButton.Visible = true
-                for _,v in pairs(Player.PlayerGui.HUD.Clan.Group.Reps:GetChildren()) do
+                for _, v in pairs(Player.PlayerGui.HUD.Clan.Group.Reps:GetChildren()) do
                     if v:IsA("TextButton") and v:FindFirstChild("typ") then
                         if v.typ.Value == HairButton.Text then
                             Hair = v
                         end
                     end
                 end
-                HairButton.MouseButton1Click:Connect(function()
-                    print(HairButton.Text)
-                    Player.Backpack.Stank:FireServer("rep", Hair)
-                end)
+                HairButton.MouseButton1Click:Connect(
+                    function()
+                        print(HairButton.Text)
+                        Player.Backpack.Stank:FireServer("rep", Hair)
+                    end
+                )
             end
         end
     end
     GetHats()
-    for _,v in pairs(Player.PlayerGui.HUD.Clan.Group.cs:GetChildren()) do
+    for _, v in pairs(Player.PlayerGui.HUD.Clan.Group.cs:GetChildren()) do
         if v:IsA("TextButton") then
             local v2 = v:Clone()
             v2.Parent = GUI.HairColorsHolder
-            v2.MouseButton1Click:Connect(function()
-                if not v2:FindFirstChild("Selected") then
-                    local Selected = Instance.new("StringValue")
-                    Selected.Name = "Selected"
-                    Selected.Parent = v2
-                    LoadMainColor(v2, "Border")
-                    table.insert(Config["SelectedHairColors"]) 
-                    Player.Backpack.Stank:FireServer("color", v)
-                else
-                    v2.BorderColor3 = Color3.fromRGB(255, 255, 255)
-                    v2:FindFirstChild("Selected"):Destroy()
+            v2.MouseButton1Click:Connect(
+                function()
+                    if not v2:FindFirstChild("Selected") then
+                        local Selected = Instance.new("StringValue")
+                        Selected.Name = "Selected"
+                        Selected.Parent = v2
+                        LoadMainColor(v2, "Border")
+                        table.insert(Config["SelectedHairColors"])
+                        Player.Backpack.Stank:FireServer("color", v)
+                    else
+                        v2.BorderColor3 = Color3.fromRGB(255, 255, 255)
+                        v2:FindFirstChild("Selected"):Destroy()
+                    end
                 end
-            end)
+            )
         end
     end
-    GUI.HairFrameCloseButton.MouseButton1Click:Connect(function()
-        GUI.HairFrame.Visible = false
-    end)
+    GUI.HairFrameCloseButton.MouseButton1Click:Connect(
+        function()
+            GUI.HairFrame.Visible = false
+        end
+    )
 end
 
-GUI.CommandBarBox.FocusLost:Connect(function()
-    GUI.CommandBarFrame.Visible = false
-    if GUI.CommandBarBox.Text ~= "" then
-        local Message = GUI.CommandBarBox.Text
-        if Admins[Player.UserId] then
-            
-        end
-        local Args = {}
-        for v in string.gmatch(Message,"[^%s]+") do
-            table.insert(Args, v)
-        end
-        local Command = FindCommand(table.remove(Args, 1))
-        if Command then
-            Command.CmdFunction(Args, Player)
-        end
-    end
-end)
-
-AddCommand({"commands", "cmds"},{"Shows the list of commands"},function(Args, Speaker)
-    GUI.CommandsFrame.Visible = true
-end)
-
-AddCommand({"whitelist", "wl"},{"Whitelists a player"},function(Args, Speaker)
-    local Target = FindPlayer(Args[1])
-    if Target then
-		if not table.find(Config["Whitelisted"], Target) then
-			table.insert(Config["Whitelisted"], Target)
-		end
-	end
-end)
-
-AddCommand({"unwhitelist", "unwl"},{"Unwhitelists a player"},function(Args, Speaker)
-    local Target = FindPlayer(Args[1])
-    if Target then
-		if table.find(Config["Whitelisted"], Target) then
-			table.remove(Config["Whitelisted"], Target)
-		end
-	end
-end)
-
-AddCommand({"swapplace"},{"Teleports to the opposite place"},function(Args, Speaker)
-    if game.PlaceId ~= 455366377 then
-        TeleportService:Teleport(455366377)
-    else 
-        TeleportService:Teleport(4669040)
-    end
-end)
-
-AddCommand({"servers", "serverlist"},{"Shows the list of servers"},function(Args, Speaker)
-    
-end)
-
-AddCommand({"nospray", "hidesprays"},{"Hides sprays"},function(Args, Speaker)
-    Config["HideSprays"] = true
-    LoadCheckBox(GUI.HideSpraysCheckBox, "HideSprays")
-end)
-
-AddCommand({"showspray", "unhidesprays"},{"Makes sprays visible again"},function(Args, Speaker)
-    Config["HideSprays"] = false
-    LoadCheckBox(GUI.HideSpraysCheckBox, "HideSprays")
-end)
-
-AddCommand({"logdecal", "logspray"},{"Logs the targets decal"},function(Args, Speaker)
-    local Target = FindPlayer(Args[1])
-    for _,v in pairs(workspace:GetChildren()) do
-        if v:IsA("Part") and v.Name:find(Target.Name) then
-            local SprayId = v:FindFirstChildOfClass("Decal").Texture
-            SetClipboard(SprayId)
+GUI.CommandBarBox.FocusLost:Connect(
+    function()
+        GUI.CommandBarFrame.Visible = false
+        if GUI.CommandBarBox.Text ~= "" then
+            local Message = GUI.CommandBarBox.Text
+            if Admins[Player.UserId] then
+            end
+            local Args = {}
+            for v in string.gmatch(Message, "[^%s]+") do
+                table.insert(Args, v)
+            end
+            local Command = FindCommand(table.remove(Args, 1))
+            if Command then
+                Command.CmdFunction(Args, Player)
+            end
         end
     end
-end)
+)
 
-AddCommand({"logaudio", "logsound"},{"Logs the targets audio"},function(Args, Speaker)
-    local Target = FindPlayer(Args[1])
-    local TargetBackpack = Target:FindFirstChild("Backpack")
-    local TargetChar = Target.Character
-    local Boombox = TargetBackpack:FindFirstChild("BoomBox")
-    if not Boombox then
-        Boombox = TargetChar:FindFirstChild("BoomBox")
+AddCommand(
+    {"commands", "cmds"},
+    {"Shows the list of commands"},
+    function(Args, Speaker)
+        GUI.CommandsFrame.Visible = true
     end
-    if not Boombox then
-        Notify("Warning", "This player does not have a boombox", 5, nil)
-    else
-        local Sound = Boombox:FindFirstChild("Handle"):FindFirstChildOfClass("Sound")
-        SetClipboard(tostring(Sound.SoundId))
-    end
-end)
+)
 
-AddCommand({"doorspam", "doors"},{"Enables door spam"},function(Args, Speaker)
-    DoorSpam = true
-    local RS
-    RS = game:GetService("RunService").Stepped:Connect(function()
-        if DoorSpam then
-            Wait(1.5)
-            for _,v in pairs(DoorHolder:GetChildren()) do
-                if v.Name == "Door" then
-                    for _,v2 in pairs(v:GetChildren()) do
-                        if v2.Name == "Locker" then
-                            if v2.Value == false then
-                                if v:FindFirstChild("Click") then
-                                    v.Click.ClickDetector.RemoteEvent:FireServer()
+AddCommand(
+    {"whitelist", "wl"},
+    {"Whitelists a player"},
+    function(Args, Speaker)
+        local Target = FindPlayer(Args[1])
+        if Target then
+            if not table.find(Config["Whitelisted"], Target) then
+                table.insert(Config["Whitelisted"], Target)
+                Notify("Notification", Target .. " is now whitelisted", 5, nil)
+            else
+                Notify("Error", "Player is already whitelisted", 5, nil)
+            end
+        end
+    end
+)
+
+AddCommand(
+    {"unwhitelist", "unwl"},
+    {"Unwhitelists a player"},
+    function(Args, Speaker)
+        local Target = FindPlayer(Args[1])
+        if Target then
+            if table.find(Config["Whitelisted"], Target) then
+                table.remove(Config["Whitelisted"], Target)
+                Notify("Notification", Target .. " is now unwhitelisted", 5, nil)
+            else
+                Notify("Error", "An error has occurred", 5, nil)
+            end
+        end
+    end
+)
+
+AddCommand(
+    {"swapplace"},
+    {"Teleports to the opposite place"},
+    function(Args, Speaker)
+        if game.PlaceId ~= 455366377 then
+            TeleportService:Teleport(455366377)
+        else
+            TeleportService:Teleport(4669040)
+        end
+    end
+)
+
+AddCommand(
+    {"servers", "serverlist"},
+    {"Shows the list of servers"},
+    function(Args, Speaker)
+        local Frame = Instance.new("Frame")
+        Frame.Size = UDim2.new(0, 500, 0, 400)
+        print("in progress")
+    end
+)
+
+AddCommand(
+    {"nospray", "hidesprays"},
+    {"Hides sprays"},
+    function(Args, Speaker)
+        Config["HideSprays"] = true
+        LoadCheckBox(GUI.HideSpraysCheckBox, "HideSprays")
+    end
+)
+
+AddCommand(
+    {"showspray", "unhidesprays"},
+    {"Makes sprays visible again"},
+    function(Args, Speaker)
+        Config["HideSprays"] = false
+        LoadCheckBox(GUI.HideSpraysCheckBox, "HideSprays")
+    end
+)
+
+AddCommand(
+    {"logdecal", "logspray"},
+    {"Logs the targets decal"},
+    function(Args, Speaker)
+        local Target = FindPlayer(Args[1])
+        for _, v in pairs(workspace:GetChildren()) do
+            if v:IsA("Part") and v.Name:find(Target.Name) then
+                local SprayId = v:FindFirstChildOfClass("Decal").Texture
+                SetClipboard(SprayId)
+                Notify("Notification", "Logged the decal of " .. Target.Name, 5, SprayId)
+            end
+        end
+    end
+)
+
+AddCommand(
+    {"logaudio", "logsound"},
+    {"Logs the targets audio"},
+    function(Args, Speaker)
+        local Target = FindPlayer(Args[1])
+        local TargetBackpack = Target:FindFirstChild("Backpack")
+        local Boombox = TargetBackpack:FindFirstChild("BoomBox")
+        if not Boombox then
+            Boombox = Target.Character:FindFirstChild("BoomBox")
+        end
+        if not Boombox then
+            Notify("Warning", "This player does not have a boombox", 5, nil)
+        else
+            local Sound = Boombox:FindFirstChild("Handle"):FindFirstChildOfClass("Sound")
+            SetClipboard(tostring(Sound.SoundId))
+            Notify("Notification", "Logged the audio of " .. Target.Name, 5, nil)
+        end
+    end
+)
+
+AddCommand(
+    {"doorspam", "doors"},
+    {"Enables door spam"},
+    function(Args, Speaker)
+        DoorSpam = true
+        local RS
+        RS =
+            game:GetService("RunService").Stepped:Connect(
+            function()
+                if DoorSpam then
+                    Wait(2)
+                    for _, v in pairs(DoorHolder:GetChildren()) do
+                        if v.Name == "Door" then
+                            for _, v2 in pairs(v:GetChildren()) do
+                                if v2.Name == "Locker" then
+                                    if v2.Value == false then
+                                        if v:FindFirstChild("Click") then
+                                            v.Click.ClickDetector.RemoteEvent:FireServer()
+                                        end
+                                    end
+                                end
+                            end
+                        end
+                        for _, v in pairs(MAP:GetDescendants()) do
+                            if v.Name == "Window" and v:IsA("Model") then
+                                for _, v in pairs(v:GetDescendants()) do
+                                    if v.Name == "Click" then
+                                        Click:FindFirstChildOfClass("RemoteEvent"):FireServer()
+                                    end
                                 end
                             end
                         end
                     end
-                end
-            end
-        else
-            RS:Disconnect()
-        end
-    end)
-end)
-
-AddCommand({"undoorspam", "undoors"},{"Disables door spam"},function(Args, Speaker)
-    DoorSpam = false
-end)
-
-AddCommand({"gunclickspam", "clickspam"},{"Enables gun click spam"},function(Args, Speaker)
-    if game.PlaceId == ThePrisonId then
-        GunClickSpam = true
-        local RS
-        RS = game:GetService("RunService").Stepped:Connect(function()
-            if GunClickSpam then
-                Wait(1)
-                for _,v in pairs(Players:GetDescendants()) do
-                    if v.Name == "Click" and v:IsA("RemoteEvent") then
-                        v:FireServer()
-                    end
-                end
-                for _,v in pairs(workspace:GetDescendants()) do
-                    if v.Name == "Click" and v:IsA("RemoteEvent") then
-                        v:FireServer()
-                    end
-                end
-            else
-                RS:Disconnect()
-            end
-        end)
-    end
-end)
-
-AddCommand({"ungunclickspam", "unclickspam"},{"Disables gun click spam"},function(Args, Speaker)
-    GunClickSpam = false
-end)
-
-AddCommand({"control"},{"Control the target"},function(Args, Speaker)
-    local Target = FindPlayer(Args[1])
-    local TargetChar = Target.Character
-    if isnetworkowner(TargetChar:FindFirstChild("HumanoidRootPart")) then
-        local AnimateScript = TargetChar:FindFirstChild("Animate")
-        if AnimateScript then
-            AnimateScript:Clone().Parent = TargetChar
-        end
-        Player.PlayerGui.HUD.Parent = SavedInstances
-        Player.Character = Players[Target.Name].Character
-        workspace.CurrentCamera.CameraSubject = TargetChar
-    else
-        Notify("Warning", "The player must be dragged by you", 5, nil)
-    end
-end)
-
-AddCommand({"uncontrol"},{"Uncontrols the target"},function(Args, Speaker)
-    SavedInstances.HUD.Parent = Player.PlayerGui
-    Player.Character = Character
-    workspace.CurrentCamera.CameraSubject = Player.Character
-end)
-
-AddCommand({"invisible"},{"Go invisible"},function(Args, Speaker)
-    local HumRoot = Player.Character:FindFirstChild("HumanoidRootPart")
-    Invisible = true
-    local Box = Instance.new("BoxHandleAdornment")
-    Box.Size = Vector3.new(2, 2, 1)
-    Box.Transparency = .5
-    Box.Adornee = HumRoot
-    Box.Color3 = Color3.fromRGB(0, 85, 255)
-    Box.Parent = HumRoot
-    HumRoot.CanCollide = true
-    local PlatformPart = Instance.new("Part")
-    PlatformPart.Parent = HumRoot
-    PlatformPart.Anchored = true
-    PlatformPart.Transparency = 1
-    for _,v in pairs(HumRoot:GetChildren()) do
-        if v:IsA("Attachment") or v:IsA("Motor6D") then
-            v:Destroy()
-        end
-    end
-    for _,v in pairs(Player.Character:GetChildren()) do
-        if v:IsA("BasePart") and v.Name ~= "HumanoidRootPart" then
-            v.Anchored = true
-        end
-    end
-    local RS
-    RS = game:GetService("RunService").Stepped:Connect(function()
-        if Invisible and Player.Character and HumRoot and PlatformPlat then
-            PlatformPart.CFrame = HumRoot.CFrame - Vector3.new(0, .1, 0)
-        else
-            Invisible = false
-            RS:Disconnect()
-        end
-    end)
-end)
-
-AddCommand({"noclip"},{"Allows you to go through objects"},function(Args, Speaker)
-    if Noclip and FindPlayer(Args[1]) == Player then
-        Noclip = false
-    end
-    local Command = FindCommand("clip")
-    Command.CmdFunction(Args, Player)
-    local Target
-    if not Args or not Args[1] then
-        Target = Speaker
-        Noclip = true
-        GUI.NoclippingLabel.Text = "Noclip: true"
-    else
-        Target = FindPlayer(Args[1])
-    end
-    local RS
-    if Target.Name == Player.Name then
-        RS = game:GetService("RunService").Stepped:Connect(function()
-            if Player.Character and Noclip then
-                for _, v in pairs(Player.Character:GetDescendants()) do
-                    if v:IsA("BasePart") and v.Name ~= "Part" then
-                        v.CanCollide = false
-                    end
-                end
-            else
-                GUI.NoclippingLabel.Text = "Noclip: false"
-                Noclip = false
-                RS:Disconnect()
-            end
-        end)
-    elseif isnetworkowner(Target.Character:FindFirstChild("HumanoidRootPart")) then
-        local NoclipValue = Instance.new("StringValue")
-        NoclipValue.Name = "Noclipping"
-        NoclipValue.Parent = Target.Character
-        RS = game:GetService("RunService").Stepped:Connect(function()
-            if Target and Target.Character and Target.Character:FindFirstChild("Noclipping") then
-                for _, v in pairs(Target.Character:GetDescendants()) do
-                    if v:IsA("BasePart") and v.CanCollide == true and v.Name ~= "Part" then
-                        v.CanCollide = false
-                    end
-                end
-            else
-                RS:Disconnect()
-            end
-        end)
-    else
-        Notify("Warning", "The player must be dragged by you", 5, nil)
-    end
-end)
-
-AddCommand({"clip"},{"Disables noclip"},function(Args, Speaker)
-    local Target
-    if not Args or not Args[1] then
-        Target = Speaker
-        GUI.NoclippingLabel.Text = "Noclip: false"
-        Noclip = false
-    else
-        Target = FindPlayer(Args[1])
-    end
-    if Target.Character:FindFirstChild("Noclipping") then
-        Target.Character:FindFirstChild("Noclipping"):Destroy()
-    end
-end)
-
-AddCommand({"stun"},{"Stun the target"},function(Args, Speaker)
-    local Target = FindPlayer(Args[1])
-    if not Target then
-        Target = Speaker
-    end
-    local TargetChar = Target.Character
-    if isnetworkowner(TargetChar:FindFirstChild("HumanoidRootPart")) then
-        for _,v in pairs(TargetChar:GetDescendants()) do
-            if v:IsA("Part") then
-                v.Anchored = true
-            end
-        end
-    else
-        Notify("Warning", "The player must be dragged by you", 5, nil)
-    end
-    
-end)
-
-AddCommand({"unstun"},{"Removes the stun from the target"},function(Args, Speaker)
-    local Target = FindPlayer(Args[1])
-    if not Target then
-        Target = Speaker
-    end
-    local TargetChar = Target.Character
-    for _,v in pairs(TargetChar:GetDescendants()) do
-        if v:IsA("Part") then
-            v.Anchored = false
-        end
-    end
-end)
-
-AddCommand({"bring"},{"Brings the target to you"},function(Args, Speaker)
-    local Target = FindPlayer(Args[1])
-    local TargetChar = Target.Character
-    if isnetworkowner(TargetChar:FindFirstChild("HumanoidRootPart")) then
-        Teleport(TargetChar.HumanoidRootPart, Player.Character.HumanoidRootPart.CFrame)
-    else
-        Notify("Warning", "The player must be dragged by you", 5, nil)
-    end
-end)
-
-AddCommand({"speed", "walkspeed", "ws"},{"Give the target walkspeed"},function(Args, Speaker)
-    local Target = FindPlayer(Args[1])
-    if not Target then
-        Target = Speaker
-    end
-    local TargetChar = Target.Character
-    local ws = Args[2]
-    if not ws then
-        ws = 25
-    end
-    local RS
-    if isnetworkowner(TargetChar:FindFirstChild("HumanoidRootPart")) then
-        RS = game:GetService("RunService").Stepped:Connect(function()
-            if Target and Target.Character then
-                TargetChar.Humanoid.WalkSpeed = ws
-            else
-                RS:Disconnect()
-            end
-        end)
-    else
-        Notify("Warning", "The player must be dragged by you", 5, nil)
-    end
-end)
-
-AddCommand({"jumppower", "jp"},{"Give the target jumppower"},function(Args, Speaker)
-    local Target = FindPlayer(Args[1])
-    if not Target then
-        Target = Speaker
-    end
-    local TargetChar = Target.Character
-    local jp = Args[2]
-    if not jp then
-        jp = 50
-    end
-    local RS
-    if isnetworkowner(TargetChar:FindFirstChild("HumanoidRootPart")) then
-        RS = game:GetService("RunService").Stepped:Connect(function()
-            if Target and Target.Character then
-                TargetChar.Humanoid.WalkSpeed = jp
-            else
-                RS:Disconnect()
-            end
-        end)
-    else
-        Notify("Warning", "The player must be dragged by you", 5, nil)
-    end
-end)
-
-AddCommand({"hipheight", "hh"},{"Give the target hipheight"},function(Args, Speaker)
-    local Target = FindPlayer(Args[1])
-    if not Target then
-        Target = Speaker
-    end
-    local TargetChar = Target.Character
-    local hh = Args[2]
-    if not hh then
-        hh = 5
-    end
-    if isnetworkowner(TargetChar:FindFirstChild("HumanoidRootPart")) then
-        TargetChar.Humanoid.HipHeight = hh
-    else
-        Notify("Warning", "The player must be dragged by you", 5, nil)
-    end
-end)
-
-AddCommand({"follow"},{"Make the target follow another target"},function(Args, Speaker)
-    local Target = FindPlayer(Args[1])
-    local Target2
-    local TargetChar = Target.Character
-    if not Args[2] then
-        Target2 = Character
-    else
-        Target2 = FindPlayer(Args[2])
-    end
-    local RS
-    if isnetworkowner(TargetChar:FindFirstChild("HumanoidRootPart")) then
-        RS = game:GetService("RunService").Stepped:Connect(function()
-            if Target and Target.Character and TargetChar.Humanoid and Target2 and Target2.Character and Target2.Character.HumanoidRootPart then
-                TargetChar.Humanoid:MoveTo(Target2.Character["HumanoidRootPart"].Position)
-            else
-                RS:Disconnect()
-            end
-        end)
-    else
-        Notify("Warning", "The player must be dragged by you", 5, nil)
-    end
-end)
-
-AddCommand({"unfollow"},{"Target stops following the other target"},function(Args, Speaker)
-    local Target = FindPlayer(Args[1])
-    local Target2
-    local TargetChar = Target.Character
-    if not Args[2] then
-        Target2 = Character
-    else
-        Target2 = FindPlayer(Args[2])
-    end
-    local RS
-    if isnetworkowner(TargetChar:FindFirstChild("HumanoidRootPart")) then
-        RS = game:GetService("RunService").Stepped:Connect(function()
-            if Target and Target.Character and TargetChar.Humanoid and Target2 and Target2.Character and Target2.Character.HumanoidRootPart then
-                TargetChar.Humanoid:MoveTo(Target2.Character["HumanoidRootPart"].Position)
-            else
-                RS:Disconnect()
-            end
-        end)
-    else
-        Notify("Warning", "The player must be dragged by you", 5, nil)
-    end
-end)
-
-AddCommand({"spin"},{"Make a target spin"},function(Args, Speaker)
-    local Target
-    if not Args or not Args[1] then
-        Target = Speaker
-        Spin = true
-    else
-        Target = FindPlayer(Args[1])
-    end
-    local TargetChar = Target.Character
-    local RS
-    if isnetworkowner(TargetChar:FindFirstChild("HumanoidRootPart")) then
-        RS = game:GetService("RunService").Stepped:Connect(function()
-                if Target and Target.Character and TargetChar:FindFirstChild("HumanoidRootPart") then
-                    TargetChar.HumanoidRootPart.CFrame = CFrame.new(TargetChar.HumanoidRootPart.Position) * CFrame.fromEulerAnglesXYZ(0, math.rad(math.random(-180, 0)), 0)
                 else
                     RS:Disconnect()
                 end
-            end)
-    else
-        Notify("Warning", "The player must be dragged by you", 5, nil)
-    end
-end)
-
-AddCommand({"unspin"},{"Unspins the target"},function(Args, Speaker)
-    local Target = FindPlayer(Args[1])
-    if not Args[1] then
-        Target = Speaker
-        Spin = false
-    end
-    local TargetChar = Target.Character
-end)
-
-AddCommand({"van"},{"Van a target"},function(Args, Speaker)
-    local Target = FindPlayer(Args[1])
-    local TargetChar = Target.Character
-    local RS
-    if isnetworkowner(TargetChar:FindFirstChild("HumanoidRootPart")) then
-        RS = game:GetService("RunService").Stepped:Connect(function()
-            if Target and Target.Character and TargetChar.HumanoidRootPart then
-                if game.PlaceId == ThePrisonId then
-                    TargetChar.HumanoidRootPart.CFrame = CFrame.new(Vector3.new(-31.1705208, 3.19999814, 219.837738))
-                else
-
-                end
-            else
-                RS:Disconnect()
             end
-        end)
-    else
-        Notify("Warning", "The player must be dragged by you", 5, nil)
+        )
+        Notify("Notification", "Enabled door spam", 5, nil)
     end
-end)
+)
 
-AddCommand({"wastemoney"},{"Make the target waste money"},function(Args, Speaker)
-    local Target = FindPlayer(Args[1])
-    local TargetChar = Target.Character
-    local RS
-    if isnetworkowner(TargetChar:FindFirstChild("HumanoidRootPart")) then
-        RS = game:GetService("RunService").Stepped:Connect(function()
-            if Target and Target.Character and TargetChar.Humanoid then
-                Wait()
-                TargetChar.HumanoidRootPart.CFrame = ItemTeleports["Glock"]
-                Wait()
-                TargetChar.HumanoidRootPart.CFrame = ItemTeleports["Uzi"]
-                Wait()
-                TargetChar.HumanoidRootPart.CFrame = ItemTeleports["Sawed Off"]
-                Wait()
-                if TargetChar.Humanoid.Sit then
-                    TargetChar.Humanoid.Sit = false
+AddCommand(
+    {"undoorspam", "undoors"},
+    {"Disables door spam"},
+    function(Args, Speaker)
+        DoorSpam = false
+        Notify("Notification", "Disabled door spam", 5, nil)
+    end
+)
+
+AddCommand(
+    {"gunclickspam", "clickspam"},
+    {"Enables gun click spam"},
+    function(Args, Speaker)
+        if game.PlaceId == ThePrisonId then
+            GunClickSpam = true
+            local RS
+            RS =
+                game:GetService("RunService").Stepped:Connect(
+                function()
+                    if GunClickSpam then
+                        Wait(1)
+                        for _, v in pairs(Players:GetDescendants()) do
+                            if v.Name == "Click" and v:IsA("RemoteEvent") then
+                                v:FireServer()
+                            end
+                        end
+                        for _, v in pairs(workspace:GetDescendants()) do
+                            if v.Name == "Click" and v:IsA("RemoteEvent") then
+                                v:FireServer()
+                            end
+                        end
+                    else
+                        RS:Disconnect()
+                    end
                 end
-                TargetChar.Humanoid.Jump = true
-            else
-                RS:Disconnect()
+            )
+            Notify("Notification", "Enabled gun click spam", 5, nil)
+        else
+            Notify("Error", "The prison only", 5, nil)
+        end
+    end
+)
+
+AddCommand(
+    {"ungunclickspam", "unclickspam"},
+    {"Disables gun click spam"},
+    function(Args, Speaker)
+        GunClickSpam = false
+        Notify("Notification", "Disabled gun click spam", 5, nil)
+    end
+)
+
+AddCommand(
+    {"control"},
+    {"Control the target"},
+    function(Args, Speaker)
+        local Target = FindPlayer(Args[1])
+        if isnetworkowner(Target.Character:FindFirstChild("HumanoidRootPart")) then
+            local AnimateScript = Target.Character:FindFirstChild("Animate")
+            if AnimateScript then
+                AnimateScript:Clone().Parent = Target.Character
             end
-        end)
-    else
-        Notify("Warning", "The player must be dragged by you", 5, nil)
+            Player.PlayerGui.HUD.Parent = SavedInstances
+            Player.Character = Players[Target.Name].Character
+            workspace.CurrentCamera.CameraSubject = Target.Character
+        else
+            Notify("Warning", "The player must be dragged by you", 5, nil)
+        end
     end
-end)
+)
 
-AddCommand({"reset", "respawn"},{"Resets your character"},function(Args, Speaker)
-    Player.Character.Humanoid.Health = 0
-end)
-
-AddCommand({"anticlaim", "antiattach"},{"Players cant attach to your character"},function(Args, Speaker)
-    if AntiClaim then
-        AntiClaim = false
-    else
-        AntiClaim = true
+AddCommand(
+    {"uncontrol"},
+    {"Uncontrols the target"},
+    function(Args, Speaker)
+        SavedInstances.HUD.Parent = Player.PlayerGui
+        Player.Character = Character
+        workspace.CurrentCamera.CameraSubject = Player.Character
     end
-end)
+)
 
-AddCommand({"rejoin", "rj"},{"Rejoins the same server"},function(Args, Speaker)
-    TeleportService:Teleport(game.PlaceId, Player)
-end)
-
-AddCommand({"fly"},{"Enables flight"},function(Args, Speaker)
-    if Flying then
-        StopFly()
-    else
-        StartFly()
-    end
-end)
-
-AddCommand({"unfly"},{"Disables fly"},function(Args, Speaker)
-    StopFly()
-end)
-
-AddCommand({"flyspeed"},{"Changes the flyspeed"},function(Args, Speaker)
-    if Args[1] then
-        Config["FlySpeed"] = Args[1]
-    else
-        Config["FlySpeed"] = 2
-    end
-end)
-
-AddCommand({"float", "airwalk"},{"Enables float"},function(Args, Speaker)
-    if Airwalk then
-        Airwalk = false
-    else
-        Airwalk = true
-        local FloatPart = Instance.new("Part")
-        FloatPart.Parent = Player.Character
-        FloatPart.Anchored = true
-        FloatPart.Transparency = 1
-        FloatPart.Size = Vector3.new(30, 1, 30)
+AddCommand(
+    {"invisible"},
+    {"Go invisible"},
+    function(Args, Speaker)
+        local HumRoot = Player.Character:FindFirstChild("HumanoidRootPart")
+        Invisible = true
+        local Box = Instance.new("BoxHandleAdornment")
+        Box.Size = Vector3.new(2, 2, 1)
+        Box.Transparency = .5
+        Box.Adornee = HumRoot
+        Box.Color3 = Color3.fromRGB(0, 85, 255)
+        Box.Parent = HumRoot
+        HumRoot.CanCollide = true
+        local PlatformPart = Instance.new("Part")
+        PlatformPart.Parent = HumRoot
+        PlatformPart.Anchored = true
+        PlatformPart.Transparency = 1
+        for _, v in pairs(HumRoot:GetChildren()) do
+            if v:IsA("Attachment") or v:IsA("Motor6D") then
+                v:Destroy()
+            end
+        end
+        for _, v in pairs(Player.Character:GetChildren()) do
+            if v:IsA("BasePart") and v.Name ~= "HumanoidRootPart" then
+                v.Anchored = true
+            end
+        end
         local RS
-        RS = game:GetService("RunService").Stepped:Connect(function()
-            if Player.Character and Player.Character:FindFirstChild("HumanoidRootPart") and Airwalk then
-                FloatPart.CFrame = Player.Character.HumanoidRootPart.CFrame * CFrame.new(0, HeightValue, 0)
-            else
-                Airwalk = false
-                FloatPart:Destroy()
-                RS:Disconnect()
-            end
-        end)
-    end
-end)
-
-AddCommand({"unfloat", "unairwalk"},{"Disables float"},function(Args, Speaker)
-    Airwalk = false
-end)
-
-AddCommand({"seats", "noseats"},{"Removes seats"},function(Args, Speaker)
-    NoSeats = true
-    for _,v in pairs(workspace:GetDescendants()) do
-        if v:IsA("Seat") then
-            v.Parent = SavedInstances
-        end
-    end
-end)
-
-AddCommand({"reseats"},{"Brings the seats back"},function(Args, Speaker)
-    NoSeats = false
-    for _,v in pairs(SavedInstances:GetChildren()) do
-        if v:IsA("Seat") then
-            v.Parent = SeatsHolder
-        end
-    end
-end)
-
-AddCommand({"goto", "to"},{"Teleports to the target"},function(Args, Speaker)
-    local Target = FindPlayer(Args[1])
-    if Target.Character:FindFirstChild("HumanoidRootPart") then
-        Teleport(Player.Character.HumanoidRootPart, Target.Character.HumanoidRootPart.CFrame)
-    elseif Target.Character:FindFirstChild("Torso") then
-        Teleport(Player.Character.HumanoidRootPart, Target.Character.Torso.CFrame)
-    else
-        Notify("Error", "Target is probably dead", 5, nil)
-    end
-end)
-
-AddCommand({"keybind", "bind"},{"Binds a key to a command"},function(Args, Speaker)
-    Config["Binds"][#Config["Binds"]] =
-    {
-        Key = Args[1],
-        Command = Args[2];
-    }
-    Notify("Notification", "Binded " .. Args[1] .. " to " .. Args[2])
-end)
-
-AddCommand({"clearkeybinds", "clearbinds"},{"Removes all keybinds"},function(Args, Speaker)
-    Config["Binds"] = {}
-    Notify("Warning", "All keybinds have been removed!", nil, 5)
-    SaveFile()
-end)
-
-AddCommand({"buildmenu"},{"Enables build menu"},function(Args, Speaker)
-    GUI.BuildMenuFrame.Visible = true
-end)
-
-AddCommand({"haircolors", "hairmenu"},{"Enables hair color menu"},function(Args, Speaker)
-    GUI.HairFrame.Visible = true
-end)
-
-AddCommand({"armor", "protection"},{"nil"},function(Args, Speaker)
-    
-end)
-
-AddCommand({"spawnfling"},{"nil"},function(Args, Speaker)
-    
-end)
-
-AddCommand({"loopfling"},{"nil"},function(Args, Speaker)
-    
-end)
-
-AddCommand({"loopflingall"},{"nil"},function(Args, Speaker)
-    
-end)
-
-
-AddCommand({"defend"},{"Make a target defend another target"},function(Args, Speaker)
-    local Target = FindPlayer(Args[1])
-    local ToDefend = FindPlayer(Args[2])
-
-    if not table.find(DefendPlayers, Target) then
-        table.insert(DefendPlayers, Target)
-    end
-    local RS
-    if isnetworkowner(TargetChar:FindFirstChild("HumanoidRootPart")) then
-        RS = game:GetService("RunService").Stepped:Connect(function()
-            if Target.Character and ToDefend.Character then
-                TargetChar.HumanoidRootPart.CFrame = ToDefend.HumanoidRootPart.CFrame + ToDefend.HumanoidRootPart.CFrame.LookVector
-            else
-                RS:Disconnect()
-            end
-        end)
-    else
-        Notify("Warning", "The player must be dragged by you", 5, nil)
-    end
-end)
-
-AddCommand({"blink"},{"Enables CFrame movement"},function(Args, Speaker)
-    if Args[1] then
-        Config["BlinkSpeed"] = tonumber(Args[1])
-    else
-        Config["BlinkSpeed"] = 1
-    end
-    Config["Blink"] = true
-end)
-
-AddCommand({"unblink"},{"Disables CFrame movement"},function(Args, Speaker)
-    Config["Blink"] = false
-end)
-
-AddCommand({"god", "godmode"},{"Enables god mode"},function(Args, Speaker)
-    if game.PlaceId == ThePrisonId then
-        local GodOnSpawnEvent
-        Player.Character.Humanoid.Health = 0
-        local function GodOnSpawn(Char)
-            Char:WaitForChild("Right Leg"):Destroy()
-            for _,v in pairs(Char:GetDescendants()) do
-                if v:IsA("NumberValue") then
-                    v:Destroy()
+        RS =
+            game:GetService("RunService").Stepped:Connect(
+            function()
+                if Invisible and Player.Character and HumRoot and PlatformPlat then
+                    PlatformPart.CFrame = HumRoot.CFrame - Vector3.new(0, .1, 0)
+                else
+                    Invisible = false
+                    RS:Disconnect()
                 end
             end
-            GodOnSpawnEvent:Disconnect()
+        )
+    end
+)
+
+AddCommand(
+    {"noclip"},
+    {"Allows you to go through objects"},
+    function(Args, Speaker)
+        local Target
+        if Noclip then
+            Noclip = false
+        else
+            if not Args or not Args[1] then
+                Target = Speaker
+                Noclip = true
+                GUI.NoclippingLabel.Text = "Noclip: true"
+            else
+                Target = FindPlayer(Args[1])
+            end
         end
-        GodOnSpawnEvent = Player.CharacterAdded:Connect(GodOnSpawn, Char)
-    else
-        Player.Character:FindFirstChild("Used"):Destroy()
-    end
-    Notify("Warning", "This breaks the server a little bit.", 5, nil)
-end)
-
-AddCommand({"annoy"},{"Annoys the target"},function(Args, Speaker)
-    local Target = FindPlayer(Args[1])
-end)
-
-AddCommand({"buy"},{"Teleports to the selected item"},function(Args, Speaker)
-    local Item = Args[1]
-    for i,v in pairs(ItemTeleports) do
-        if Item:lower() == i:lower() then
-            Teleport(Player.Character.HumanoidRootPart, v)
+        local RS
+        if Target and Target.Name == Player.Name then
+            RS =
+                game:GetService("RunService").Stepped:Connect(
+                function()
+                    if Player.Character and Noclip then
+                        for _, v in pairs(Player.Character:GetDescendants()) do
+                            if v:IsA("BasePart") and v.Name ~= "Part" then
+                                v.CanCollide = false
+                            end
+                        end
+                    else
+                        GUI.NoclippingLabel.Text = "Noclip: false"
+                        Noclip = false
+                        RS:Disconnect()
+                    end
+                end
+            )
+        elseif Target and isnetworkowner(Target.Character:FindFirstChild("HumanoidRootPart")) then
+            local NoclipValue = Instance.new("StringValue")
+            NoclipValue.Name = "Noclipping"
+            NoclipValue.Parent = Target.Character
+            RS =
+                game:GetService("RunService").Stepped:Connect(
+                function()
+                    if Target and Target.Character and Target.Character:FindFirstChild("Noclipping") then
+                        for _, v in pairs(Target.Character:GetDescendants()) do
+                            if v:IsA("BasePart") and v.Name ~= "Part" then
+                                v.CanCollide = false
+                            end
+                        end
+                    else
+                        RS:Disconnect()
+                    end
+                end
+            )
+        else
+            Notify("Warning", "The player must be dragged by you", 5, nil)
         end
     end
-end)
+)
 
-AddCommand({"reload"},{"Teleports to an ammo store"},function(Args, Speaker)
-    local Target
-    if not Args or not Args[1] then
-        Target = Speaker
-    else
-        Target = FindPlayer(Args[1])
-    end
-    Teleport(Target.Character.HumanoidRootPart, ItemTeleports["Ammo1"])
-end)
-
-AddCommand({"heal"},{"Teleports to a restauraunt"},function(Args, Speaker)
-    local Target
-    if not Args or not Args[1] then
-        Target = Speaker
-    else
-        Target = FindPlayer(Args[1])
-    end
-    if isnetworkowner(TargetChar:FindFirstChild("HumanoidRootPart")) then
-        Teleport(Target.Character.HumanoidRootPart, ItemTeleports["Burger"])
-    else
-        Notify("Warning", "The player must be dragged by you", 5, nil)
-    end
-end)
-
-AddCommand({"give"},{"Gives the target your selected tool(s)"},function(Args, Speaker)
-    local Target = FindPlayer(Args[1])
-    local Character = Player.Character
-    Camera.CameraSubject = Target.Character
-    local Humanoid = Character.Humanoid
-    for _,v in pairs(Player.Backpack:GetChildren()) do
-        if v:IsA("Tool") then
-            v.Parent = Player.Character
+AddCommand(
+    {"clip"},
+    {"Disables noclip"},
+    function(Args, Speaker)
+        local Target
+        if not Args or not Args[1] then
+            Target = Speaker
+            GUI.NoclippingLabel.Text = "Noclip: false"
+            Noclip = false
+        else
+            Target = FindPlayer(Args[1])
+        end
+        if Target.Character:FindFirstChild("Noclipping") then
+            Target.Character:FindFirstChild("Noclipping"):Destroy()
         end
     end
-    Humanoid:Clone().Parent = Character
-    Humanoid:Destroy()
-    while Character and RunService.Stepped:Wait() do
-        for _,v in pairs(Player.Backpack:GetChildren()) do
+)
+
+AddCommand(
+    {"stun"},
+    {"Stun the target"},
+    function(Args, Speaker)
+        local Target = FindPlayer(Args[1])
+        if Target and Target.Character then
+            if isnetworkowner(Target.Character:FindFirstChild("HumanoidRootPart")) then
+                for _, v in pairs(Target.Character:GetDescendants()) do
+                    if v:IsA("Part") then
+                        v.Anchored = true
+                    end
+                end
+            else
+                Notify("Warning", "The player must be dragged by you", 5, nil)
+            end
+        end
+    end
+)
+
+AddCommand(
+    {"unstun"},
+    {"Removes the stun from the target"},
+    function(Args, Speaker)
+        local Target = FindPlayer(Args[1])
+        if Target and Target.Character then
+            for _, v in pairs(Target.Character:GetDescendants()) do
+                if v:IsA("Part") then
+                    v.Anchored = false
+                end
+            end
+        end
+    end
+)
+
+AddCommand(
+    {"bring"},
+    {"Brings the target to you"},
+    function(Args, Speaker)
+        local Target = FindPlayer(Args[1])
+        if isnetworkowner(Target.Character:FindFirstChild("HumanoidRootPart")) then
+            Teleport(FindRoot(Target.Character), FindRoot(Player.Character).CFrame)
+        else
+            Notify("Warning", "The player must be dragged by you", 5, nil)
+        end
+    end
+)
+
+AddCommand(
+    {"speed", "walkspeed", "ws"},
+    {"Give the target walkspeed"},
+    function(Args, Speaker)
+        local Target = FindPlayer(Args[1])
+        if not Target then
+            Target = Speaker
+        end
+        local ws = Args[2]
+        if not ws then
+            ws = 25
+        end
+        local RS
+        if isnetworkowner(Target.Character:FindFirstChild("HumanoidRootPart")) then
+            RS =
+                game:GetService("RunService").Stepped:Connect(
+                function()
+                    if Target and Target.Character then
+                        Target.Character.Humanoid.WalkSpeed = ws
+                    else
+                        RS:Disconnect()
+                    end
+                end
+            )
+        else
+            Notify("Warning", "The player must be dragged by you", 5, nil)
+        end
+    end
+)
+
+AddCommand(
+    {"jumppower", "jp"},
+    {"Give the target jumppower"},
+    function(Args, Speaker)
+        local Target = FindPlayer(Args[1])
+        if not Target then
+            Target = Speaker
+        end
+        local jp = Args[2]
+        if not jp then
+            jp = 50
+        end
+        local RS
+        if isnetworkowner(Target.Character:FindFirstChild("HumanoidRootPart")) then
+            RS =
+                game:GetService("RunService").Stepped:Connect(
+                function()
+                    if Target and Target.Character then
+                        Target.Character.Humanoid.WalkSpeed = jp
+                    else
+                        RS:Disconnect()
+                    end
+                end
+            )
+        else
+            Notify("Warning", "The player must be dragged by you", 5, nil)
+        end
+    end
+)
+
+AddCommand(
+    {"hipheight", "hh"},
+    {"Give the target hipheight"},
+    function(Args, Speaker)
+        local Target = FindPlayer(Args[1])
+        if not Target then
+            Target = Speaker
+        end
+        local hh = Args[2]
+        if not hh then
+            hh = 5
+        end
+        if isnetworkowner(Target.Character:FindFirstChild("HumanoidRootPart")) then
+            Target.Character.Humanoid.HipHeight = hh
+        else
+            Notify("Warning", "The player must be dragged by you", 5, nil)
+        end
+    end
+)
+
+AddCommand(
+    {"follow"},
+    {"Make the target follow another target"},
+    function(Args, Speaker)
+        local Target = FindPlayer(Args[1])
+        local Target2
+        if not Args[2] then
+            Target2 = Player.Character
+        else
+            Target2 = FindPlayer(Args[2])
+        end
+        local RS
+        if isnetworkowner(Target.Character:FindFirstChild("HumanoidRootPart")) then
+            RS =
+                game:GetService("RunService").Stepped:Connect(
+                function()
+                    if
+                        Target and Target.Character and Target.Character.Humanoid and Target2 and Target2.Character and
+                            FindRoot(Target2.Character)
+                     then
+                        Target.Character.Humanoid:MoveTo(Target2.Character["HumanoidRootPart"].Position)
+                    else
+                        RS:Disconnect()
+                    end
+                end
+            )
+        else
+            Notify("Warning", "The player must be dragged by you", 5, nil)
+        end
+    end
+)
+
+AddCommand(
+    {"unfollow"},
+    {"Target stops following the other target"},
+    function(Args, Speaker)
+        local Target = FindPlayer(Args[1])
+    end
+)
+
+AddCommand(
+    {"spin"},
+    {"Make a target spin"},
+    function(Args, Speaker)
+        local Target
+        if not Args or not Args[1] then
+            Target = Speaker
+            Spin = true
+        else
+            Target = FindPlayer(Args[1])
+        end
+        local RS
+        if isnetworkowner(Target.Character:FindFirstChild("HumanoidRootPart")) then
+            RS =
+                game:GetService("RunService").Stepped:Connect(
+                function()
+                    if Target and Target.Character and Target.Character:FindFirstChild("HumanoidRootPart") then
+                        FindRoot(Target.Character).CFrame =
+                            CFrame.new(FindRoot(Target.Character).Position) *
+                            CFrame.fromEulerAnglesXYZ(0, math.rad(math.random(-180, 0)), 0)
+                    else
+                        RS:Disconnect()
+                    end
+                end
+            )
+        else
+            Notify("Warning", "The player must be dragged by you", 5, nil)
+        end
+    end
+)
+
+AddCommand(
+    {"unspin"},
+    {"Unspins the target"},
+    function(Args, Speaker)
+        local Target = FindPlayer(Args[1])
+        if not Args[1] then
+            Target = Speaker
+            Spin = false
+        end
+    end
+)
+
+AddCommand(
+    {"van"},
+    {"Van a target"},
+    function(Args, Speaker)
+        local Target = FindPlayer(Args[1])
+        local RS
+        if isnetworkowner(Target.Character:FindFirstChild("HumanoidRootPart")) then
+            RS =
+                game:GetService("RunService").Stepped:Connect(
+                function()
+                    if Target and Target.Character and FindRoot(Target.Character) then
+                        if game.PlaceId == ThePrisonId then
+                            FindRoot(Target.Character).CFrame =
+                                CFrame.new(Vector3.new(-31.1705208, 3.19999814, 219.837738))
+                        else
+                        end
+                    else
+                        RS:Disconnect()
+                    end
+                end
+            )
+        else
+            Notify("Warning", "The player must be dragged by you", 5, nil)
+        end
+    end
+)
+
+AddCommand(
+    {"wastemoney"},
+    {"Make the target waste money"},
+    function(Args, Speaker)
+        local Target = FindPlayer(Args[1])
+        local RS
+        if isnetworkowner(Target.Character:FindFirstChild("HumanoidRootPart")) then
+            RS =
+                game:GetService("RunService").Stepped:Connect(
+                function()
+                    if Target and Target.Character and Target.Character.Humanoid then
+                        Wait()
+                        FindRoot(Target.Character).CFrame = ItemTeleports["Glock"]
+                        Wait()
+                        FindRoot(Target.Character).CFrame = ItemTeleports["Uzi"]
+                        Wait()
+                        FindRoot(Target.Character).CFrame = ItemTeleports["Sawed Off"]
+                        Wait()
+                        if Target.Character.Humanoid.Sit then
+                            Target.Character.Humanoid.Sit = false
+                        end
+                        Target.Character.Humanoid.Jump = true
+                    else
+                        RS:Disconnect()
+                    end
+                end
+            )
+        else
+            Notify("Warning", "The player must be dragged by you", 5, nil)
+        end
+    end
+)
+
+AddCommand(
+    {"reset", "respawn"},
+    {"Resets your character"},
+    function(Args, Speaker)
+        Player.Character.Humanoid.Health = 0
+    end
+)
+
+AddCommand(
+    {"anticlaim", "antiattach"},
+    {"Players cant attach to your character"},
+    function(Args, Speaker)
+        if AntiClaim then
+            AntiClaim = false
+            GUI.AntiClaimingLabel.Text = "Anti claim: " .. tostring(AntiClaim)
+        else
+            AntiClaim = true
+            GUI.AntiClaimingLabel.Text = "Anti claim: " .. tostring(AntiClaim)
+        end
+    end
+)
+
+AddCommand(
+    {"rejoin", "rj"},
+    {"Rejoins the same server"},
+    function(Args, Speaker)
+        TeleportService:Teleport(game.PlaceId, Player)
+    end
+)
+
+AddCommand(
+    {"fly"},
+    {"Enables flight"},
+    function(Args, Speaker)
+        if Flying then
+            StopFly()
+        else
+            StartFly()
+        end
+    end
+)
+
+AddCommand(
+    {"unfly"},
+    {"Disables fly"},
+    function(Args, Speaker)
+        StopFly()
+    end
+)
+
+AddCommand(
+    {"flyspeed"},
+    {"Changes the flyspeed"},
+    function(Args, Speaker)
+        if Args[1] then
+            Config["FlySpeed"] = Args[1]
+        else
+            Config["FlySpeed"] = 2
+        end
+        GUI.FlySpeedLabel.Text = "Fly speed: " .. tostring(Config["FlySpeed"])
+    end
+)
+
+AddCommand(
+    {"float", "airwalk"},
+    {"Enables float"},
+    function(Args, Speaker)
+        if Airwalk then
+            Airwalk = false
+        else
+            Airwalk = true
+            local FloatPart = Instance.new("Part")
+            FloatPart.Parent = Player.Character
+            FloatPart.Anchored = true
+            FloatPart.Transparency = 1
+            FloatPart.Size = Vector3.new(15, 1, 15)
+            local RS
+            RS =
+                game:GetService("RunService").Stepped:Connect(
+                function()
+                    if Player.Character and Player.Character:FindFirstChild("HumanoidRootPart") and Airwalk then
+                        FloatPart.CFrame = FindRoot(Player.Character).CFrame * CFrame.new(0, HeightValue, 0)
+                    else
+                        Airwalk = false
+                        FloatPart:Destroy()
+                        RS:Disconnect()
+                    end
+                end
+            )
+        end
+    end
+)
+
+AddCommand(
+    {"unfloat", "unairwalk"},
+    {"Disables float"},
+    function(Args, Speaker)
+        Airwalk = false
+    end
+)
+
+AddCommand(
+    {"seats", "noseats"},
+    {"Removes seats"},
+    function(Args, Speaker)
+        NoSeats = true
+        for _, v in pairs(workspace:GetDescendants()) do
+            if v:IsA("Seat") then
+                v.Parent = SavedInstances
+            end
+        end
+    end
+)
+
+AddCommand(
+    {"reseats"},
+    {"Brings the seats back"},
+    function(Args, Speaker)
+        NoSeats = false
+        for _, v in pairs(SavedInstances:GetChildren()) do
+            if v:IsA("Seat") then
+                v.Parent = SeatsHolder
+            end
+        end
+    end
+)
+
+AddCommand(
+    {"goto", "to"},
+    {"Teleports to the target"},
+    function(Args, Speaker)
+        local Target = FindPlayer(Args[1])
+        if Target.Character:FindFirstChild("HumanoidRootPart") then
+            Teleport(FindRoot(Player.Character), FindRoot(Target.Character).CFrame)
+        elseif Target.Character:FindFirstChild("Torso") then
+            Teleport(FindRoot(Player.Character), Target.Character.Torso.CFrame)
+        else
+            Notify("Error", "Target is probably dead", 5, nil)
+        end
+    end
+)
+
+AddCommand(
+    {"keybind", "bind"},
+    {"Binds a key to a command"},
+    function(Args, Speaker)
+        Config["Binds"][#Config["Binds"] + 1] = {
+            Key = Args[1],
+            Command = Args[2]
+        }
+        Notify("Notification", "Bound " .. Args[1] .. " to " .. Args[2])
+    end
+)
+
+AddCommand(
+    {"clearkeybinds", "clearbinds"},
+    {"Removes all keybinds"},
+    function(Args, Speaker)
+        Config["Binds"] = {}
+        Notify("Warning", "All keybinds have been removed!", nil, 5)
+        SaveFile()
+    end
+)
+
+AddCommand(
+    {"buildmenu"},
+    {"Enables build menu"},
+    function(Args, Speaker)
+        GUI.BuildMenuFrame.Visible = true
+    end
+)
+
+AddCommand(
+    {"haircolors", "hairmenu"},
+    {"Enables hair color menu"},
+    function(Args, Speaker)
+        GUI.HairFrame.Visible = true
+    end
+)
+
+AddCommand(
+    {"armor", "protection"},
+    {"nil"},
+    function(Args, Speaker)
+    end
+)
+
+AddCommand(
+    {"spawnfling"},
+    {"nil"},
+    function(Args, Speaker)
+    end
+)
+
+AddCommand(
+    {"loopfling"},
+    {"nil"},
+    function(Args, Speaker)
+    end
+)
+
+AddCommand(
+    {"loopflingall"},
+    {"nil"},
+    function(Args, Speaker)
+    end
+)
+
+AddCommand(
+    {"defend"},
+    {"Make a target defend another target"},
+    function(Args, Speaker)
+        local Target = FindPlayer(Args[1])
+        local ToDefend = FindPlayer(Args[2])
+        local RS
+        if isnetworkowner(Target.Character:FindFirstChild("HumanoidRootPart")) then
+            RS =
+                game:GetService("RunService").Stepped:Connect(
+                function()
+                    if Target.Character and Target.Character:FindFirstChild("HumanoidRootPart") and ToDefend.Character then
+                        FindRoot(ToDefend.Character).CanCollide = false
+                        FindRoot(Target.Character).CFrame =
+                            FindRoot(ToDefend.Character).CFrame + FindRoot(ToDefend.Character).CFrame.LookVector
+                    else
+                        RS:Disconnect()
+                    end
+                end
+            )
+        else
+            Notify("Warning", "The player must be dragged by you", 5, nil)
+        end
+    end
+)
+
+AddCommand(
+    {"blink"},
+    {"Enables CFrame movement"},
+    function(Args, Speaker)
+        if Args[1] then
+            Config["BlinkSpeed"] = tonumber(Args[1])
+        else
+            Config["BlinkSpeed"] = 1
+        end
+        Config["Blink"] = true
+        GUI.BlinkingLabel.Text = "Blink: " .. tostring(Config["Blink"])
+        GUI.BlinkSpeedLabel.Text = "Blink speed: " .. tostring(Config["BlinkSpeed"])
+    end
+)
+
+AddCommand(
+    {"unblink"},
+    {"Disables CFrame movement"},
+    function(Args, Speaker)
+        Config["Blink"] = false
+        GUI.BlinkingLabel.Text = "Blink: " .. tostring(Config["Blink"])
+    end
+)
+
+AddCommand(
+    {"god", "godmode"},
+    {"Enables god mode"},
+    function(Args, Speaker)
+        if game.PlaceId == ThePrisonId then
+            local GodOnSpawnEvent
+            Player.Character.Humanoid.Health = 0
+            local function GodOnSpawn(Char)
+                Char:WaitForChild("Right Leg"):Destroy()
+                for _, v in pairs(Char:GetDescendants()) do
+                    if v:IsA("NumberValue") then
+                        v:Destroy()
+                    end
+                end
+                GodOnSpawnEvent:Disconnect()
+            end
+            GodOnSpawnEvent = Player.CharacterAdded:Connect(GodOnSpawn, Char)
+        else
+            Player.Character:FindFirstChild("Used"):Destroy()
+        end
+        Notify("Warning", "This breaks the server a little bit.", 5, nil)
+    end
+)
+
+AddCommand(
+    {"annoy"},
+    {"Annoys the target"},
+    function(Args, Speaker)
+        local Target = FindPlayer(Args[1])
+    end
+)
+
+AddCommand(
+    {"buy"},
+    {"Teleports to the selected item"},
+    function(Args, Speaker)
+        local Item = Args[1]
+        for i, v in pairs(ItemTeleports) do
+            if Item:lower() == i:lower() then
+                Teleport(FindRoot(Player.Character), v)
+            end
+        end
+    end
+)
+
+AddCommand(
+    {"reload"},
+    {"Teleports to an ammo store"},
+    function(Args, Speaker)
+        Teleport(FindRoot(Player.Character), ItemTeleports["Ammo1"])
+    end
+)
+
+AddCommand(
+    {"heal"},
+    {"Teleports to a restauraunt"},
+    function(Args, Speaker)
+        Teleport(FindRoot(Player.Character), ItemTeleports["Burger"])
+    end
+)
+
+AddCommand(
+    {"give"},
+    {"Gives the target your selected tool(s)"},
+    function(Args, Speaker)
+        local Target = FindPlayer(Args[1])
+        local Character = Player.Character
+        Camera.CameraSubject = Target.Character
+        local Humanoid = Character.Humanoid
+        for _, v in pairs(Player.Backpack:GetChildren()) do
             if v:IsA("Tool") then
                 v.Parent = Player.Character
             end
         end
-        Character.HumanoidRootPart.CFrame = Target.Character.HumanoidRootPart.CFrame
-    end
-end)
-
-AddCommand({"afk"},{"Going afk wont kick you"},function(Args, Speaker)
-    Settings["AFK"] = true
-    Notify("Warning", "People can still teleport you", 5, nil)
-    Notify("Warning", "Delete the tpers with the command noteleport", 5, nil)
-end)
-
-AddCommand({"unafk"},{"Going afk will kick you"},function(Args, Speaker)
-    Settings["AFK"] = false
-    Notify("Notification", "Turned off AFK", 5, nil)
-end)
-
-AddCommand({"autofarm"},{"Enables auto farm"},function(Args, Speaker)
-    Settings["AFK"] = true
-    AutoFarm = true
-    Notify("Notification", "Turned on autofarm", 5, nil)
-    local RS
-    RS = game:GetService("RunService").Stepped:Connect(function()
-        if AutoFarm and Player.Character then
-            local ToGoto
-            local LastToGoto
-            for _,v in pairs(workspace.RandomSpawns:GetChildren()) do
-                if v.Name == "RandomSpawner" then
-                    ToGoto = v.CFrame
+        Humanoid:Clone().Parent = Character
+        Humanoid:Destroy()
+        local RS
+        RS =
+            game:GetService("RunService").Stepped:Connect(
+            function()
+                if Character and Character:FindFirstChild("HumanoidRootPart") and Target and Target.Character then
+                    for _, v in pairs(Player.Backpack:GetChildren()) do
+                        if v:IsA("Tool") then
+                            v.Parent = Character
+                        end
+                    end
+                    FindRoot(Character).CFrame = FindRoot(Target.Character).CFrame
+                else
+                    RS:Disconnect()
                 end
             end
-            if ToGoto and Player.Character:FindFirstChild("HumanoidRootPart") and not AutoFarmCooldown then
-                AutoFarmCooldown = true
-                Teleport(Player.Character.HumanoidRootPart, ToGoto)
-            end
-        else
-            RS:Disconnect()
-        end
-    end)
-end)
-
-AddCommand({"unautofarm"},{"Disables auto farm"},function(Args, Speaker)
-    AutoFarm = false
-    AutoFarmCooldown = false
-    Notify("Notification", "Turned off autofarm", 5, nil)
-end)
-
-AddCommand({"itemesp"},{"Enables item esp"},function(Args, Speaker)
-    Config["ItemEsp"] = true
-    ItemEsp()
-    Notify("Notification", "Turned on itemesp", 5, nil)
-end)
-
-AddCommand({"unitemesp", "noitemesp"},{"Disables item esp"},function(Args, Speaker)
-    Config["ItemEsp"] = false
-    for _,v in pairs(workspace.RandomSpawns:GetDescendants()) do
-        if v:IsA("BillboardGui") then
-            v:Destroy()
-        end
+        )
     end
-    Notify("Notification", "Turned off itemesp", 5, nil)
-end)
+)
 
-AddCommand({"sodagun"},{"nil"},function(Args, Speaker)
-    
-end)
-
-AddCommand({"axe"},{"nil"},function(Args, Speaker)
-    
-end)
-
-AddCommand({"grabknife"},{"nil"},function(Args, Speaker)
-    
-end)
-
-AddCommand({"shield", "protect"},{"Loop teleports you infront of the target"},function(Args, Speaker)
-    local Target = FindPlayer(Args[1])
-    Protect = true
-    local RS
-    RS = game:GetService("RunService").Stepped:Connect(function()
-        if Target and Target.Character and Player.Character and Protect then
-            Player.Character.HumanoidRootPart.CFrame = Target.Character.HumanoidRootPart.CFrame + Target.Character.HumanoidRootPart.CFrame.LookVector
-        end
-    end)
-end)
-
-AddCommand({"unshield", "unprotect"},{"Stops loop teleporting you"},function(Args, Speaker)
-    Protect = false
-end)
-
-AddCommand({"mlmkey", "mouselock"},{"Changes the mouselocks key"},function(Args, Speaker)
-    if Args[1] then
-        Player.PlayerScripts.PlayerModule.CameraModule.MouseLockController.BoundKeys.Value = Args[1]
+AddCommand(
+    {"afk"},
+    {"Going afk wont kick you"},
+    function(Args, Speaker)
+        Config["AntiAFK"] = true
+        Notify("Warning", "People can still teleport you", 5, nil)
+        Notify("Warning", "Delete the tpers with the command noteleport", 5, nil)
     end
-end)
+)
 
-AddCommand({"remotegun", "rgun"},{"Enables remote gun"},function(Args, Speaker)
-    RemoteGun = true
-    AttachGun = false
-    Player.Character.HumanoidRootPart.CFrame = CFrame.new(Player.Character.HumanoidRootPart.Position) * CFrame.fromEulerAnglesXYZ(0, math.rad(-90), 0)
-    for _,v in pairs(Player.Character:GetChildren()) do
-        if v:IsA("BasePart") then
-            v.Anchored = true
-        end
+AddCommand(
+    {"unafk"},
+    {"Going afk will kick you"},
+    function(Args, Speaker)
+        Config["AntiAFK"] = false
+        Notify("Notification", "Turned off AFK", 5, nil)
     end
-end)
+)
 
-AddCommand({"unremotegun", "unrgun"},{"Disables remote gun"},function(Args, Speaker)
-    RemoteGun = false
-    for _,v in pairs(Player.Character:GetChildren()) do
-        if v:IsA("BasePart") then
-            v.Anchored = false
-        end
-    end
-    for _,v in pairs(Player.Character:GetChildren()) do
-        if v:IsA("Tool") and ToolData[v.Name] then
-            v.Grip = ToolData[v.Name]["Grip"]
-        end
-    end
-    for _,v in pairs(Player.Backpack:GetChildren()) do
-        if v:IsA("Tool") and ToolData[v.Name] then
-            v.Grip = ToolData[v.Name]["Grip"]
-        end
-    end
-end)
-
-AddCommand({"attachgun", "agun"},{"Attaches a gun to the target"},function(Args, Speaker)
-    AttachGunTarget = FindPlayer(Args[1])
-    AttachGun = true
-    RemoteGun = false
-end)
-
-AddCommand({"unattachgun", "unagun"},{"Unattaches the gun from the target"},function(Args, Speaker)
-    AttachGun = false
-    for _,v in pairs(Player.Character:GetChildren()) do
-        if v:IsA("Tool") and ToolData[v.Name] then
-            v.Grip = ToolData[v.Name]["Grip"]
-        end
-    end
-    for _,v in pairs(Player.Backpack:GetChildren()) do
-        if v:IsA("Tool") and ToolData[v.Name] then
-            v.Grip = ToolData[v.Name]["Grip"]
-        end
-    end
-end)
-
-AddCommand({"target"},{"Selects and locks the target"},function(Args, Speaker)
-    local Target = FindPlayer(Args[1])
-    AimbotPlayer = Target
-    GUI.CurrentTargetLabel.Text = "Current Target: " .. Target.Name
-end)
-
-AddCommand({"esp"},{"enables esp"},function(Args, Speaker)
-    local Target = FindPlayer(Args[1])
-    table.insert(ESPPlayers, Target)
-    if PlayerEsp then
-        PlayerEspCreate(Target)
-    end
-end)
-
-AddCommand({"unesp"},{"Disables esp"},function(Args, Speaker)
-    local Target = FindPlayer(Args[1])
-    table.remove(ESPPlayers, Target)
-    local ESPFolder = Target:FindFirstChild("ESP_" .. Target.Name)
-    if ESPFolder then
-        ESPFolder:Destroy()
-    end
-end)
-
-AddCommand({"view"},{"Views the target"},function(Args, Speaker)
-    local Target = FindPlayer(Args[1])
-    local TargetChar = Target.Character
-    workspace.CurrentCamera.CameraSubject = TargetChar
-end)
-
-AddCommand({"unview"},{"Unviews the target"},function(Args, Speaker)
-    workspace.CurrentCamera.CameraSubject = workspace.Live:FindFirstChild(Player.Name)
-end)
-
-AddCommand({"fov"},{"Changes your field of view"},function(Args, Speaker)
-    if Args[1] then
-        Camera.FieldOfView = Args[1]
-    else
-        Camera.FieldOfView = 70
-    end
-end)
-
-AddCommand({"loopattach"},{"Loop attaches your character in to the target"},function(Args, Speaker)
-    local Target = FindPlayer(Args[1])
-    LoopAttach = true
-    local RS
-    RS = game:GetService("RunService").Stepped:Connect(function()
-        if Target and LoopAttach then
-            if Player.Character and Target.Character and Target.Character:FindFirstChild("HumanoidRootPart") then
-                local Character = Player.Character
-                Camera.CameraSubject = Target.Character
-                local Humanoid = Character.Humanoid
-                local Tool = Character:FindFirstChildOfClass("Tool") or Player.Backpack:FindFirstChildOfClass("Tool")
-                Tool.Parent = Character
-                Tool.Grip = CFrame.new(tonumber("inf"), tonumber("inf"), tonumber("inf"))
-                Humanoid:Clone().Parent = Character
-                Humanoid:Destroy()
-                Character.HumanoidRootPart.CFrame = Target.Character.HumanoidRootPart.CFrame
-                if not Tool then
-                    Character.HumanoidRootPart.CFrame = CFrame.new(0, -tonumber("inf"), 0)
+AddCommand(
+    {"autofarm"},
+    {"Enables auto farm"},
+    function(Args, Speaker)
+        Config["AntiAFK"] = true
+        AutoFarm = true
+        Notify("Notification", "Turned on autofarm", 5, nil)
+        local RS
+        RS =
+            game:GetService("RunService").Stepped:Connect(
+            function()
+                if AutoFarm and Player.Character then
+                    local ToGoto
+                    local LastToGoto
+                    for _, v in pairs(workspace.RandomSpawns:GetChildren()) do
+                        if v.Name == "RandomSpawner" then
+                            ToGoto = v.CFrame
+                        end
+                    end
+                    if ToGoto and Player.Character:FindFirstChild("HumanoidRootPart") and not AutoFarmCooldown then
+                        AutoFarmCooldown = true
+                        Teleport(FindRoot(Player.Character), ToGoto)
+                    end
+                else
+                    RS:Disconnect()
                 end
             end
-        else
-            LoopAttach = false
-            RS:Disconnect()
-        end
-    end)
-end)
-
-AddCommand({"unloopattach"},{"Stops loop attaching you"},function(Args, Speaker)
-    LoopAttach = false
-end)
-
-AddCommand({"tpbypass"},{"Changes the teleport method"},function(Args, Speaker)
-    if TPBypass then
-        TPBypass = false
-    else
-        TPBypass = true
+        )
     end
-end)
+)
 
-AddCommand({"fpscap"},{"Changes your fps cap"},function(Args, Speaker)
-    if setfpscap then
+AddCommand(
+    {"unautofarm"},
+    {"Disables auto farm"},
+    function(Args, Speaker)
+        AutoFarm = false
+        AutoFarmCooldown = false
+        Notify("Notification", "Turned off autofarm", 5, nil)
+    end
+)
+
+AddCommand(
+    {"itemesp"},
+    {"Enables item esp"},
+    function(Args, Speaker)
+        Config["ItemEsp"] = true
+        ItemEsp()
+        Notify("Notification", "Turned on itemesp", 5, nil)
+    end
+)
+
+AddCommand(
+    {"unitemesp", "noitemesp"},
+    {"Disables item esp"},
+    function(Args, Speaker)
+        Config["ItemEsp"] = false
+        for _, v in pairs(workspace.RandomSpawns:GetDescendants()) do
+            if v:IsA("BillboardGui") then
+                v:Destroy()
+            end
+        end
+        Notify("Notification", "Turned off itemesp", 5, nil)
+    end
+)
+
+AddCommand(
+    {"sodagun"},
+    {"nil"},
+    function(Args, Speaker)
+    end
+)
+
+AddCommand(
+    {"axe"},
+    {"nil"},
+    function(Args, Speaker)
+    end
+)
+
+AddCommand(
+    {"grabknife"},
+    {"nil"},
+    function(Args, Speaker)
+    end
+)
+
+AddCommand(
+    {"shield", "protect"},
+    {"Loop teleports you infront of the target"},
+    function(Args, Speaker)
+        local Target = FindPlayer(Args[1])
+        Protect = true
+        local RS
+        RS =
+            game:GetService("RunService").Stepped:Connect(
+            function()
+                if Target and Target.Character and Player.Character and Protect then
+                    FindRoot(Player.Character).CFrame =
+                        FindRoot(Target.Character).CFrame + FindRoot(Target.Character).CFrame.LookVector
+                end
+            end
+        )
+    end
+)
+
+AddCommand(
+    {"unshield", "unprotect"},
+    {"Stops loop teleporting you"},
+    function(Args, Speaker)
+        Protect = false
+    end
+)
+
+AddCommand(
+    {"mlmkey", "mouselock"},
+    {"Changes the mouselocks key"},
+    function(Args, Speaker)
         if Args[1] then
-            local FPS = tonumber(Args[1])
-            if FPS < 1000 then
-                Config["FPSCap"] = FPS
-                setfpscap(FPS)
-            end
-        else
-            Config["FPSCap"] = 244
-            setfpscap(244)
+            Player.PlayerScripts.PlayerModule.CameraModule.MouseLockController.BoundKeys.Value = Args[1]
         end
     end
-end)
+)
 
-AddCommand({"gunanim", "gunanimation"},{"Enables gun animations"},function(Args, Speaker)
-    if Args[1] then
-        SelectedGunAnimation = Args[1]
-        Notify("Notification", "Selected gun animation: " .. Args[1], 5, nil)
-    else
-        SelectedGunAnimation = nil
-        Notify("Notification", "Gun animations were removed", 5, nil)
+AddCommand(
+    {"remotegun", "rgun"},
+    {"Enables remote gun"},
+    function(Args, Speaker)
+        RemoteGun = true
+        AttachGun = false
+        FindRoot(Player.Character).CFrame =
+            CFrame.new(FindRoot(Player.Character).Position) * CFrame.fromEulerAnglesXYZ(0, math.rad(-90), 0)
+        for _, v in pairs(Player.Character:GetChildren()) do
+            if v:IsA("BasePart") then
+                v.Anchored = true
+            end
+        end
     end
-end)
+)
 
-AddCommand({"autoplay"},{"Enables autoplay"},function(Args, Speaker)
-    if Args[1] then
-        SongId = Args[1]
-        AutoPlay = not AutoPlay
+AddCommand(
+    {"unremotegun", "unrgun"},
+    {"Disables remote gun"},
+    function(Args, Speaker)
+        RemoteGun = false
+        for _, v in pairs(Player.Character:GetChildren()) do
+            if v:IsA("BasePart") then
+                v.Anchored = false
+            end
+        end
+        for _, v in pairs(Player.Character:GetChildren()) do
+            if v:IsA("Tool") and ToolData[v.Name] then
+                v.Grip = ToolData[v.Name]["Grip"]
+            end
+        end
+        for _, v in pairs(Player.Backpack:GetChildren()) do
+            if v:IsA("Tool") and ToolData[v.Name] then
+                v.Grip = ToolData[v.Name]["Grip"]
+            end
+        end
     end
-end)
+)
 
-AddCommand({"taunt"},{"Taunts"},function(Args, Speaker)
-    local Message = {"When was the last time you went outside, vampire fhag?","Here's 20 cents, call all your friends and give me back the change","You must have been born on a highway, because that's where most accidents happen","Your family tree is a cactus, because everybody on it is aprick",}
-    ReplicatedStorage.DefaultChatSystemChatEvents.SayMessageRequest:FireServer(Message[math.random(#Message)], "All")
-end)
-
-AddCommand({"joke"},{"Makes a joke"},function(Args, Speaker)
-    local Joke = HttpService:JSONDecode(game:HttpGet("https://official-joke-api.appspot.com/random_joke"))
-    local Question = Joke["setup"]
-    local Answer = Joke["punchline"]
-    ReplicatedStorage.DefaultChatSystemChatEvents.SayMessageRequest:FireServer(Question, "All")
-    Spawn(function()
-        Wait(2.5)
-        ReplicatedStorage.DefaultChatSystemChatEvents.SayMessageRequest:FireServer(Answer, "All")
-    end)
-end)
-
-AddCommand({"superpunch", "flingpunch"},{"Makes your punch fling"},function(Args, Speaker)
-    if SelectedTool then
-        SelectedTool.Parent = Player.Character
+AddCommand(
+    {"attachgun", "agun"},
+    {"Attaches a gun to the target"},
+    function(Args, Speaker)
+        AttachGunTarget = FindPlayer(Args[1])
+        AttachGun = true
+        RemoteGun = false
+        for _, v in pairs(Player.Character:GetChildren()) do
+            if v:IsA("Tool") and ToolData[v.Name] then
+                v.Grip = CFrame.new()
+            end
+        end
+        for _, v in pairs(Player.Backpack:GetChildren()) do
+            if v:IsA("Tool") and ToolData[v.Name] then
+                v.Grip = CFrame.new()
+            end
+        end
     end
-    local Punch = Player.Character:FindFirstChild("Punch")
-    if not Punch then
-        Punch = Player.Backpack:FindFirstChild("Punch")
-    end
-    Punch.Parent = Backpack
-    Punch.Grip = CFrame.new(math.pow(math.huge, math.huge) * math.huge, math.pow(math.huge, math.huge) * math.huge, math.pow(math.huge, math.huge) * math.huge)
-    Punch.Parent = Player.Character
-end)
+)
 
-for _,v in pairs(Commands) do
+AddCommand(
+    {"unattachgun", "unagun"},
+    {"Unattaches the gun from the target"},
+    function(Args, Speaker)
+        AttachGun = false
+        for _, v in pairs(Player.Character:GetChildren()) do
+            if v:IsA("Tool") and ToolData[v.Name] then
+                v.Grip = ToolData[v.Name]["Grip"]
+            end
+        end
+        for _, v in pairs(Player.Backpack:GetChildren()) do
+            if v:IsA("Tool") and ToolData[v.Name] then
+                v.Grip = ToolData[v.Name]["Grip"]
+            end
+        end
+    end
+)
+
+AddCommand(
+    {"target"},
+    {"Selects and locks the target"},
+    function(Args, Speaker)
+        local Target = FindPlayer(Args[1])
+        AimbotPlayer = Target
+        GUI.CurrentTargetLabel.Text = "Current Target: " .. Target.Name
+    end
+)
+
+AddCommand(
+    {"find", "track"},
+    {"Enables ESP only for the target"},
+    function(Args, Speaker)
+        local Target = FindPlayer(Args[1])
+        if Target then
+            PlayerEspCreate(Target)
+            Notify("Notification", "Enabled ESP on " .. Target.Name, 5, nil)
+        end
+    end
+)
+
+AddCommand(
+    {"esp"},
+    {"enables esp"},
+    function(Args, Speaker)
+        for _, v in pairs(Players:GetPlayers()) do
+            PlayerEspCreate(v)
+        end
+        Notify("Notification", "Enabled ESP", 5, nil)
+    end
+)
+
+AddCommand(
+    {"unesp"},
+    {"Disables esp"},
+    function(Args, Speaker)
+        --local Target = FindPlayer(Args[1])
+        for _, Target in pairs(Players:GetPlayers()) do
+            table.remove(ESPPlayers, Target)
+            local ESPFolder = Target:FindFirstChild("ESP_" .. Target.Name)
+            if ESPFolder then
+                ESPFolder:Destroy()
+            end
+        end
+        Notify("Notification", "Disabled ESP", 5, nil)
+    end
+)
+
+AddCommand(
+    {"view"},
+    {"Views the target"},
+    function(Args, Speaker)
+        local Target = FindPlayer(Args[1])
+        workspace.CurrentCamera.CameraSubject = Target.Character
+    end
+)
+
+AddCommand(
+    {"unview"},
+    {"Unviews the target"},
+    function(Args, Speaker)
+        workspace.CurrentCamera.CameraSubject = workspace.Live:FindFirstChild(Player.Name)
+    end
+)
+
+AddCommand(
+    {"fov"},
+    {"Changes your field of view"},
+    function(Args, Speaker)
+        if Args[1] then
+            Camera.FieldOfView = Args[1]
+        else
+            Camera.FieldOfView = 70
+        end
+    end
+)
+
+AddCommand(
+    {"loopattach"},
+    {"Loop attaches your character in to the target"},
+    function(Args, Speaker)
+        local Target = FindPlayer(Args[1])
+        LoopAttach = true
+        local RS
+        RS =
+            game:GetService("RunService").Stepped:Connect(
+            function()
+                if Target and LoopAttach then
+                    if Player.Character and Target.Character and Target.Character:FindFirstChild("HumanoidRootPart") then
+                        local Character = Player.Character
+                        Camera.CameraSubject = Target.Character
+                        local Humanoid = Character.Humanoid
+                        local Tool =
+                            Character:FindFirstChildOfClass("Tool") or Player.Backpack:FindFirstChildOfClass("Tool")
+                        Tool.Parent = Character
+                        Humanoid:Clone().Parent = Character
+                        Humanoid:Destroy()
+                        FindRoot(Character).CFrame = FindRoot(Target.Character).CFrame
+                    end
+                else
+                    LoopAttach = false
+                    RS:Disconnect()
+                end
+            end
+        )
+    end
+)
+
+AddCommand(
+    {"unloopattach"},
+    {"Stops loop attaching you"},
+    function(Args, Speaker)
+        LoopAttach = false
+    end
+)
+
+AddCommand(
+    {"tpbypass"},
+    {"Changes the teleport method"},
+    function(Args, Speaker)
+        if TPBypass then
+            TPBypass = false
+        else
+            TPBypass = true
+        end
+    end
+)
+
+AddCommand(
+    {"fpscap"},
+    {"Changes your fps cap"},
+    function(Args, Speaker)
+        if setfpscap then
+            if Args[1] then
+                local FPS = tonumber(Args[1])
+                if FPS < 1000 then
+                    Config["FPSCap"] = FPS
+                    setfpscap(FPS)
+                end
+            else
+                Config["FPSCap"] = 244
+                setfpscap(244)
+            end
+            Notify("Notification", "New FPS Cap is " .. tostring(Config["FPSCap"]), 5, nil)
+        else
+            Notify("Error", "Your exploit doesn't have this function", 5, nil)
+        end
+    end
+)
+
+AddCommand(
+    {"gunanim", "gunanimation"},
+    {"Enables gun animations"},
+    function(Args, Speaker)
+        if Args[1]:lower() == "1" then
+            SelectedGunAnimation = "1"
+            Notify("Notification", "Selected gun animation: 1", 5, nil)
+        elseif Args[1]:lower() == "2" then
+            SelectedGunAnimation = "2"
+            Notify("Notification", "Selected gun animation: 2", 5, nil)
+        else
+            SelectedGunAnimation = nil
+            Notify("Notification", "Gun animations were removed", 5, nil)
+        end
+    end
+)
+
+AddCommand(
+    {"scope", "scopeon"},
+    {"Enables Uzis scope"},
+    function(Args, Speaker)
+        UziScopes = true
+        Notify("Notification", "Enabled Uzis scopes", 5, nil)
+    end
+)
+
+AddCommand(
+    {"noscope", "scopeoff"},
+    {"Disables Uzis scope"},
+    function(Args, Speaker)
+        UziScopes = false
+        Notify("Notification", "Disbaled Uzis scopes", 5, nil)
+    end
+)
+
+AddCommand(
+    {"autoplay"},
+    {"Enables autoplay"},
+    function(Args, Speaker)
+        if Args[1] then
+            SongId = Args[1]
+            AutoPlay = not AutoPlay
+            Notify("Notification", "Enabled Auto Play", 5, nil)
+        else
+            Notify("Error", "Please enter an audio id", 5, nil)
+        end
+    end
+)
+
+AddCommand(
+    {"taunt"},
+    {"Taunts"},
+    function(Args, Speaker)
+        local Message = {
+            "When was the last time you went outside, vampire fhag?",
+            "Here's 20 cents, call all your friends and give me back the change",
+            "You must have been born on a highway, because that's where most accidents happen",
+            "Your family tree is a cactus, because everybody on it is aprick"
+        }
+        ReplicatedStorage.DefaultChatSystemChatEvents.SayMessageRequest:FireServer(
+            Message[math.random(#Message)],
+            "All"
+        )
+    end
+)
+
+AddCommand(
+    {"joke"},
+    {"Makes a joke"},
+    function(Args, Speaker)
+        local Joke = HttpService:JSONDecode(game:HttpGet("https://official-joke-api.appspot.com/random_joke"))
+        local Question = Joke["setup"]
+        local Answer = Joke["punchline"]
+        ReplicatedStorage.DefaultChatSystemChatEvents.SayMessageRequest:FireServer(Question, "All")
+        Spawn(
+            function()
+                Wait(2.5)
+                ReplicatedStorage.DefaultChatSystemChatEvents.SayMessageRequest:FireServer(Answer, "All")
+            end
+        )
+    end
+)
+
+AddCommand(
+    {"superpunch", "flingpunch"},
+    {"Makes your punch fling"},
+    function(Args, Speaker)
+        if SelectedTool then
+            SelectedTool.Parent = Player.Character
+        end
+        local Punch = Player.Character:FindFirstChild("Punch")
+        if not Punch then
+            Punch = Player.Backpack:FindFirstChild("Punch")
+        end
+        Punch.Parent = Backpack
+        Punch.Grip =
+            CFrame.new(
+            math.pow(math.huge, math.huge) * math.huge,
+            math.pow(math.huge, math.huge) * math.huge,
+            math.pow(math.huge, math.huge) * math.huge
+        )
+        Punch.Parent = Player.Character
+    end
+)
+
+for _, v in pairs(Commands) do
     local CommandText = " "
-    for _,v2 in pairs(v.CmdName) do
+    for _, v2 in pairs(v.CmdName) do
         CommandText = CommandText .. v2 .. " "
     end
     local CommandDesc = Instance.new("TextLabel")
@@ -6059,25 +6967,6 @@ local HUD = Player.PlayerGui:WaitForChild("HUD")
 local HPBar = HUD:WaitForChild("HP"):WaitForChild("Bar")
 local KOBar = HUD:WaitForChild("KO"):WaitForChild("Bar")
 local StamBar = HUD:WaitForChild("Stam"):WaitForChild("Bar")
-
-local Crouch = Instance.new("Animation") Crouch.AnimationId = "http://www.roblox.com/item.aspx?id=327855546"
-local Hit1 = Instance.new("Animation") Hit1.AnimationId = "https://www.roblox.com/item.aspx?id=455534850"
-local Hit2 = Instance.new("Animation") Hit2.AnimationId = "https://www.roblox.com/item.aspx?id=455535422"
-local Hit3 = Instance.new("Animation") Hit3.AnimationId = "https://www.roblox.com/item.aspx?id=455535875"
-local Run = Instance.new("Animation") Run.AnimationId = "https://www.roblox.com/item.aspx?id=458506542"
---Run.AnimationId = "https://www.roblox.com/item.aspx?id=376653421"
-local IdleShotty = Instance.new("Animation") IdleShotty.AnimationId = "https://www.roblox.com/item.aspx?id=503285264"
-local IdleGlock = Instance.new("Animation") IdleGlock.AnimationId = "https://www.roblox.com/item.aspx?id=889390949"
-local FireShotty = Instance.new("Animation") FireShotty.AnimationId = "https://www.roblox.com/item.aspx?id=889391270"
-local FireGlock = Instance.new("Animation") FireGlock.AnimationId = "https://www.roblox.com/item.aspx?id=503287783"
-local ReloadGlock = Instance.new("Animation") ReloadGlock.AnimationId = "http://www.roblox.com/item.aspx?id=327869970"
-local ReloadShotty = Instance.new("Animation") ReloadShotty.AnimationId = "http://www.roblox.com/item.aspx?id=327870302"
-
-local GunAnimation1 = Instance.new("Animation") GunAnimation1.AnimationId = "rbxassetid://889968874"
-local GunAnimation2 = Instance.new("Animation") GunAnimation2.AnimationId = "rbxassetid://229339207"
-local IdleAnimation
-local RunAnim = Humanoid:LoadAnimation(Run)
-local CrouchAnim = Humanoid:LoadAnimation(Crouch)
 
 local HealthChangedEvent
 local StaminaChangedEvent
@@ -6108,21 +6997,23 @@ local function BarFadeAnimation()
     table.insert(ToFade, HUD:WaitForChild("KO"):WaitForChild("Bar"))
     table.insert(ToFade, HUD:WaitForChild("Stam"))
     table.insert(ToFade, HUD:WaitForChild("Stam"):WaitForChild("Bar"))
-    for _,v in pairs(ToFade) do
+    for _, v in pairs(ToFade) do
         v.BackgroundTransparency = 0
     end
-    Spawn(function()
-        Wait(2.5)
-        for i = 0, 1, .1 do
-            Wait(.015)
-            for _,v in pairs(ToFade) do
-                v.BackgroundTransparency = i
+    Spawn(
+        function()
+            Wait(2.5)
+            for i = 0, 1, .1 do
+                Wait(.015)
+                for _, v in pairs(ToFade) do
+                    v.BackgroundTransparency = i
+                end
+                FadeCooldown = false
+                LastHealth = Player.Character.Humanoid.Health
+                LastStamina = Stamina.Value
             end
-        FadeCooldown = false
-        LastHealth = Player.Character.Humanoid.Health
-        LastStamina = Stamina.Value
         end
-    end)
+    )
 end
 
 local function BarChanged()
@@ -6133,24 +7024,52 @@ local function BarChanged()
     end
     HealthChangedEvent:Disconnect()
     StaminaChangedEvent:Disconnect()
-    Spawn(function()
-        if Config["FadingUIObjects"] then
-            BarFadeAnimation()
+    Spawn(
+        function()
+            if Config["FadingUIObjects"] then
+                BarFadeAnimation()
+            end
+            HealthChangedEvent = Player.Character.Humanoid.HealthChanged:Connect(BarChanged)
+            StaminaChangedEvent = Stamina.Changed:Connect(BarChanged)
         end
-        HealthChangedEvent = Player.Character.Humanoid.HealthChanged:Connect(BarChanged)
-        StaminaChangedEvent = Stamina.Changed:Connect(BarChanged)
-    end)
+    )
 end
 
 local function HealthChanged()
-    if AutoEat then
+    if AutoHeal then
         if Humanoid.Health < 76 then
             local LastTool = SelectedTool
             if SelectedTool then
                 SelectedTool.Parent = Player.Backpack
             end
-            for i,v in pairs(Player.Backpack:GetChildren()) do
+            for _, v in pairs(Player.Backpack:GetChildren()) do
+                if v.Name == "Burger" or v.Name == "Chicken" then
+                end
+            end
+            for _, v in pairs(Player.Backpack:GetChildren()) do
+                if v.Name == "Drink" then
+                end
+            end
+            for _, v in pairs(Player.Backpack:GetChildren()) do
                 if v.Name == "Burger" and HealthCount < 1 then
+                    HealthCount = HealthCount + i
+                    v.Parent = Player.Character
+                    Wait()
+                    v:Activate()
+                    Wait()
+                    v.Parent = Player.Backpack
+                elseif v.Name == "Chicken" and HealthCount < 1 then
+                    HealthCount = HealthCount + i
+                    v.Parent = Player.Character
+                    Wait()
+                    v:Activate()
+                    Wait()
+                    v.Parent = Player.Backpack
+                end
+            end
+            HealthCount = 0
+            for _, v in pairs(Player.Backpack:GetChildren()) do
+                if v.Name == "Drink" and HealthCount < 1 then
                     HealthCount = HealthCount + i
                     v.Parent = Player.Character
                     Wait()
@@ -6173,56 +7092,64 @@ if AntiCheat then
     AntiCheat:Destroy()
 end
 
-for _,v in pairs(Player.Backpack:GetChildren()) do
+for _, v in pairs(Player.Backpack:GetChildren()) do
     if ToolData[v.Name] then
         v.TextureId = ToolData[v.Name]["TextureId"]
     end
 end
 
-Player.ChildAdded:Connect(function(v)
-    if v.Name == "Backpack" then
-        Spawn(function()
-            Wait(.5)
-            for _,v2 in pairs(v:GetChildren()) do
-                if ToolData[v2.Name] then
-                    v2.TextureId = ToolData[v2.Name]["TextureId"]
+Player.ChildAdded:Connect(
+    function(v)
+        if v.Name == "Backpack" then
+            Spawn(
+                function()
+                    Wait(.5)
+                    for _, v2 in pairs(v:GetChildren()) do
+                        if ToolData[v2.Name] then
+                            v2.TextureId = ToolData[v2.Name]["TextureId"]
+                        end
+                    end
                 end
-            end
-        end)
-    end
-end)
-
-Player.PlayerGui.ChildAdded:Connect(function(v)
-    if v.Name == "LocalScript" then
-        v.Disabled = true
-        Wait()
-        v:Destroy()
-    end
-    if v.Name == "HUD" then
-        CreateAmmoLabel(v)
-        v:WaitForChild("HP"):WaitForChild("Bar").BackgroundColor3 = Color3.fromRGB(184, 21, 21)
-        v:WaitForChild("KO"):WaitForChild("Bar").BackgroundColor3 = Color3.fromRGB(26, 129, 255)
-        v:WaitForChild("Stam"):WaitForChild("Bar").BackgroundColor3 = Color3.fromRGB(114, 213, 71)
-        if Config["FadingUIObjects"] then
-            BarFadeAnimation()
+            )
         end
     end
-end)
+)
+
+Player.PlayerGui.ChildAdded:Connect(
+    function(v)
+        if v.Name == "LocalScript" then
+            v.Disabled = true
+            Wait()
+            v:Destroy()
+        end
+        if v.Name == "HUD" then
+            CreateAmmoLabel(v)
+            v:WaitForChild("HP"):WaitForChild("Bar").BackgroundColor3 = Color3.fromRGB(184, 21, 21)
+            v:WaitForChild("KO"):WaitForChild("Bar").BackgroundColor3 = Color3.fromRGB(26, 129, 255)
+            v:WaitForChild("Stam"):WaitForChild("Bar").BackgroundColor3 = Color3.fromRGB(114, 213, 71)
+            if Config["FadingUIObjects"] then
+                BarFadeAnimation()
+            end
+        end
+    end
+)
 
 local function HumanoidChildAdded(v)
-    Wait()
-    if v:FindFirstChild("Info") then
-        TookDamage = true
-        local Random = math.random(0, 3)
-        if Random == 1 then
-            Animate(Hit1)
-        elseif Random == 2 then
-            Animate(Hit2)
-        else
-            Animate(Hit3)
+    if game.PlaceId == ThePrisonId then
+        Wait()
+        if v:FindFirstChild("Info") then
+            TookDamage = true
+            local Random = math.random(0, 3)
+            if Random == 1 then
+                Animate(Hit1)
+            elseif Random == 2 then
+                Animate(Hit2)
+            else
+                Animate(Hit3)
+            end
+            Wait(0.1)
+            TookDamage = false
         end
-		wait(0.1)
-		TookDamage = false
     end
 end
 
@@ -6250,36 +7177,36 @@ local function CharacterChildAdded(v)
             end
         end
         if AntiClaim then
-            if Player.Backpack:FindFirstChild(v.Name) and not v:FindFirstChild("Safe") then
-                coroutine.wrap(function()
+            Spawn(
+                function()
                     v.Parent = Player.Backpack
                     local StringValue = Instance.new("StringValue")
                     StringValue.Name = "Safe"
                     StringValue.Parent = v
-                end)()
-            end
+                end
+            )
         end
         if SelectedTool and Ammo and SelectedTool:FindFirstChild("Ammo") then
-            SelectedTool.Ammo.Changed:Connect(function()
-                if SelectedTool and Ammo and AmmoLabel then
-                    AmmoLabel.Text = SelectedTool.Ammo.Value .. " Ammo"
+            SelectedTool.Ammo.Changed:Connect(
+                function()
+                    if SelectedTool and Ammo and AmmoLabel then
+                        AmmoLabel.Text = SelectedTool.Ammo.Value .. " Ammo"
+                    end
                 end
-            end)
+            )
             if AmmoLabel then
                 AmmoLabel.Text = SelectedTool.Ammo.Value .. " Ammo"
                 AmmoLabel.Visible = true
             end
         end
-        if v.Name == "Cash" or v.Name == "Fat Cash" then
-            if Config["AutoCash"] then
-                v.Parent = Player.Backpack
-                Wait()
-                v:Activate()
-            end
-        end
         if SelectedTool.Name == "Punch" and Config["SuperPunch"] then
             SelectedTool.Parent = Backpack
-            SelectedTool.Grip = CFrame.new(math.pow(math.huge, math.huge) * math.huge, math.pow(math.huge, math.huge) * math.huge, math.pow(math.huge, math.huge) * math.huge)
+            SelectedTool.Grip =
+                CFrame.new(
+                math.pow(math.huge, math.huge) * math.huge,
+                math.pow(math.huge, math.huge) * math.huge,
+                math.pow(math.huge, math.huge) * math.huge
+            )
             SelectedTool.Parent = Player.Character
         end
     end
@@ -6296,25 +7223,34 @@ local function CharacterChildRemoved(v)
         end
     end
     if v:IsA("Tool") then
-        AmmoLabel.Visible = false
+        if AmmoLabel then
+            AmmoLabel.Visible = false
+        end
     end
-    if SelectedTool ~= nil and SelectedTool.Parent ~= Character then
-        AmmoLabel.Visible = false
+    if SelectedTool ~= nil and SelectedTool.Parent ~= Player.Character then
+        if AmmoLabel then
+            AmmoLabel.Visible = false
+        end
         SelectedTool = nil
     end
 end
 
 local function CharacterDescendantAdded(v)
+    if v.Name == "Bullet" then
+        GunBullet = v
+    end
+    if AttachGun or RemoteGun and ToolData[v.Name] and ToolData[v.Name]["Ammo"] then
+    end
     if not AttachGun and not RemoteGun and ToolData[v.Name] and ToolData[v.Name]["Ammo"] and SelectedGunAnimation ~= nil then
         Wait()
-        if v.Name ~= "Shotty" and v.Name ~= "Sawed Off" or SelectedGunAnimation == "1" then
-			Player.Character.Humanoid:LoadAnimation(GunAnimation1):Play()
-		else
-			local Track = Player.Character.Humanoid:LoadAnimation(GunAnimation2)
-			Track:Play()
-			Wait()
-			Track:AdjustSpeed(0)
-		end 
+        if ToolData[v.Name] ~= "Glock" and SelectedGunAnimation == "1" then
+            Player.Character.Humanoid:LoadAnimation(GunAnimation1):Play()
+        else
+            local Track = Player.Character.Humanoid:LoadAnimation(GunAnimation2)
+            Track:Play()
+            Wait()
+            Track:AdjustSpeed(0)
+        end
     end
     if v.Name == "Bone" and Config["NoKO"] then
         Player.Character.Humanoid.Health = 0
@@ -6331,7 +7267,7 @@ end
 
 local function HumanoidDied()
     if Player.Character:FindFirstChild("HumanoidRootPart") then
-        LastDiedPosition = Player.Character.HumanoidRootPart.CFrame
+        LastDiedPosition = FindRoot(Player.Character).CFrame
     else
         LastDiedPosition = LastDiedPosition
     end
@@ -6342,10 +7278,45 @@ local function HumanoidDied()
     Noclip = false
 end
 
+local function PlayerTouched(v)
+    local TargetCharacter
+    if v.Name == "Right Arm" or v.Name == "Left Arm" or v.Name == "Right Leg" or v.Name == "Left Leg" then
+        TargetCharacter = v.Parent
+    elseif v.Name == "Handle" then
+        TargetCharacter = v.Parent.Parent
+    end
+    if TargetCharacter ~= nil and TargetCharacter ~= Player.Character then
+        if Config["Triggerbot"] then
+            local Target = GetPlayerFromCharacter(TargetCharacter)
+            print(Target.Name, " Attacked you lol")
+            local LastAimbotPlayer = AimbotPlayer
+            AimbotPlayer = Target
+            GUI.CurrentTargetLabel.Text = "Current Target: " .. AimbotPlayer.Name
+            local RS =
+                game:GetService("RunService").Stepped:Connect(
+                function()
+                    if
+                        Config["Triggerbot"] and Target and TargetCharacter and
+                            TargetCharacter:FindFirstChild("Humanoid") and
+                            TargetCharacter.Humanoid.Health > .1
+                     then
+                        Teleport(FindRoot(Player.Character), FindRoot(TargetCharacter).CFrame)
+                    else
+                        AimbotPlayer = LastAimbotPlayer
+                        GUI.CurrentTargetLabel.Text = "Current Target: " .. AimbotPlayer.Name
+                        RS:Disconnect()
+                    end
+                end
+            )
+        end
+    end
+end
+
 HealthChangedEvent = Player.Character.Humanoid.HealthChanged:Connect(BarChanged)
 StaminaChangedEvent = Stamina.Changed:Connect(BarChanged)
 HealthChangedEvent2 = Player.Character.Humanoid.HealthChanged:Connect(HealthChanged)
 local HumanoidDiedEvent = Player.Character.Humanoid.Died:Connect(HumanoidDied)
+local PlayerTouchedEvent = FindRoot(Player.Character).Touched:Connect(PlayerTouched, v)
 local CharacterChildAddedEvent = Player.Character.ChildAdded:Connect(CharacterChildAdded, v)
 local HumanoidChildAddedEvent = Player.Character.Humanoid.ChildAdded:Connect(BackpackChildAdded, v)
 local BackpackChildAddedEvent = Player.Backpack.ChildAdded:Connect(BackpackChildAdded, v)
@@ -6353,77 +7324,1060 @@ local CharacterChildRemovedEvent = Player.Character.ChildRemoved:Connect(Charact
 local CharacterDescendantAddedEvent = Player.Character.DescendantAdded:Connect(CharacterDescendantAdded, v)
 local CharacterDescendantRemovingEvent = Player.Character.DescendantRemoving:Connect(CharacterDescendantRemoving, v)
 
-
-Player.CharacterAdded:Connect(function(Character)
-    if Config["GodMode"] then
+Player.CharacterAdded:Connect(
+    function(Character)
+        if Config["GodMode"] then
+            if game.PlaceId == ThePrisonId then
+                Character:WaitForChild("Right Leg"):Destroy()
+            end
+            for _, v in pairs(Character:GetChildren()) do
+                if v:IsA("NumberValue") then
+                    v:Destroy()
+                end
+            end
+        end
         if game.PlaceId == ThePrisonId then
-            Character:WaitForChild("Right Leg"):Destroy()
+            FindRoot(Character).CFrame = CFrame.new(LastDiedPosition.X, 3.25, LastDiedPosition.Z)
         end
-        for _,v in pairs(Character:GetChildren()) do
-            if v:IsA("NumberValue") then
-                v:Destroy()
+        GUI.NoclippingLabel.Text = "Noclip: false"
+        Noclip = false
+        Flying = false
+        Cooldown = false
+        Character:WaitForChild("Humanoid")
+        if AutoPlay then
+            local Boombox = Player.Backpack:FindFirstChild("BoomBox")
+            if BoomBox then
+                Boombox.Parent = Character
+                BoomBox:FindFirstChild("RemoteEvent"):FireServer("play", SongId)
+                Wait()
+                Boombox.Parent = Player.Backpack
+            else
+                Notify("Error", "No boombox was found", 5, nil)
             end
         end
-    end
-    if game.PlaceId == ThePrisonId then
-        local RootPart = Character:WaitForChild("HumanoidRootPart") or Character:FindFirstChild("Torso")
-        RootPart.CFrame = CFrame.new(LastDiedPosition.X, 3.25, LastDiedPosition.Z)
-    end
-    GUI.NoclippingLabel.Text = "Noclip: false"
-    Noclip = false
-    Flying = false
-    Cooldown = false
-    Character:WaitForChild("Humanoid")
-    if AutoPlay then
-        PlayAudio(SongId)
-    end
-    RunAnim = Character.Humanoid:LoadAnimation(Run)
-    CrouchAnim = Character.Humanoid:LoadAnimation(Crouch)
-    if game.PlaceId == TheStreetsId then
-        Stamina = Player.Character:WaitForChild("Stamina")
-    else
-        local ServerTraits = Player.Backpack:WaitForChild("ServerTraits")
-        if ServerTraits then
-            Stamina = ServerTraits:WaitForChild("Stann")
-        end
-    end
-    LastHealth = Character.Humanoid.Health
-    LastStamina = Stamina.Value
-
-    HealthChangedEvent:Disconnect()
-    StaminaChangedEvent:Disconnect()
-    HealthChangedEvent2:Disconnect()
-    HumanoidDiedEvent:Disconnect()
-    HumanoidChildAddedEvent:Disconnect()
-    BackpackChildAddedEvent:Disconnect()
-    CharacterChildAddedEvent:Disconnect()
-    CharacterChildRemovedEvent:Disconnect()
-    CharacterDescendantAddedEvent:Disconnect()
-    CharacterDescendantRemovingEvent:Disconnect()
-
-    HealthChangedEvent = Player.Character.Humanoid.HealthChanged:Connect(BarChanged)
-    StaminaChangedEvent = Stamina.Changed:Connect(BarChanged)
-    HealthChangedEvent2 = Character.Humanoid.HealthChanged:Connect(HealthChanged)
-    HumanoidDiedEvent = Character.Humanoid.Died:Connect(HumanoidDied)
-    HumanoidChildAddedEvent = Character.Humanoid.ChildAdded:Connect(HumanoidChildAdded, v)
-    BackpackChildAddedEvent = Player.Backpack.ChildAdded:Connect(BackpackChildAdded, v)
-    CharacterChildAddedEvent = Character.ChildAdded:Connect(CharacterChildAdded, v)
-    CharacterChildRemovedEvent = Character.ChildRemoved:Connect(CharacterChildRemoved, v)
-    CharacterDescendantAddedEvent = Character.DescendantAdded:Connect(CharacterDescendantAdded, v)
-    CharacterDescendantRemovingEvent = Character.DescendantRemoving:Connect(CharacterDescendantRemoving, v)
-    
-    if Config["AutoSort"] then
-        for _,v in pairs(Player.Backpack:GetChildren()) do
-            if v:IsA("Tool") then
-                v.Parent = SavedInstances
+        RunAnim = Character.Humanoid:LoadAnimation(Run)
+        CrouchAnim = Character.Humanoid:LoadAnimation(Crouch)
+        if game.PlaceId == TheStreetsId then
+            Stamina = Player.Character:WaitForChild("Stamina")
+        else
+            local ServerTraits = Player.Backpack:WaitForChild("ServerTraits")
+            if ServerTraits then
+                Stamina = ServerTraits:WaitForChild("Stann")
             end
         end
-        for _,v in ipairs(Settings["ItemSortTable"]) do
-            for _,v2 in pairs(SavedInstances:GetChildren()) do
-                if v2:IsA("Tool") then
-                    if v2.Name == v then
-                        v2.Parent = Player.Backpack
+        LastHealth = Character.Humanoid.Health
+        LastStamina = Stamina.Value
+
+        HealthChangedEvent:Disconnect()
+        StaminaChangedEvent:Disconnect()
+        HealthChangedEvent2:Disconnect()
+        HumanoidDiedEvent:Disconnect()
+        PlayerTouchedEvent:Disconnect()
+        HumanoidChildAddedEvent:Disconnect()
+        BackpackChildAddedEvent:Disconnect()
+        CharacterChildAddedEvent:Disconnect()
+        CharacterChildRemovedEvent:Disconnect()
+        CharacterDescendantAddedEvent:Disconnect()
+        CharacterDescendantRemovingEvent:Disconnect()
+
+        HealthChangedEvent = Character.Humanoid.HealthChanged:Connect(BarChanged)
+        StaminaChangedEvent = Stamina.Changed:Connect(BarChanged)
+        HealthChangedEvent2 = Character.Humanoid.HealthChanged:Connect(HealthChanged)
+        HumanoidDiedEvent = Character.Humanoid.Died:Connect(HumanoidDied)
+        PlayerTouchedEvent = FindRoot(Character).Touched:Connect(PlayerTouched, v)
+        HumanoidChildAddedEvent = Character.Humanoid.ChildAdded:Connect(HumanoidChildAdded, v)
+        BackpackChildAddedEvent = Player.Backpack.ChildAdded:Connect(BackpackChildAdded, v)
+        CharacterChildAddedEvent = Character.ChildAdded:Connect(CharacterChildAdded, v)
+        CharacterChildRemovedEvent = Character.ChildRemoved:Connect(CharacterChildRemoved, v)
+        CharacterDescendantAddedEvent = Character.DescendantAdded:Connect(CharacterDescendantAdded, v)
+        CharacterDescendantRemovingEvent = Character.DescendantRemoving:Connect(CharacterDescendantRemoving, v)
+
+        if Config["AutoSort"] then
+            for _, v in pairs(Player.Backpack:GetChildren()) do
+                if v:IsA("Tool") then
+                    v.Parent = SavedInstances
+                end
+            end
+            for _, v in ipairs(Config["ItemSortTable"]) do
+                for _, v2 in pairs(SavedInstances:GetChildren()) do
+                    if v2:IsA("Tool") then
+                        if v2.Name == v then
+                            v2.Parent = Player.Backpack
+                        end
                     end
+                end
+            end
+        end
+    end
+)
+
+Player.DescendantAdded:Connect(
+    function(v)
+        if Config["AutoCash"] then
+            if v:IsA("Tool") and v.Name == "Cash" or v.Name == "Fat Cash" then
+                local LastTool = SelectedTool
+                if SelectedTool then
+                    SelectedTool.Parent = Player.Backpack
+                end
+                Wait(.05)
+                v.Parent = Player.Character
+                Wait(.05)
+                v:Activate()
+                Wait()
+                if LastTool then
+                    LastTool.Parent = Player.Character
+                end
+            end
+        end
+    end
+)
+
+Mouse.Idle:Connect(
+    function()
+        local Target = Mouse.Target
+        if Target and Target:FindFirstChild("ClickDetector") then
+            Mouse.Icon = "rbxgameasset://Images/MouseCIon"
+            return
+        end
+        Mouse.Icon = ""
+    end
+)
+
+workspace.ChildAdded:Connect(
+    function(v)
+        ItemEsp()
+        if v.Name == "RandomSpawner" then
+            Spawn(
+                function()
+                    Wait(2)
+                    v.Parent = RandomSpawnsHolder
+                end
+            )
+        end
+    end
+)
+
+workspace.Live.DescendantAdded:Connect(
+    function(v)
+        if v.Name == "Bullet" then
+            if v.Parent.Parent.Name ~= "Humanoid" then
+                TriggerbotBullet = v
+            end
+        end
+    end
+)
+
+workspace.DescendantAdded:Connect(
+    function(v)
+        if v.Name == "Bullet" then
+            if GunBullet ~= nil and (v == GunBullet) then
+                if GunBullet.Parent.Parent.Name == "Humanoid" then
+                    if Config["HitCrosshairIcon"] ~= "" then
+                        Mouse.Icon = Config["HitCrosshairIcon"]
+                        Spawn(
+                            function()
+                                Wait(1)
+                                Mouse.Icon = Config["CrosshairIcon"]
+                            end
+                        )
+                    end
+                    if Config["HitmarkerSound"] ~= "None" then
+                        local S = Instance.new("Sound")
+                        S.Parent = v
+                        S.SoundId = "rbxassetid://4491275997"
+                        S.PlayOnRemove = true
+                        S.Volume = 3
+                        S:Destroy()
+                    end
+                end
+            end
+        end
+        if v:IsA("Seat") then
+            if NoSeats then
+                v.Parent = SavedInstances
+            else
+                v.Parent = SeatsHolder
+            end
+        end
+        if Config["GodMode"] then
+            if v.Name == Player.Name then
+                for _, v in pairs(v:GetDescendants()) do
+                    if v:IsA("NumberValue") then
+                        v:Destroy()
+                    end
+                end
+            end
+        end
+        if Config["Triggerbot"] then
+            if TriggerbotBullet ~= nil and v == TriggerbotBullet and v.Parent.Parent.Parent.Name == Player.Name then
+                local Target = GetPlayerFromCharacter(v.Parent.Parent)
+                print(Target.Name, " Attacked you lol")
+                local LastAimbotPlayer = AimbotPlayer
+                AimbotPlayer = Target
+                GUI.CurrentTargetLabel.Text = "Current Target: " .. AimbotPlayer.Name
+                local RS =
+                    game:GetService("RunService").Stepped:Connect(
+                    function()
+                        if
+                            Config["Triggerbot"] and Target and Target.Character and
+                                Target.Character:FindFirstChild("Humanoid") and
+                                Target.Character.Humanoid.Health > .1
+                         then
+                            Teleport(FindRoot(Player.Character), FindRoot(Target.Character).CFrame)
+                        else
+                            AimbotPlayer = LastAimbotPlayer
+                            GUI.CurrentTargetLabel.Text = "Current Target: " .. AimbotPlayer.Name
+                            RS:Disconnect()
+                        end
+                    end
+                )
+            end
+        end
+        if v:IsA("Trail") and v.Name == "Trail" then
+            if Config["BulletTracers"] then
+                local Colors = Config["BulletTracersColor"]:split(",")
+                v.Color = ColorSequence.new(Color3.fromRGB(Colors[1], Colors[2], Colors[3]))
+                v.Lifetime = 5
+                game:GetService("Debris"):AddItem(BulletTracer, 5)
+            end
+        end
+        if Config["HideSprays"] then
+            if v:IsA("Part") and v.Name:find("Spray") then
+                Spawn(
+                    function()
+                        Wait(.05)
+                        v:Destroy()
+                    end
+                )
+            end
+        end
+    end
+)
+
+Player.Idled:Connect(
+    function()
+        if AFK then
+            VirtualUser:CaptureController()
+            VirtualUser:ClickButton2(Vector2.new())
+        end
+    end
+)
+
+Players.PlayerAdded:Connect(
+    function(plr)
+        plr.CharacterAdded:Connect(
+            function(v)
+                if game.PlaceId == ThePrisonId then
+                    v.Parent = Live
+                end
+            end
+        )
+        if Blacklisted[plr.UserId] then
+            plr.CharacterAdded:Connect(
+                function(char)
+                    NameEspCreate(plr)
+                end
+            )
+        end
+        if Admins[plr.UserId] then --and Admins[plr.UserId] ~= Player then
+            plr.CharacterAdded:Connect(
+                function(char)
+                    NameEspCreate(plr)
+                end
+            )
+        end
+    end
+)
+
+Players.PlayerRemoving:Connect(
+    function(plr)
+        if plr == Player then
+            SaveFile()
+            plr.CharacterAdded:Connect(
+                function(char)
+                    FindRoot(char).CFrame = LastDiedPosition
+                end
+            )
+        end
+    end
+)
+
+Player.Chatted:Connect(
+    function(Message)
+        local CmdPrefix = string.sub(Message, 1, 1)
+        if CmdPrefix == string.char(Enum.KeyCode[Config["PrefixKey"]].Value) then
+            Message = string.sub(Message, 2)
+            local Args = {}
+            for v in string.gmatch(Message, "[^%s]+") do
+                table.insert(Args, v)
+            end
+            local Command = FindCommand(table.remove(Args, 1))
+            if Command then
+                if Player.PlayerGui:FindFirstChild("LocalScript") then
+                    Player.PlayerGui["LocalScript"].Disabled = true
+                    Player.PlayerGui["LocalScript"]:Destroy()
+                end
+                Wait()
+                Command.CmdFunction(Args, Player)
+            end
+        end
+        if Admins[Player.UserId] then
+            local CmdPrefix = string.sub(Message, 1, 1)
+            if CmdPrefix == string.char(Enum.KeyCode[Config["PrefixKey"]].Value) then
+                Message = string.sub(Message, 2)
+                local Args = {}
+                for v in string.gmatch(Message, "[^%s]+") do
+                    table.insert(Args, v)
+                end
+                local Command = table.remove(Args, 1)
+                for _, v in pairs(AdminCommands) do
+                    if v then
+                        if v.Name == Command:lower() then
+                            Command["Function"](Args[1], table.concat(Args, " "))
+                        end
+                    end
+                end
+            end
+        end
+    end
+)
+
+UIS.InputBegan:Connect(
+    function(Input, GameProcess)
+        if Recording and RecordButton ~= nil then
+            RecordButton.Text = Input.KeyCode.Name
+            UpdateKeyBoxes()
+            Recording = false
+            RecordButton = nil
+        else
+            Recording = false
+        end
+        if Input.KeyCode == Enum.KeyCode.LeftControl then
+            CrouchAnim:Play(0.1, 1, 1)
+            Keys["Control"] = true
+            if game.PlaceId == ThePrisonId then
+                Player.Backpack.ServerTraits.Crouch:FireServer(true)
+            end
+        end
+        if Input.KeyCode == Enum.KeyCode.LeftShift then
+            Keys["Shift"] = true
+        end
+        if GameProcess then
+            return
+        end
+        for i, v in pairs(Config["Binds"]) do
+            if
+                Input.UserInputType == Enum.UserInputType.Keyboard and
+                    v.Key:lower() == tostring(Input.KeyCode.Name):lower()
+             then
+                local Command = FindCommand(v.Command)
+                if Command then
+                    local Args = {}
+                    Command.CmdFunction(Args, Player)
+                end
+            end
+        end
+        if Input.KeyCode.Name == Config["SelectTargetKey"] then
+            local MouseTarget = Mouse.Target
+            if MouseTarget then
+                local TargetCharacter
+                if MouseTarget:IsA("Part") and MouseTarget.Name ~= "Handle" or MouseTarget:IsA("Accessory") then
+                    TargetCharacter = MouseTarget.Parent
+                elseif MouseTarget.Name == "Handle" then
+                    TargetCharacter = MouseTarget.Parent.Parent
+                elseif MouseTarget.Name == "Roblex" and MouseTarget:IsA("Model") then
+                    TargetCharacter = MouseTarget.Parent.Parent
+                else
+                    TargetCharacter = MouseTarget.Parent
+                end
+                if TargetCharacter:FindFirstChild("Humanoid") then
+                    AimbotPlayer = Players:GetPlayerFromCharacter(TargetCharacter)
+                    GUI.CurrentTargetLabel.Text = "Current Target: " .. AimbotPlayer.Name
+                end
+            end
+        end
+        if Input.KeyCode.Name == Config["AimbotKey"] then
+            if Aimbot then
+                GUI.AimbottingLabel.Text = "Aimbot: false"
+                Aimbot = false
+            else
+                GUI.AimbottingLabel.Text = "Aimbot: true"
+                Aimbot = true
+            end
+        end
+        if Input.KeyCode.Name == Config["PlayerESPKey"] then
+            if PlayerEsp then
+                for _, v in pairs(Players:GetPlayers()) do
+                    if v.Character then
+                        local ESPFolder = v.Character:FindFirstChild("ESPFolder" .. v.Name)
+                        if ESPFolder then
+                            ESPFolder:Destroy()
+                        end
+                    end
+                end
+                PlayerEsp = false
+            else
+                for _, v in pairs(ESPPlayers) do
+                    if v.Character then
+                        PlayerEspCreate(v)
+                    end
+                end
+                PlayerEsp = true
+            end
+        end
+        if Input.KeyCode.Name == Config["PrefixKey"] then
+            GUI.CommandBarFrame.Visible = true
+            GUI.CommandBarBox:CaptureFocus()
+        end
+        if Input.KeyCode.Name == Config["MenuKey"] then
+            if Hidden then
+                Hidden = false
+                GUI.MainFrame.Visible = true
+            else
+                Hidden = true
+                GUI.MainFrame.Visible = false
+            end
+        end
+        if Airwalk then
+            if Input.KeyCode == Enum.KeyCode.E then
+                HeightValue = HeightValue + .5
+            end
+            if Input.KeyCode == Enum.KeyCode.Q then
+                HeightValue = HeightValue - .5
+            end
+        end
+        if Input.KeyCode == Enum.KeyCode.E then
+            Keys["E"] = true
+            for i = 1, 3 do
+                Wait(.05)
+                if not Keys["E"] then
+                    break
+                end
+            end
+            if Keys["E"] then
+                if game.PlaceId == TheStreetsId then
+                    Player.Backpack.Input:FireServer("drag", {})
+                else
+                    Player.Backpack.ServerTraits.Drag:FireServer(true)
+                end
+            else
+                Stomp()
+                if Config["StompSpam"] then
+                    for i = 1, 30 do
+                        Stomp()
+                    end
+                end
+            end
+        end
+        if Input.UserInputType == Enum.UserInputType.MouseButton2 then
+            Keys["Mouse2"] = true
+        end
+        if Input.UserInputType == Enum.UserInputType.MouseButton1 then
+            Keys["Mouse1"] = true
+            if SelectedTool then
+                if AttachGun or RemoteGun then
+                    local LastTool = SelectedTool
+                    SelectedTool.Parent = Player.Backpack
+                    Wait()
+                    LastTool.Parent = Player.Character
+                end
+                Attack()
+            else
+                local MouseTarget = Mouse.Target
+                if MouseTarget and MouseTarget:FindFirstChild("ClickDetector") then
+                    local Door = MouseTarget.Parent
+                    local Locker = Door:FindFirstChild("Locker")
+                    local Lock = Door:FindFirstChild("Lock")
+                    local Click = Door:FindFirstChild("Click")
+                    if Config["AutoUnlock"] then
+                        if Locker and Lock then
+                            if Locker.Value == true then
+                                local r2 =
+                                    Lock:FindFirstChildOfClass("ClickDetector"):FindFirstChildOfClass("RemoteEvent")
+                                if r2 then
+                                    r2:FireServer()
+                                    if Click then
+                                        local OpenEvent =
+                                            Click:FindFirstChild("ClickDetector"):FindFirstChild("RemoteEvent")
+                                        if OpenEvent then
+                                            OpenEvent:FireServer()
+                                        end
+                                    end
+                                end
+                            end
+                        end
+                    end
+                    if MouseTarget.ClickDetector:FindFirstChild("RemoteEvent") then
+                        if MouseTarget ~= Click:FindFirstChild("ClickDetector"):FindFirstChild("RemoteEvent") then
+                            MouseTarget.ClickDetector.RemoteEvent:FireServer()
+                        end
+                    end
+                    if Config["AutoLock"] then
+                        if Locker and Lock then
+                            if Locker.Value == false then
+                                local r = Lock:FindFirstChild("ClickDetector"):FindFirstChild("RemoteEvent")
+                                r:FireServer()
+                            end
+                        end
+                    end
+                    if MouseTarget.Name == "Peep" then
+                        Camera.CameraType = "Scriptable"
+                        Camera.CoordinateFrame =
+                            CFrame.new(
+                            MouseTarget.Position + MouseTarget.CFrame.lookVector * 0.5,
+                            MouseTarget.Position + MouseTarget.CFrame.lookVector * 2 - Vector3.new(0, 0.5, 0)
+                        )
+                        Camera.FieldOfView = 120
+                        ReturnCam()
+                    end
+                end
+            end
+        end
+        if Input.KeyCode == Enum.KeyCode.W then
+            Keys["W"] = true
+        end
+        if Input.KeyCode == Enum.KeyCode.A then
+            Keys["A"] = true
+        end
+        if Input.KeyCode == Enum.KeyCode.D then
+            Keys["D"] = true
+        end
+        if Input.KeyCode == Enum.KeyCode.S then
+            if not Config["NoStop"] then
+                Keys["S"] = true
+                RunAnim:Stop()
+                Running = false
+            end
+        end
+        if Input.KeyCode == Enum.KeyCode.Space then
+            Keys["Space"] = true
+        end
+        if Flying then
+            if Input.KeyCode == Enum.KeyCode.W then
+                Control.F = Config["FlySpeed"]
+            elseif Input.KeyCode == Enum.KeyCode.S then
+                Control.B = -Config["FlySpeed"]
+            elseif Input.KeyCode == Enum.KeyCode.A then
+                Control.L = -Config["FlySpeed"]
+            elseif Input.KeyCode == Enum.KeyCode.D then
+                Control.R = Config["FlySpeed"]
+            end
+        end
+    end
+)
+
+UIS.InputEnded:Connect(
+    function(Input, GameProcess)
+        if Input.KeyCode == Enum.KeyCode.LeftShift then
+            Keys["Shift"] = false
+        end
+        if Input.KeyCode == Enum.KeyCode.LeftControl then
+            Keys["Control"] = false
+            CrouchAnim:Stop()
+            if game.PlaceId == ThePrisonId then
+                Player.Backpack.ServerTraits.Crouch:FireServer(true)
+            end
+        end
+        if Sliding and Input.UserInputType == Enum.UserInputType.MouseButton1 then
+            Sliding = false
+            SliderButton = nil
+            Slider = nil
+            SliderData = nil
+        end
+        if GameProcess then
+            return
+        end
+        if Input.UserInputType == Enum.UserInputType.MouseButton1 then
+            if
+                SelectedTool ~= nil and SelectedTool:FindFirstChild("Ammo") and
+                    Input.UserInputType == Enum.UserInputType.Touch
+             then
+                return
+            end
+            if game.PlaceId == TheStreetsId then
+                Player.Backpack.Input:FireServer(
+                    "moff1",
+                    {
+                        mousehit = Mouse.Hit,
+                        shift = Keys["Shift"],
+                        velo = FindRoot(Player.Character).Position.magnitude
+                    }
+                )
+            end
+        end
+        if Input.KeyCode == Enum.KeyCode.E then
+            if game.PlaceId == TheStreetsId then
+                Player.Backpack.Input:FireServer("dragoff", {})
+            else
+                if Player.Character:FindFirstChild("Dragging") then
+                    Player.Backpack.ServerTraits.Drag:FireServer(false)
+                    if SelectedTool then
+                        local LastTool = SelectedTool
+                        SelectedTool.Parent = Player.Backpack
+                        LastTool.Parent = Player.Character
+                    end
+                end
+            end
+            Keys["E"] = false
+        end
+        if Input.KeyCode == Enum.KeyCode.W then
+            Keys["W"] = false
+        end
+        if Input.KeyCode == Enum.KeyCode.A then
+            Keys["A"] = false
+        end
+        if Input.KeyCode == Enum.KeyCode.D then
+            Keys["D"] = false
+        end
+        if Input.KeyCode == Enum.KeyCode.S then
+            Keys["S"] = false
+        end
+        if Input.KeyCode == Enum.KeyCode.Space then
+            Keys["Space"] = false
+        end
+        if Input.UserInputType == Enum.UserInputType.MouseButton1 then
+            Keys["Mouse1"] = false
+        end
+        if Input.UserInputType == Enum.UserInputType.MouseButton2 then
+            Keys["Mouse2"] = false
+        end
+        if Airwalk then
+            if Input.KeyCode == Enum.KeyCode.E then
+                HeightValue = HeightValue - .5
+            end
+            if Input.KeyCode == Enum.KeyCode.Q then
+                HeightValue = HeightValue + .5
+            end
+        end
+        if Flying then
+            if Input.KeyCode == Enum.KeyCode.W then
+                Control.F = 0
+            elseif Input.KeyCode == Enum.KeyCode.S then
+                Control.B = -0
+            elseif Input.KeyCode == Enum.KeyCode.A then
+                Control.L = -0
+            elseif Input.KeyCode == Enum.KeyCode.D then
+                Control.R = 0
+            end
+        end
+    end
+)
+
+local LastIteration, Start
+local FrameUpdateTable = {}
+
+RunService.RenderStepped:Connect(
+    function(Delta)
+        if Sliding then
+            local MousePosition = UIS:GetMouseLocation().X
+            local ButtonPosition = SliderButton.Position
+            local SliderPosition = Slider.AbsolutePosition.X
+            local SliderSize = Slider.AbsoluteSize.X
+            local Position = (MousePosition - SliderPosition) / SliderSize
+            local Percentage = math.clamp(Position, 0, 1)
+            SliderData.Text = math.floor(Percentage * PercentageAmount)
+            UpdateSliderInfo(Slider, tonumber(SliderData.Text))
+            SliderButton.Position = UDim2.new(Percentage, 0, ButtonPosition.Y.Scale, ButtonPosition.Y.Offset)
+        end
+        HumanoidRootPart = FindRoot(Player.Character)
+        if Player.Character and Player.Character.Humanoid and HumanoidRootPart and Config["Blink"] and Keys["Shift"] then
+            Player.Character.Humanoid.WalkSpeed = 0
+            Player.Character.Humanoid.JumpPower = 0
+            if Keys["W"] then
+                HumanoidRootPart.CFrame = HumanoidRootPart.CFrame * CFrame.new(0, 0, -Config["BlinkSpeed"])
+            end
+            --[[
+        if Keys["A"] then
+    		HumanoidRootPart.CFrame = HumanoidRootPart.CFrame * CFrame.new(-Config["BlinkSpeed"], 0, 0)
+    	end
+        if Keys["S"] then
+    		HumanoidRootPart.CFrame = HumanoidRootPart.CFrame * CFrame.new(0, 0, Config["BlinkSpeed"])
+    	end
+        if Keys["D"] then
+    		HumanoidRootPart.CFrame = HumanoidRootPart.CFrame * CFrame.new(Config["BlinkSpeed"], 0 ,0)
+        end
+        --]]
+            if Keys["Space"] then
+                HumanoidRootPart.CFrame = HumanoidRootPart.CFrame * CFrame.new(0, Config["BlinkSpeed"] / 2, 0)
+            end
+        end
+        LastIteration = os.clock()
+        for Index = #FrameUpdateTable, 1, -1 do
+            FrameUpdateTable[Index + 1] =
+                (FrameUpdateTable[Index] >= LastIteration - 1) and FrameUpdateTable[Index] or nil
+        end
+        FrameUpdateTable[1] = LastIteration
+        local CurrentFPS = (os.clock() - Start >= 1 and #FrameUpdateTable) or (#FrameUpdateTable / (os.clock() - Start))
+        CurrentFPS = math.floor(CurrentFPS)
+        if not Ping then
+            Ping = 0
+        end
+        GUI.WatermarkDataLabel.Text =
+            "Identification | " ..
+            Market:GetProductInfo(game.PlaceId).Name ..
+                " | fps: " .. tostring(CurrentFPS):sub(1, 3) .. " | ping: " .. Ping .. "ms"
+        StarterGui:SetCore("ResetButtonCallback", true)
+        local HumSpeed
+        local function StartRun()
+            if not Config["NoStop"] then
+                if game.PlaceId == TheStreetsId then
+                    local Stamina = Player.Character:FindFirstChild("Stamina")
+                    if Stamina then
+                        if Stamina.Value > 0 then
+                            if Config["RunSpeedMod"] then
+                                HumSpeed = Config["RunSpeed"]
+                            else
+                                HumSpeed = 24
+                            end
+                            if not Running and HumanoidRootPart.Velocity.magnitude > 2 then
+                                Running = true
+                                RunAnim:Play(0.1, 1, 1.2)
+                            elseif Running and HumanoidRootPart.Velocity.magnitude < 2 then
+                                RunAnim:Stop()
+                                Running = false
+                            end
+                        else
+                            RunAnim:Stop()
+                        end
+                    end
+                else
+                    if
+                        Player.Backpack:FindFirstChild("ServerTraits") and
+                            Player.Backpack.ServerTraits:FindFirstChild("Stann")
+                     then
+                        if Player.Backpack.ServerTraits:FindFirstChild("Stann").Value > 0 then
+                            if Config["RunSpeedMod"] then
+                                HumSpeed = Config["RunSpeed"]
+                            else
+                                HumSpeed = 24
+                            end
+                            if not Running and HumanoidRootPart.Velocity.magnitude > 2 then
+                                Running = true
+                                RunAnim:Play(0.1, 1, 1.2)
+                            elseif Running and HumanoidRootPart.Velocity.magnitude < 2 then
+                                RunAnim:Stop()
+                                Running = false
+                            end
+                        else
+                            RunAnim:Stop()
+                        end
+                    end
+                end
+            else
+                if Config["RunSpeedMod"] then
+                    HumSpeed = Config["RunSpeed"]
+                else
+                    HumSpeed = 24
+                end
+                if not Running and HumanoidRootPart.Velocity.magnitude > 2 then
+                    Running = true
+                    RunAnim:Play(0.1, 1, 1.2)
+                elseif Running and HumanoidRootPart.Velocity.magnitude < 2 then
+                    RunAnim:Stop()
+                    Running = false
+                end
+            end
+        end
+        if Config["JumpPowerMod"] then
+            Player.Character.Humanoid.JumpPower = Config["JumpPower"]
+        else
+            Player.Character.Humanoid.JumpPower = 37.5
+        end
+        if not Config["NoStop"] then
+            if Player.Character then
+                if Player.Character:FindFirstChild("Stamina") then
+                    if Player.Character:FindFirstChild("Stamina").Value < 0 then
+                        Player.Character.Humanoid.Jump = false
+                    end
+                else
+                    if
+                        Player.Backpack:FindFirstChild("ServerTraits") and
+                            Player.Backpack.ServerTraits:FindFirstChild("Stann")
+                     then
+                        if Player.Backpack.ServerTraits.Stann.Value < 0 then
+                            Player.Character.Humanoid.JumpPower = 0
+                        end
+                    end
+                end
+            end
+        end
+        if Config["WalkSpeedMod"] then
+            HumSpeed = Config["WalkSpeed"]
+        else
+            HumSpeed = 16
+        end
+        if Player.Character.Humanoid.Sit and not Player.Character.Humanoid.PlatformStand then
+            Player.Character.Humanoid.AutoRotate = false
+        else
+            Player.Character.Humanoid.AutoRotate = true
+        end
+        if Keys["Shift"] and not Keys["S"] and Player.Character and HumanoidRootPart then
+            StartRun()
+        elseif Running then
+            Running = false
+            RunAnim:Stop()
+        end
+        if Keys["Control"] or Crouching then
+            if Config["CrouchSpeedMod"] then
+                HumSpeed = Config["CrouchSpeed"]
+            else
+                HumSpeed = 8
+            end
+            CrouchAnim:AdjustSpeed(HumanoidRootPart.Velocity.magnitude / 10)
+        end
+        if game.PlaceId == ThePrisonId then
+            if TookDamage and not Config["NoStop"] then
+                HumSpeed = 2
+            end
+            if Player.Character:FindFirstChild("Action") then
+                if not Config["NoStop"] then
+                    HumSpeed = 0
+                end
+            end
+        end
+        if game.PlaceId == TheStreetsId then
+            if TagSystem.has(Player.Character, "creator") then
+                HumSpeed = 2
+            end
+            if TagSystem.has(Player.Character, "action") or TagSystem.has(Player.Character, "Action") then
+                if not Config["NoStop"] then
+                    HumSpeed = 0
+                end
+            end
+        end
+        if NoWalkMode then
+            Player.Character.Humanoid.WalkSpeed = 0
+        else
+            Player.Character.Humanoid.WalkSpeed = HumSpeed
+        end
+        if not AimbotPlayer then
+            GUI.CurrentTargetLabel.Text = "Current Target: nil"
+            AimbotPlayer = nil
+        end
+        if
+            Aimbot and Config["Aimlock"] and AimbotPlayer ~= nil and AimbotPlayer.Character and
+                AimbotPlayer.Character:FindFirstChild("Head") and
+                AimbotPlayer.Character:FindFirstChild("Torso")
+         then
+            if AimbotPlayer.Character:FindFirstChildOfClass("Humanoid") and AimbotPlayer.Character.Humanoid.Health == 0 then
+                return
+            end
+            local HitPart = AimbotPlayer.Character:FindFirstChild(Config["AimbotTarget"])
+            local EnemyVelocity = HitPart.Velocity
+            if SelectedTool and AimbotPlayer and AimbotPlayer.Character then
+                local PingToHit
+                local PingMultiplier
+                if Ping < 50 then
+                    PingToHit = 3
+                elseif Ping < 85 then
+                    PingToHit = 3.5
+                elseif Ping < 120 then
+                    PingToHit = 4
+                elseif Ping < 155 then
+                    PingToHit = 4.5
+                elseif Ping < 190 then
+                    PingToHit = 5
+                elseif Ping < 235 then
+                    PingToHit = 5.5
+                elseif Ping < 260 then
+                    PingToHit = 6
+                elseif Ping < 295 then
+                    PingToHit = 6.5
+                elseif Ping < 330 then
+                    PingToHit = 7
+                elseif Ping < 365 then
+                    PingToHit = 7.5
+                elseif Ping < 400 then
+                    PingToHit = 8
+                elseif Ping < 435 then
+                    PingToHit = 8.5
+                else
+                    PingToHit = 9
+                end
+                ToHit = HitPart.Position + EnemyVelocity / PingToHit
+                ToHit = CFrame.new(ToHit)
+                if HitPart then
+                    Camera.CoordinateFrame = CFrame.new(Camera.CoordinateFrame.p, ToHit.p)
+                else
+                    local Head = AimbotPlayer.Character:FindFirstChild("Head")
+                    local Torso = FindRoot(AimbotPlayer.Character)
+                    local Arms =
+                        AimbotPlayer.Character:FindFirstChild("Right Arm") or
+                        AimbotPlayer.Character:FindFirstChild("Left Arm")
+                    local Legs =
+                        AimbotPlayer.Character:FindFirstChild("Right Leg") or
+                        AimbotPlayer.Character:FindFirstChild("Left Leg")
+                    if Head then
+                        HitPart = Head
+                    elseif Torso then
+                        HitPart = Torso
+                    elseif Arms then
+                        HitPart = Arms
+                    elseif Legs then
+                        HitPart = Legs
+                    end
+                    ToHit = HitPart.Position + EnemyVelocity / PingToHit
+                    ToHit = CFrame.new(ToHit)
+                    Camera.CoordinateFrame = CFrame.new(Camera.CoordinateFrame.p, ToHit.p)
+                end
+            end
+        end
+        if SelectedTool then
+            if not SelectedTool:FindFirstChild("Ammo") and SelectedTool:FindFirstChild("Info") then
+                if Config["AutoStomp"] then
+                    if Player.Character then
+                        if
+                            game.PlaceId == ThePrisonId and Config["GodMode"] or
+                                not Player.Character:FindFirstChild("Right Leg")
+                         then
+                            return
+                        end
+                        for _, v in pairs(Players:GetPlayers()) do
+                            if not table.find(Config["Whitelisted"], v) then
+                                if
+                                    v ~= Player and v.Character and v.Character:FindFirstChild("Torso") and
+                                        v.Character:FindFirstChild("Bone", true) and
+                                        not v.Character:FindFirstChild("Dragged")
+                                 then
+                                    if
+                                        (v.Character.Torso.Position - FindRoot(Player.Character).Position).magnitude <
+                                            Config["AutoStompDistance"] and v.Character.Humanoid.Health ~= 0
+                                     then
+                                        Wait(.075)
+                                        print("Auto stomping")
+                                        Teleport(FindRoot(Player.Character), v.Character.Torso.CFrame)
+                                        Stomp()
+                                    end
+                                end
+                            end
+                        end
+                    end
+                end
+            end
+            if SelectedTool:FindFirstChild("Ammo") then
+                if Config["AutoFire"] then
+                    if Player.Character then
+                        for _, v in pairs(Players:GetPlayers()) do
+                            if not table.find(Config["Whitelisted"], v) then
+                                if
+                                    v ~= Player and AimbotPlayer and v.Character and
+                                        v.Charcater:FindFirstChild(Config["AimbotTarget"])
+                                 then
+                                    local HitPart = v.Charcater:FindFirstChild(Config["AimbotTarget"])
+                                    local Length = (FindRoot(Player.Character).Position - HitPart.Position).magnitude
+                                    local Ray = Ray.new(HitPart.Position, HitPart.CFrame.LookVector * Length)
+                                    local Wall, HitPosition, Normal, Material =
+                                        workspace:FindPartOnRayWithWhitelist(
+                                        Ray,
+                                        {PlayersInterior.Build.InteriorElements}
+                                    )
+                                    if not Wall then
+                                        Wait(.05)
+                                        Attack()
+                                    end
+                                end
+                            end
+                        end
+                    end
+                end
+                if SelectedTool.Name == "Uzi" and SelectedTool.Ammo.Value > 0 and Keys["Mouse1"] then
+                    Wait(.05)
+                    Attack()
+                end
+                if Invisible then
+                    SelectedTool.Grip = Player.Character.Torso.CFrame - FindRoot(Player.Character).CFrame.p
+                end
+                if
+                    AttachGun and AttachGunTarget and AttachGunTarget.Character and
+                        FindRoot(AttachGunTarget.Character) ~= nil
+                 then
+                    SelectedTool.Grip = FindRoot(Player.Character).CFrame - FindRoot(AttachGunTarget.Character).CFrame.p
+                end
+                if RemoteGun then
+                    Camera.CameraSubject = SelectedTool:FindFirstChild("Handle")
+                    if Keys["W"] then
+                        SelectedTool.Grip = SelectedTool.Grip * CFrame.new((1.5 / 10) * -1, (1.5 / 10) * -1, 1.5)
+                    end
+                    if Keys["A"] then
+                        SelectedTool.Grip = SelectedTool.Grip * CFrame.new(1.5, 0, 0)
+                    end
+                    if Keys["S"] then
+                        SelectedTool.Grip = SelectedTool.Grip * CFrame.new((1.5 / 10), (1.5 / 10), -1.5)
+                    end
+                    if Keys["D"] then
+                        SelectedTool.Grip = SelectedTool.Grip * CFrame.new(-1.5, 0, 0)
+                    end
+                    if Keys["Space"] then
+                        SelectedTool.Grip = SelectedTool.Grip * CFrame.new(0, -1.5, 0)
+                    end
+                    if Keys["Shift"] then
+                        SelectedTool.Grip = SelectedTool.Grip * CFrame.new(0, 1.5, 0)
+                    end
+                else
+                    Camera.CameraSubject = Player.Character.Humanoid
+                end
+            end
+        end
+        settings().Physics.AllowSleep = false
+        Player.MaximumSimulationRadius = math.huge
+        setsimulationradius(math.huge)
+    end
+)
+
+Start = os.clock()
+
+if Config["Watermark"] then
+    game:GetService("CoreGui"):WaitForChild("TopBar").TopBarFrame.RightFrame.HealthBar:Destroy()
+end
+
+if Config["ItemEsp"] then
+    ItemEsp()
+end
+
+if Config["ShowAmmo"] then
+    CreateAmmoLabel(Player.PlayerGui.HUD)
+    local Ammo
+    if SelectedTool then
+        Ammo = SelectedTool:FindFirstChild("Ammo")
+    end
+    if SelectedTool and Ammo then
+        SelectedTool.Ammo.Changed:Connect(
+            function()
+                if Ammo then
+                    AmmoLabel.Text = SelectedTool.Ammo.Value .. " Ammo"
+                end
+            end
+        )
+        AmmoLabel.Text = SelectedTool.Ammo.Value .. " Ammo"
+        AmmoLabel.Visible = true
+    end
+end
+
+if Config["FadingUIObjects"] then
+    BarFadeAnimation()
+end
+
+HPBar.BackgroundColor3 = Color3.fromRGB(184, 21, 21)
+KOBar.BackgroundColor3 = Color3.fromRGB(26, 129, 255)
+StamBar.BackgroundColor3 = Color3.fromRGB(114, 213, 71)
+
+Player.PlayerGui.Chat.Frame.Active = true
+Player.PlayerGui.Chat.Frame.Draggable = true
+Player.PlayerGui.Chat.Frame.ChatChannelParentFrame.Visible = true
+Player.PlayerGui.Chat.Frame.ChatBarParentFrame.Position =
+    Player.PlayerGui.Chat.Frame.ChatChannelParentFrame.Position +
+    UDim2.new(UDim.new(0, 0), Player.PlayerGui.Chat.Frame.ChatChannelParentFrame.Size.Y)
+Player.PlayerGui.Chat.Frame.ChatChannelParentFrame.Size = UDim2.new(1, 0, 1, -46)
+Player.PlayerGui.Chat.Frame.Position = UDim2.new(0, 0, 0, 145)
+
+Notify("Identification Loaded", "Took " .. (os.clock() - Time) .. " second(s)", 5, nil)
+
+while Wait(.25) do
+    local PingTick = os.clock()
+    game:GetService("RobloxReplicatedStorage").GetServerVersion:InvokeServer()
+    Ping = os.clock() - PingTick
+    Ping = math.floor(Ping * 1000)
+end
                 end
             end
         end
