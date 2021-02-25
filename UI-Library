@@ -615,3 +615,5 @@ end
 UIS.InputBegan:Connect(InputBegan);
 UIS.InputEnded:Connect(InputEnded);
 RunService.RenderStepped:Connect(Loop);
+
+return Library
