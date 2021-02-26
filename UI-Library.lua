@@ -1,4 +1,5 @@
 local Library = {}
+local MainTitle = "Title"
 
 local RunService = game:GetService("RunService");
 local UIS = game:GetService("UserInputService");
@@ -12,7 +13,6 @@ local SliderInfo = nil
 local SliderMaxValue = 0
 
 local Settings = {
-    ["Title"] = "Title",
     ["Shade1"] = "255, 255, 255",
     ["Shade2"] = "220, 220, 220",
     ["Shade3"] = "200, 200, 200",
@@ -60,7 +60,7 @@ TextLabel.BackgroundTransparency = 1
 TextLabel.Position = UDim2.new(0, 5, 0, 0);
 TextLabel.Size = UDim2.new(0, 100, 0, 30);
 TextLabel.Font = Enum.Font.GothamSemibold
-TextLabel.Text = Settings["Title"]
+TextLabel.Text = MainTitle
 TextLabel.TextColor3 = Color(Settings["TextColor"]);
 TextLabel.TextSize = 14
 TextLabel.TextWrapped = true
@@ -82,6 +82,7 @@ Holder.Position = UDim2.new(0, 0, 0.2, 0);
 Holder.Size = UDim2.new(0, 500, 0, 220);
 
 function Library:NewTab(Title)
+    TextLabel.Text = MainTitle
     TabCount = TabCount + 1
     UIGridLayout.CellSize = UDim2.new(0, 500 / TabCount, 1, 0);
     local Section;
@@ -627,4 +628,4 @@ UIS.InputBegan:Connect(InputBegan);
 UIS.InputEnded:Connect(InputEnded);
 RunService.RenderStepped:Connect(Loop);
 
-return Library, Settings
+return Library, MainTitle
