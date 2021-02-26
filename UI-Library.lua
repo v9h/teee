@@ -1,5 +1,6 @@
-local Library = {}
-local MainTitle = "Title"
+local Library = {
+    Title = ""
+}
 
 local RunService = game:GetService("RunService");
 local UIS = game:GetService("UserInputService");
@@ -14,10 +15,15 @@ local SliderMaxValue = 0
 
 local Settings = {
     ["Shade1"] = "255, 255, 255",
+    ["Shade1B"] = 0,
     ["Shade2"] = "220, 220, 220",
+    ["Shade2B"] = 0,
     ["Shade3"] = "200, 200, 200",
+    ["Shade3B"] = 0,
     ["Shade4"] = "180, 180, 180",
+    ["Shade4B"] = 0,
     ["Shade5"] = "160, 160, 160",
+    ["Shade5B"] = 0,
     ["TextColor"] = "0, 0, 0",
     ["TextColor2"] = "50, 50, 50",
     ["SelectedTabTextColor"] = "",
@@ -44,6 +50,7 @@ StarterGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
 
 MainFrame.Parent = StarterGui
 MainFrame.BackgroundColor3 = Color(Settings["Shade4"]);
+MainFrame.BackgroundTransparency = Settings["Shade4B"]
 MainFrame.BorderSizePixel = 0
 MainFrame.Position = UDim2.new(0.5, -250, 0.5, -180);
 MainFrame.Size = UDim2.new(0, 500, 0, 275);
@@ -52,6 +59,7 @@ MainFrame.Draggable = true
 
 TopBar.Parent = MainFrame
 TopBar.BackgroundColor3 = Color(Settings["Shade1"]);
+TopBar.BackgroundTransparency = Settings["Shade1B"]
 TopBar.BorderSizePixel = 0
 TopBar.Size = UDim2.new(1, 0, 0, 30);
 
@@ -60,7 +68,7 @@ TextLabel.BackgroundTransparency = 1
 TextLabel.Position = UDim2.new(0, 5, 0, 0);
 TextLabel.Size = UDim2.new(0, 100, 0, 30);
 TextLabel.Font = Enum.Font.GothamSemibold
-TextLabel.Text = MainTitle
+TextLabel.Text = ""
 TextLabel.TextColor3 = Color(Settings["TextColor"]);
 TextLabel.TextSize = 14
 TextLabel.TextWrapped = true
@@ -68,6 +76,7 @@ TextLabel.TextXAlignment = Enum.TextXAlignment.Left
 
 TabsHolder.Parent = MainFrame
 TabsHolder.BackgroundColor3 = Color(Settings["Shade2"]);
+TabsHolder.BackgroundTransparency = Settings["Shade2B"]
 TabsHolder.BorderSizePixel = 0
 TabsHolder.Position = UDim2.new(0, 0, 0, 30);
 TabsHolder.Size = UDim2.new(0, 500, 0, 25);
@@ -96,6 +105,7 @@ function Library:NewTab(Title)
 
     TextButton.Parent = TabsHolder
     TextButton.BackgroundColor3 = Color(Settings["Shade3"]);
+    TextButton.BackgroundTransparency = Settings["Shade3B"]
     TextButton.BorderSizePixel = 0
     TextButton.Font = Enum.Font.GothamSemibold
     TextButton.Text = Title
@@ -108,12 +118,12 @@ function Library:NewTab(Title)
 
     Splitter.Parent = Tab
     Splitter.BackgroundColor3 = Color(Settings["Shade5"]);
+    Splitter.BackgroundTransparency = Settings["Shade5B"]
     Splitter.BorderSizePixel = 0
     Splitter.Position = UDim2.new(0.5, -10, 0, 0);
     Splitter.Size = UDim2.new(0, 20, 0, 220);
 
     SectionHolder.Parent = Tab
-    SectionHolder.BackgroundColor3 = Color(Settings["Shade1"]);
     SectionHolder.BackgroundTransparency = 1
     SectionHolder.Position = UDim2.new(0, 5, 0, 5);
     SectionHolder.Size = UDim2.new(0, 495, 0, 215);
@@ -196,6 +206,7 @@ function Library:NewTab(Title)
 
         TextButton.Parent = Button
         TextButton.BackgroundColor3 = Color(Settings["Shade5"]);
+        TextButton.BackgroundTransparency = Settings["Shade5B"]
         TextButton.BorderSizePixel = 0
         --TextButton.Position = UDim2.new(0, 0, 0, 0);
         TextButton.Size = UDim2.new(0, 85, 0, 20);
@@ -234,6 +245,7 @@ function Library:NewTab(Title)
             TextButton.BackgroundColor3 = Color(Settings["PrimaryColor"]);
         else
             TextButton.BackgroundColor3 = Color(Settings["Shade1"]);
+            TextButton.BackgroundTransparency = Settings["Shade1B"]
         end
         TextButton.BorderSizePixel = 0
         TextButton.Position = UDim2.new(0, 125, 0, 0);
@@ -243,6 +255,7 @@ function Library:NewTab(Title)
         local function OnClick()
             if Boolean then
                 TextButton.BackgroundColor3 = Color(Settings["Shade1"]);
+                TextButton.BackgroundTransparency = Settings["Shade1B"]
             else
                 TextButton.BackgroundColor3 = Color(Settings["PrimaryColor"]);
             end
@@ -393,6 +406,7 @@ function Library:NewTab(Title)
 
         TextButton.Parent = Bindable
         TextButton.BackgroundColor3 = Color(Settings["Shade5"]);
+        TextButton.BackgroundTransparency = Settings["Shade5B"]
         TextButton.BorderSizePixel = 0
         TextButton.Position = UDim2.new(0, 95, 0, 0);
         TextButton.Size = UDim2.new(0, 50, 0, 20);
@@ -456,6 +470,7 @@ function Library:NewTab(Title)
 
         Frame.Parent = Slider
         Frame.BackgroundColor3 = Color(Settings["Shade5"]);
+        Frame.BackgroundTransparency = Settings["Shade5B"]
         Frame.BorderSizePixel = 0
         Frame.Position = UDim2.new(0, 95, 0, 0);
         Frame.Size = UDim2.new(0, 100, 0, 20);
@@ -469,6 +484,7 @@ function Library:NewTab(Title)
 
         TextBox.Parent = Slider
         TextBox.BackgroundColor3 = Color(Settings["Shade5"]);
+        TextBox.BackgroundTransparency = Settings["Shade5B"]
         TextBox.BorderSizePixel = 0
         TextBox.Position = UDim2.new(0.86383, 0, 0, 0);
         TextBox.Size = UDim2.new(0, 25, 0, 20);
@@ -537,6 +553,7 @@ function Library:NewTab(Title)
         ScrollingFrame.Parent = Groupbox
         ScrollingFrame.Active = true
         ScrollingFrame.BackgroundColor3 = Color(Settings["Shade5"]);
+        ScrollingFrame.BackgroundTransparency = Settings["Shade5B"]
         ScrollingFrame.BorderSizePixel = 0
         ScrollingFrame.Position = UDim2.new(0.5, -50, 0.6, -30);
         ScrollingFrame.Size = UDim2.new(0, 100, 0, 60);
@@ -551,6 +568,7 @@ function Library:NewTab(Title)
             local TextButton_2 = Instance.new("TextButton");
             TextButton_2.Parent = ScrollingFrame
             TextButton_2.BackgroundColor3 = Color(Settings["Shade5"]);
+            TextButton_2.BackgroundTransparency = Settings["Shade5B"]
             TextButton_2.BorderSizePixel = 0
             TextButton_2.Size = UDim2.new(0, 100, 0, 20);
             TextButton_2.Font = Enum.Font.GothamSemibold
@@ -628,4 +646,4 @@ UIS.InputBegan:Connect(InputBegan);
 UIS.InputEnded:Connect(InputEnded);
 RunService.RenderStepped:Connect(Loop);
 
-return Library, MainTitle
+return Library
