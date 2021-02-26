@@ -91,7 +91,7 @@ Holder.Position = UDim2.new(0, 0, 0.2, 0);
 Holder.Size = UDim2.new(0, 500, 0, 220);
 
 function Library:NewTab(Title)
-    TextLabel.Text = MainTitle
+    TextLabel.Text = Library.Title
     TabCount = TabCount + 1
     UIGridLayout.CellSize = UDim2.new(0, 500 / TabCount, 1, 0);
     local Section;
