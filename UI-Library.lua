@@ -1,6 +1,5 @@
-local Library = {
-    Title = ""
-}
+local Library = {}
+local Title = "Title"
 
 local RunService = game:GetService("RunService");
 local UIS = game:GetService("UserInputService");
@@ -90,8 +89,8 @@ Holder.BackgroundTransparency = 1
 Holder.Position = UDim2.new(0, 0, 0.2, 0);
 Holder.Size = UDim2.new(0, 500, 0, 220);
 
-function Library:NewTab(Title)
-    TextLabel.Text = Library.Title
+function Library:NewTab(Text)
+    TextLabel.Text = Title
     TabCount = TabCount + 1
     UIGridLayout.CellSize = UDim2.new(0, 500 / TabCount, 1, 0);
     local Section;
@@ -108,7 +107,7 @@ function Library:NewTab(Title)
     TextButton.BackgroundTransparency = Settings["Shade3B"]
     TextButton.BorderSizePixel = 0
     TextButton.Font = Enum.Font.GothamSemibold
-    TextButton.Text = Title
+    TextButton.Text = Text
     TextButton.TextColor3 = Color(Settings["TextColor"]);
     TextButton.TextSize = 12
 
@@ -646,4 +645,4 @@ UIS.InputBegan:Connect(InputBegan);
 UIS.InputEnded:Connect(InputEnded);
 RunService.RenderStepped:Connect(Loop);
 
-return Library
+return Library, Title
