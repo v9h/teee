@@ -35,12 +35,4 @@ function Commands.list()
     return unpack(Commands);
 end
 
-local output = Commands.add("print", function(Args)
-    print(unpack(Args));
-end);
-
-output:descript("prints out text");
-
-output:run("hi", "bye", 1);
-
 return Commands;
