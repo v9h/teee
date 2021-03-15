@@ -31,8 +31,4 @@ function Commands.add(Name, Function)
     return Command;
 end
 
-function Commands.list()
-    return unpack(Commands);
-end
-
 return Commands;
