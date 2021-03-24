@@ -1,13 +1,13 @@
 local Commands = {}
 
-function Commands.add(Name, Function)
+function Commands.Add(Name, Function)
     local Removed = false
     local Command = {}
     Command.Name = Name
     Command.Description = ""
     table.insert(Commands, Command);
 
-    function Command:descript(String)
+    function Command:Descript(String)
         if Removed then
             error("attempt to call a nil value");
         else
@@ -15,7 +15,7 @@ function Commands.add(Name, Function)
         end
     end
 
-    function Command:run(...)
+    function Command:Run(...)
         local Args = {...}
         if Removed then
             error("attempt to call a nil value");
@@ -24,7 +24,7 @@ function Commands.add(Name, Function)
         end
     end
 
-    function Command:remove()
+    function Command:Remove()
         Removed = true
     end
 
