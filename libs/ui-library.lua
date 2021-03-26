@@ -132,6 +132,7 @@ end
 function Gui:SearchFrame()
     local Frame = Instance.new("Frame");
     local TopBar = Instance.new("Frame");
+    local CloseButton = Instance.new("TextButton");
     local Holder = Instance.new("ScrollingFrame");
     local TextLabel = Instance.new("TextLabel");
     local UIListLayout = Instance.new("UIListLayout");
@@ -150,6 +151,15 @@ function Gui:SearchFrame()
     TopBar.BackgroundColor3 = Color3.fromRGB(30, 30, 30);
     TopBar.BorderSizePixel = 0
     TopBar.Size = UDim2.new(1, 0, 0, 15);
+
+    CloseButton.Parent = TopBar
+    CloseButton.BackgroundTransparency = 1
+    CloseButton.Position = UDim2.new(1, -15, 0, 0);
+    CloseButton.Size = UDim2.new(0, 15, 1, 0);
+    CloseButton.Font = Enum.Font.Code
+    CloseButton.Text = "X"
+    CloseButton.TextColor3 = Color3.fromRGB(180, 180, 180);
+    CloseButton.TextSize = 14
     
     Holder.Name = "Holder"
     Holder.Parent = Frame
@@ -165,6 +175,12 @@ function Gui:SearchFrame()
     UIListLayout.Parent = Holder
     UIListLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center
     UIListLayout.SortOrder = Enum.SortOrder.LayoutOrder
+
+    local function OnClick()
+        Frame.Visible = false
+    end
+
+    CloseButton.MouseButton1Click:Connect(OnClick);
     
     return Frame;
 end
@@ -242,6 +258,5 @@ end
 RunService.RenderStepped:Connect(Loop);
 UIS.InputBegan:Connect(OnInput);
 UIS.InputEnded:Connect(OnInputEnded);
-
 
 return Gui;
