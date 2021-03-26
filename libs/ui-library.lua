@@ -19,6 +19,152 @@ local function UpdateNotifications()
     end
 end
 
+local Base = Instance.new("Frame");
+local TabIndex = Instance.new("ScrollingFrame");
+local UIGridLayout = Instance.new("UIGridLayout");
+local Tabs = Instance.new("Frame");
+
+Base.Active = true
+Base.Draggable = true
+Base.Parent = ScreenGui
+Base.BackgroundColor3 = Color3.fromRGB(20, 20, 20);
+Base.BorderColor3 = Color3.fromRGB(0, 0, 0);
+Base.BorderSizePixel = 2
+Base.Position = UDim2.new(0.5, -150, 0.5, -200);
+Base.Size = UDim2.new(0, 300, 0, 400);
+
+TabIndex.Parent = Base
+TabIndex.Active = true
+TabIndex.BackgroundColor3 = Color3.fromRGB(30, 30, 30);
+TabIndex.BorderSizePixel = 0
+TabIndex.Size = UDim2.new(1, 0, 0, 15);
+TabIndex.CanvasSize = UDim2.new(0, 0, 0, 0);
+TabIndex.ScrollBarThickness = 0
+
+UIGridLayout.Parent = TabIndex
+UIGridLayout.SortOrder = Enum.SortOrder.LayoutOrder
+UIGridLayout.CellPadding = UDim2.new(0, 2, 0, 0);
+UIGridLayout.CellSize = UDim2.new(0, 75, 1, 0);
+
+Tabs.Name = "Tabs"
+Tabs.Parent = Base
+Tabs.BackgroundColor3 = Color3.fromRGB(30, 30, 30);
+Tabs.BorderColor3 = Color3.fromRGB(0, 0, 0);
+Tabs.BorderSizePixel = 2
+Tabs.Position = UDim2.new(0.05, 0, 0, 25);
+Tabs.Size = UDim2.new(0.9, 0, 0, 360);
+
+function Gui:Tab(Title)
+    Title = Title or ""
+    local Tab = {}
+    TabIndex.CanvasSize += UDim2.new(0, 77, 0, 0);
+
+    local TabButton = Instance.new("TextButton");
+    local TabFrame = Instance.new("ScrollingFrame");
+    
+    TabButton.Name = Title
+    TabButton.Parent = TabIndex
+    TabButton.BackgroundColor3 = Color3.fromRGB(40, 40, 40);
+    TabButton.BorderSizePixel = 0
+    TabButton.Font = Enum.Font.Code
+    TabButton.Text = Title
+    TabButton.TextColor3 = Color3.fromRGB(200, 200, 200);
+    TabButton.TextSize = 14
+    
+    TabFrame.Name = Title
+    TabFrame.Parent = Tabs
+    TabFrame.Visible = false
+    TabFrame.Active = true
+    TabFrame.BackgroundTransparency = 1
+    TabFrame.Size = UDim2.new(1, 0, 1, 0);
+    TabFrame.CanvasSize = UDim2.new(0, 0, 1, 0);
+    TabFrame.ScrollBarThickness = 5
+
+    function Tab:Text(Text)
+        local TextLabel = Instance.new("TextLabel");
+        TextLabel.Parent = TabFrame
+        TextLabel.BackgroundTransparency = 1
+        TextLabel.Size = UDim2.new(1, 0, 0, 0);
+        TextLabel.Font = Enum.Font.Code
+        TextLabel.Text = Text or "string"
+        TextLabel.TextColor3 = Color3.fromRGB(180, 180, 180);
+        TextLabel.TextSize = 14
+        TextLabel.AutomaticSize = Enum.AutomaticSize.Y
+        TextLabel.TextWrapped = true
+    end
+
+    function Tab:Button(Text)
+        local TextButton = Instance.new("TextButton");
+
+        
+    end
+
+    local function ChangeTab()
+        for _,v in ipairs(Tabs:GetChildren()) do
+            if v:IsA("ScrollingFrame") then
+                v.Visible = false
+            end
+        end
+        for _,v in ipairs(TabIndex:GetChildren()) do
+            if v:IsA("TextButton") then
+                v.TextColor3 = Color3.fromRGB(180, 180, 180);
+            end
+        end
+        TabFrame.Visible = true
+        TabButton.TextColor3 = Color3.fromRGB(200, 200, 200);
+    end
+
+    ChangeTab();
+
+    local function OnClick()
+        ChangeTab();
+    end
+
+    TabButton.MouseButton1Click:Connect(OnClick);
+
+    return Tab;
+end
+
+function Gui:SearchFrame()
+    local Frame = Instance.new("Frame");
+    local TopBar = Instance.new("Frame");
+    local Holder = Instance.new("ScrollingFrame");
+    local TextLabel = Instance.new("TextLabel");
+    local UIListLayout = Instance.new("UIListLayout");
+
+    Frame.Active = true
+    Frame.Draggable = true
+    Frame.Parent = ScreenGui
+    Frame.BackgroundColor3 = Color3.fromRGB(20, 20, 20);
+    Frame.BorderColor3 = Color3.fromRGB(0, 0, 0);
+    Frame.BorderSizePixel = 2
+    Frame.Position = UDim2.new(0.5, -150, 0.5, -200);
+    Frame.Size = UDim2.new(0, 300, 0, 400);
+    Frame.Visible = false
+    
+    TopBar.Parent = Frame
+    TopBar.BackgroundColor3 = Color3.fromRGB(30, 30, 30);
+    TopBar.BorderSizePixel = 0
+    TopBar.Size = UDim2.new(1, 0, 0, 15);
+    
+    Holder.Name = "Holder"
+    Holder.Parent = Frame
+    Holder.Active = true
+    Holder.BackgroundColor3 = Color3.fromRGB(30, 30, 30);
+    Holder.BorderColor3 = Color3.fromRGB(0, 0, 0);
+    Holder.BorderSizePixel = 2
+    Holder.Position = UDim2.new(0.05, 0, 0, 25);
+    Holder.Size = UDim2.new(0.9, 0, 0, 360);
+    Holder.CanvasSize = UDim2.new(0, 0, 1, 0);
+    Holder.ScrollBarThickness = 5
+    
+    UIListLayout.Parent = Holder
+    UIListLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center
+    UIListLayout.SortOrder = Enum.SortOrder.LayoutOrder
+    
+    return Frame;
+end
+
 function Gui:Notify(Title, Message)
     local Notification = Instance.new("Frame");
     local TextLabel = Instance.new("TextLabel");
@@ -92,6 +238,5 @@ end
 RunService.RenderStepped:Connect(Loop);
 UIS.InputBegan:Connect(OnInput);
 UIS.InputEnded:Connect(OnInputEnded);
-
 
 return Gui;
