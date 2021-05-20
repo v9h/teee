@@ -27,7 +27,7 @@ Console.WriteLine = function(Text)
 end
 Console.ReadLine = rconsoleinput
 Console.Clear = rconsoleclear
-Console.ForegroundColor = "Yellow"
+Console.ForegroundColor = "White"
 
 local Console = setmetatable(Console, {
     __newindex = function (Table, Key, Value)
