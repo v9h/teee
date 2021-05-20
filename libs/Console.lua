@@ -1,10 +1,10 @@
 local Colors = {
-    ["Black"] =	"@@BLACK@@" or "Black",
-    ["Blue"] = "@@BLUE@@" or "blue",
-    ["Green"] = "@@GREEN@@" or "green",
-    ["Cyan"] = "@@CYAN@@" or "cyan",
-    ["Red"]	= "@@RED@@" or "red",
-    ["Magenta"] = "@@MAGENTA@@" or "magenta",
+    ["Black"] =	syn and "@@BLACK@@" or "Black",
+    ["Blue"] = syn and "@@BLUE@@" or "blue",
+    ["Green"] = syn and "@@GREEN@@" or "green",
+    ["Cyan"] = syn and "@@CYAN@@" or "cyan",
+    ["Red"]	= syn and "@@RED@@" or "red",
+    ["Magenta"] = syn and "@@MAGENTA@@" or "magenta",
     ["Brown"] = "@@BROWN@@",
     ["Light Gray"] = "@@LIGHT_GRAY@@",
     ["Dark Gray"] = "@@DARK_GRAY@@",
@@ -13,17 +13,16 @@ local Colors = {
     ["Light Cyan"] = "@@LIGHT_CYAN@@",
     ["Light Red"] = "@@LIGHT_RED@@",
     ["Light Magenta"] = "@@LIGHT_MAGENTA@@",
-    ["Yellow"] = "@@YELLOW@@" or "yellow",
-    ["White"] = "@@WHITE@@" or "white"
+    ["Yellow"] = syn and "@@YELLOW@@" or "yellow",
+    ["White"] = syn and "@@WHITE@@" or "white"
 }
 
 local Console = {}
-
 Console.WriteLine = function(Text)
     if syn then
         rconsoleprint(Colors[Console.ForegroundColor] or Colors["White"])
-    end
-    rconsoleprint(Text .. "\n", Colors[Console.ForegroundColor])
+	end
+    rconsoleprint(Text .. "\n", Colors[Console.ForegroundColor] or Colors["White"])
 end
 Console.ReadLine = rconsoleinput
 Console.Clear = rconsoleclear
@@ -40,5 +39,9 @@ local Console = setmetatable(Console, {
         end
     end
 })
+
+if rconsolecreate then
+    rconsolecreate()
+end
 
 return Console
