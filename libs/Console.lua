@@ -1,20 +1,20 @@
 local Colors = {
-    ["Black"] =	syn and "@@BLACK@@" or "Black",
-    ["Blue"] = syn and "@@BLUE@@" or "blue",
-    ["Green"] = syn and "@@GREEN@@" or "green",
-    ["Cyan"] = syn and "@@CYAN@@" or "cyan",
-    ["Red"]	= syn and "@@RED@@" or "red",
-    ["Magenta"] = syn and "@@MAGENTA@@" or "magenta",
-    ["Brown"] = "@@BROWN@@",
-    ["Light Gray"] = "@@LIGHT_GRAY@@",
-    ["Dark Gray"] = "@@DARK_GRAY@@",
-    ["Light Blue"] = "@@LIGHT_BLUE@@",
-    ["Light Green"] = "@@LIGHT_GREEN@@",
-    ["Light Cyan"] = "@@LIGHT_CYAN@@",
-    ["Light Red"] = "@@LIGHT_RED@@",
-    ["Light Magenta"] = "@@LIGHT_MAGENTA@@",
-    ["Yellow"] = syn and "@@YELLOW@@" or "yellow",
-    ["White"] = syn and "@@WHITE@@" or "white"
+    ["black"] =	syn and "@@BLACK@@" or "Black",
+    ["blue"] = syn and "@@BLUE@@" or "blue",
+    ["green"] = syn and "@@GREEN@@" or "green",
+    ["cyan"] = syn and "@@CYAN@@" or "cyan",
+    ["red"]	= syn and "@@RED@@" or "red",
+    ["magenta"] = syn and "@@MAGENTA@@" or "magenta",
+    ["brown"] = "@@BROWN@@",
+    ["light gray"] = "@@LIGHT_GRAY@@",
+    ["Dark gray"] = "@@DARK_GRAY@@",
+    ["light blue"] = "@@LIGHT_BLUE@@",
+    ["light green"] = "@@LIGHT_GREEN@@",
+    ["light cyan"] = "@@LIGHT_CYAN@@",
+    ["light red"] = "@@LIGHT_RED@@",
+    ["light magenta"] = "@@LIGHT_MAGENTA@@",
+    ["yellow"] = syn and "@@YELLOW@@" or "yellow",
+    ["white"] = syn and "@@WHITE@@" or "white"
 }
 
 local Console = {}
