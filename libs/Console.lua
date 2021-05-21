@@ -20,13 +20,13 @@ local Colors = {
 local Console = {}
 Console.WriteLine = function(Text)
     if syn then
-        rconsoleprint(Colors[Console.ForegroundColor] or Colors["White"])
+        rconsoleprint(Colors[Console.ForegroundColor] or Colors["white"])
 	end
-    rconsoleprint(Text .. "\n", Colors[Console.ForegroundColor] or Colors["White"])
+    rconsoleprint(Text .. "\n", Colors[Console.ForegroundColor] or Colors["white"])
 end
 Console.ReadLine = rconsoleinput
 Console.Clear = rconsoleclear
-Console.ForegroundColor = "White"
+Console.ForegroundColor = "white"
 
 local Console = setmetatable(Console, {
     __newindex = function (Table, Key, Value)
