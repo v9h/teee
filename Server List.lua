@@ -77,16 +77,16 @@ ServerHolder.Size = UDim2.new(0, 280, 0, 340)
 ServerHolder.CanvasSize = UDim2.new(0, 0, 1, 0)
 ServerHolder.ScrollBarThickness = 4
 
-function CreateInfo(Ping, FPS, Id, Playing, MaxPlayers, Tokens)
+function CreateInfo(Ping, FPS, Id, Playing, MaxPlayers)
     if not Ping or not FPS or not Id or not Playing or not MaxPlayers then return end
 
-    local CopyWait, TokenWait
+    local CopyWait, ScriptWait
 
     local InfoHolder = Instance.new("Frame")
     local ServerInfo = Instance.new("TextLabel")
     local CopyButton = Instance.new("TextButton")
     local TeleportButton = Instance.new("TextButton")
-    local GetTokensButton = Instance.new("TextButton")
+    local GetScriptButton = Instance.new("TextButton")
 
     InfoHolder.Parent = ServerHolder
     InfoHolder.BackgroundTransparency = 1
@@ -118,7 +118,7 @@ function CreateInfo(Ping, FPS, Id, Playing, MaxPlayers, Tokens)
         CopyButton.Text = "Copied!"
         CopyButton.TextColor3 = Color3.fromRGB(170, 85, 150)
         setclipboard(Id)
-        wait(2)
+        wait(0.5)
         CopyButton.Text = "Copy"
         CopyButton.TextColor3 = Color3.fromRGB(255, 255, 255)
         CopyWait = false
@@ -139,28 +139,26 @@ function CreateInfo(Ping, FPS, Id, Playing, MaxPlayers, Tokens)
         TeleportService:TeleportToPlaceInstance(PlaceIdBox.Text, Id, Players.LocalPlayer)
     end)
 
-    GetTokensButton.Parent = InfoHolder
-    GetTokensButton.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
-    GetTokensButton.BorderSizePixel = 0
-    GetTokensButton.Position = UDim2.new(0, 180, 0, 20)
-    GetTokensButton.Size = UDim2.new(0, 75, 0, 20)
-    GetTokensButton.Font = Enum.Font.Code
-    GetTokensButton.Text = "Get Tokens"
-    GetTokensButton.TextColor3 = Color3.fromRGB(255, 255, 255)
-    GetTokensButton.TextSize = 14
-    GetTokensButton.TextStrokeTransparency = 0.5
-    GetTokensButton.MouseButton1Click:Connect(function()
-        if Tokens then
-            if TokenWait then return end
-            TokenWait = true
-            GetTokensButton.Text = "Copied Tokens!"
-            GetTokensButton.TextColor3 = Color3.fromRGB(170, 85, 150)
-            setclipboard(table.concat(Tokens, ", "))
-            wait(2)
-            GetTokensButton.Text = "Get Tokens"
-            GetTokensButton.TextColor3 = Color3.fromRGB(255, 255, 255)
-            TokenWait = false
-        end
+    GetScriptButton.Parent = InfoHolder
+    GetScriptButton.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+    GetScriptButton.BorderSizePixel = 0
+    GetScriptButton.Position = UDim2.new(0, 180, 0, 20)
+    GetScriptButton.Size = UDim2.new(0, 75, 0, 20)
+    GetScriptButton.Font = Enum.Font.Code
+    GetScriptButton.Text = "Get Script"
+    GetScriptButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+    GetScriptButton.TextSize = 14
+    GetScriptButton.TextStrokeTransparency = 0.5
+    GetScriptButton.MouseButton1Click:Connect(function()
+        if ScriptWait then return end
+        ScriptWait = true
+        GetScriptButton.Text = "Copied Script!"
+        GetScriptButton.TextColor3 = Color3.fromRGB(170, 85, 150)
+        setclipboard(string.format("game:GetService(%q", "TeleportService") .. "):TeleportToPlaceInstance(" .. PlaceIdBox.Text .. ", " .. string.format("%q", Id) .. ", " .. string.format("game:GetService(%q", "Players") .. ").LocalPlayer)")
+        wait(0.5)
+        GetScriptButton.Text = "Get Script"
+        GetScriptButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+        ScriptWait = false
     end)
 end
 
