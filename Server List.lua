@@ -79,7 +79,6 @@ ServerHolder.ScrollBarThickness = 4
 
 function CreateInfo(Ping, FPS, Id, Playing, MaxPlayers)
     if not Ping or not FPS or not Id or not Playing or not MaxPlayers then return end
-
     local CopyWait, ScriptWait
 
     local InfoHolder = Instance.new("Frame")
@@ -88,9 +87,11 @@ function CreateInfo(Ping, FPS, Id, Playing, MaxPlayers)
     local TeleportButton = Instance.new("TextButton")
     local GetScriptButton = Instance.new("TextButton")
 
+    ServerHolder.CanvasSize += UDim2.fromOffset(0, 45)
+
     InfoHolder.Parent = ServerHolder
     InfoHolder.BackgroundTransparency = 1
-    InfoHolder.Position = UDim2.new(0, 10, 0, (#ServerHolder:GetChildren() - 1) * 40)
+    InfoHolder.Position = UDim2.new(0, 10, 0, (#ServerHolder:GetChildren() - 1) * 45)
     InfoHolder.Size = UDim2.new(0, 260, 0, 40)
 
     ServerInfo.Parent = InfoHolder
@@ -226,6 +227,7 @@ end)
 function Loop()
     local _, Error = pcall(function()
         if Wait then return end
+        ServerHolder.CanvasSize = UDim2.new()
         Wait = true
         ServerHolder:ClearAllChildren()
         local Servers = HttpService:JSONDecode(game:HttpGetAsync(Url)).data
