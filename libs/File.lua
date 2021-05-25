@@ -63,7 +63,8 @@ end
 File.Append = function(Path, Content)
     if File.Exists(Path) then
         appendfile(Path, Content)
-        return true
+    else
+        writefile(Path, Content)
     end
     error("invalid path " .. string.format("%q", Path))
 end
