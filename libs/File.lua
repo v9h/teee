@@ -79,3 +79,5 @@ end
 File.WriteDialog = function(Title, Filter, Data)
     return writedialog(Title, Filter, Data)
 end
+
+return File
