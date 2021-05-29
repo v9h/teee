@@ -94,7 +94,7 @@ Notifications.Size = UDim2.new(1, 0, 1.1, 0)
 Notifications.Position = UDim2.new(0, 0, -0.1, 0)
 Notifications.ChildRemoved:Connect(function()
     for i, Notification in ipairs(Notifications:GetChildren()) do
-        Notification:TweenPosition(UDim2.new(0.8, -110, 0, i * 70), nil, nil, 0.4)
+        Notification:TweenPosition(UDim2.new(0.8, -110, 0, i * 70), nil, nil, 0.4, true)
     end
 end)
 
@@ -776,7 +776,7 @@ Gui.Notify = function(Name, Message, Time)
     Text.TextYAlignment = Enum.TextYAlignment.Top
 
     delay(Time or 5, function()
-        local Tween = Notification:TweenPosition(UDim2.new(1, 0, 0, Notification.AbsolutePosition.Y), nil, nil, 0.4, false, function()
+        local Tween = Notification:TweenPosition(UDim2.new(1, 0, 0, Notification.AbsolutePosition.Y), nil, nil, 0.4, true, function()
             Notification:Destroy()
         end)
     end)
