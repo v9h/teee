@@ -19,9 +19,9 @@ Console.Colors = {
 }
 Console.WriteLine = function(Text)
     if syn then
-        rconsoleprint(Colors[Console.ForegroundColor] or Colors["white"])
+        rconsoleprint(Console.Colors[Console.ForegroundColor] or Console.Colors["white"])
 	end
-    rconsoleprint(Text .. "\n", Colors[Console.ForegroundColor] or Colors["white"])
+    rconsoleprint(Text .. "\n", Console.Colors[Console.ForegroundColor] or Console.Colors["white"])
 end
 Console.ReadLine = rconsoleinput
 Console.Clear = rconsoleclear
