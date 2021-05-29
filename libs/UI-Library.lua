@@ -4,7 +4,6 @@ local UserInput = game:GetService("UserInputService")
 local RunService = game:GetService("RunService")
 local CoreGui = game:GetService("CoreGui")
 
-local PushAmount = 0
 local Call, Mouse1, BindableButton, FollowFrame, FollowButton
 
 local Main = Instance.new("ImageLabel")
@@ -240,6 +239,7 @@ end
 Gui.Container = function(Tab, Name, Side)
     local Container = Instance.new("Frame")
     local Title = Instance.new("TextLabel")
+    local PushAmount = Instance.new("NumberValue")
 
     Container.Parent = Side == "Right" and Tab.Right or Tab.Left
     Container.Name = Name
@@ -256,6 +256,9 @@ Gui.Container = function(Tab, Name, Side)
     Title.TextColor3 = Color3.fromRGB(200, 200, 200)
     Title.TextSize = 14
 
+    PushAmount.Parent = Container
+    PushAmount.Value = 0
+
     return Side == "Right" and Tab.Right or Tab.Left, Title
 end
 
@@ -264,7 +267,7 @@ Gui.Label = function(Container, Name)
     Label.Parent = Container
     Label.Name = Name or ""
     Label.BackgroundTransparency = 1
-    Label.Position = UDim2.new(0, 20, 0, PushAmount + (#Container:GetChildren() * 20) - 35)
+    Label.Position = UDim2.new(0, 20, 0, Container.PushAmount + (#Container:GetChildren() * 20) - 35)
     Label.Size = UDim2.new(0, 0, 0, 15)
     Label.Font = Enum.Font.Code
     Label.Text = Name or ""
@@ -283,7 +286,7 @@ Gui.Button = function(Container, Name, Callback)
     Button.Name = Name or ""
     Button.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
     Button.BorderColor3 = Gui.Data.BackgroundColor
-    Button.Position = UDim2.new(0, 8, 0, PushAmount + (#Container:GetChildren() * 20) - 35)
+    Button.Position = UDim2.new(0, 8, 0, Container.PushAmount + (#Container:GetChildren() * 20) - 35)
     Button.Size = UDim2.new(0, 142, 0, 15)
     Button.Font = Enum.Font.Code
     Button.Text = Name or ""
@@ -308,7 +311,7 @@ Gui.TextBox = function(Container, Name, Callback)
     TextBox.Name = Name or ""
     TextBox.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
     TextBox.BorderColor3 = Gui.Data.BackgroundColor
-    TextBox.Position = UDim2.new(0, 8, 0, PushAmount + (#Container:GetChildren() * 20) - 35)
+    TextBox.Position = UDim2.new(0, 8, 0, Container.PushAmount + (#Container:GetChildren() * 20) - 35)
     TextBox.Size = UDim2.new(0, 142, 0, 15)
     TextBox.Font = Enum.Font.Code
     TextBox.Text = Name or ""
@@ -520,7 +523,7 @@ Gui.ComboBox = function(Container, Name, Items, Selected, Callback)
     ComboBox.Name = Name or ""
     ComboBox.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
     ComboBox.BorderColor3 = Gui.Data.BackgroundColor
-    ComboBox.Position = UDim2.new(0, 8, 0, PushAmount + (#Container:GetChildren() * 20) - 35)
+    ComboBox.Position = UDim2.new(0, 8, 0, Container.PushAmount + (#Container:GetChildren() * 20) - 35)
     ComboBox.Size = UDim2.new(0, 142, 0, 15)
     ComboBox.Font = Enum.Font.Code
     ComboBox.Text = Selected and Selected or "None"
@@ -582,7 +585,7 @@ Gui.MultiBox = function(Container, Name, Items, SelectedItems, Callback)
     MultiBox.Name = Name or ""
     MultiBox.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
     MultiBox.BorderColor3 = Gui.Data.BackgroundColor
-    MultiBox.Position = UDim2.new(0, 8, 0, PushAmount + (#Container:GetChildren() * 20) - 35)
+    MultiBox.Position = UDim2.new(0, 8, 0, Container.PushAmount + (#Container:GetChildren() * 20) - 35)
     MultiBox.Size = UDim2.new(0, 142, 0, 15)
     MultiBox.Font = Enum.Font.Code
     MultiBox.Text = SelectedItems and table.concat(SelectedItems, ", ") or "None"
@@ -695,7 +698,7 @@ Gui.Slider = function(Label, Name, Min, Max, Init, Decimal, Callback)
     local Info = Instance.new("TextLabel")
     local Button = Instance.new("TextButton")
 
-    PushAmount += 10
+    Container.PushAmount += 10
     Max -= Min
     Label.Text = Text .. string.format("%." .. Decimal .. "f", Init)
     Label.Parent.Size += UDim2.new(0, 0, 0, 15)
