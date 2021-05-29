@@ -164,7 +164,6 @@ Gui.Tab = function(Name)
         if FollowFrame then
             FollowFrame:Destroy()
         end
-
     end
 
     Tab.Parent = Tabs
@@ -222,8 +221,18 @@ Gui.Tab = function(Name)
     Button.MouseButton1Click:Connect(function()
         ChangeTab()
     end)
+    
+    for _, v in ipairs(Tabs:GetChildren()) do
+        v.Visible = false
+    end
+    for _, v in ipairs(TabIndex:GetChildren()) do
+        if v:IsA("GuiButton") then
+            v.TextColor3 = Color3.fromRGB(180, 180, 180)
+        end
+    end
 
-    ChangeTab()
+    Tab.Visible = true
+    Button.TextColor3 = Gui.Data.Color
 
     return Tab, Button
 end
@@ -505,7 +514,7 @@ Gui.ColorPicker = function(Label, Color, Callback)
     return ColorPicker
 end
 
-Gui.ComboBox = function(Container, Name, Items, Callback)
+Gui.ComboBox = function(Container, Name, Items, Selected, Callback)
     local ComboBox = Instance.new("TextButton")
     ComboBox.Parent = Container
     ComboBox.Name = Name or ""
@@ -514,7 +523,7 @@ Gui.ComboBox = function(Container, Name, Items, Callback)
     ComboBox.Position = UDim2.new(0, 8, 0, PushAmount + (#Container:GetChildren() * 20) - 35)
     ComboBox.Size = UDim2.new(0, 142, 0, 15)
     ComboBox.Font = Enum.Font.Code
-    ComboBox.Text = "None"
+    ComboBox.Text = Selected and Selected or "None"
     ComboBox.TextColor3 = Color3.fromRGB(200, 200, 200)
     ComboBox.TextSize = 14
     ComboBox.MouseButton1Click:Connect(function()
@@ -576,7 +585,7 @@ Gui.MultiBox = function(Container, Name, Items, SelectedItems, Callback)
     MultiBox.Position = UDim2.new(0, 8, 0, PushAmount + (#Container:GetChildren() * 20) - 35)
     MultiBox.Size = UDim2.new(0, 142, 0, 15)
     MultiBox.Font = Enum.Font.Code
-    MultiBox.Text = "None"
+    MultiBox.Text = SelectedItems and table.concat(SelectedItems, ", ") or "None"
     MultiBox.TextColor3 = Color3.fromRGB(200, 200, 200)
     MultiBox.TextSize = 14
     MultiBox.TextTruncate = Enum.TextTruncate.AtEnd
