@@ -17,6 +17,7 @@ local TabIndex = Instance.new("Frame")
 local AutoTab = Instance.new("UIGridLayout")
 
 local Gui = {}
+Gui.Main = Main
 Gui.Elements = {
     Text = {},
     Border = {},
