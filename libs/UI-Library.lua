@@ -150,6 +150,11 @@ Gui.Tab = function(Name)
         for _, v in ipairs(TabIndex:GetChildren()) do
             if v:IsA("GuiButton") then
                 v.TextColor3 = Color3.fromRGB(180, 180, 180)
+                for i, _ in ipairs(Gui.Elements.Text) do
+                    if i == Button then
+                        table.remove(Gui.Elements.Text, Button)
+                    end
+                end
             end
         end
     
