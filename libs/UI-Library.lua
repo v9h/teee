@@ -257,6 +257,7 @@ Gui.Container = function(Tab, Name, Side)
     Title.TextSize = 14
 
     PushAmount.Parent = Container
+    PushAmount.Name = "PushAmount"
     PushAmount.Value = 0
 
     return Side == "Right" and Tab.Right or Tab.Left, Title
