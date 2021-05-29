@@ -1,4 +1,5 @@
-local Colors = {
+local Console = {}
+Console.Colors = {
     ["black"] =	syn and "@@BLACK@@" or "Black",
     ["blue"] = syn and "@@BLUE@@" or "blue",
     ["green"] = syn and "@@GREEN@@" or "green",
@@ -16,8 +17,6 @@ local Colors = {
     ["yellow"] = syn and "@@YELLOW@@" or "yellow",
     ["white"] = syn and "@@WHITE@@" or "white"
 }
-
-local Console = {}
 Console.WriteLine = function(Text)
     if syn then
         rconsoleprint(Colors[Console.ForegroundColor] or Colors["white"])
