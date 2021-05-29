@@ -698,7 +698,7 @@ Gui.Slider = function(Label, Name, Min, Max, Init, Decimal, Callback)
     local Info = Instance.new("TextLabel")
     local Button = Instance.new("TextButton")
 
-    Container.PushAmount.Value += 10
+    Label.Parent.PushAmount.Value += 10
     Max -= Min
     Label.Text = Text .. string.format("%." .. Decimal .. "f", Init)
     Label.Parent.Size += UDim2.new(0, 0, 0, 15)
