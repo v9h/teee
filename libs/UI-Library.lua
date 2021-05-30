@@ -1,4 +1,4 @@
--- TO DO: FIX COLOR PICKER[Image, Init, Position]
+-- TO DO: Gui.Update, Fix Color Picker[Image, Init, Position]
 
 local UserInput = game:GetService("UserInputService")
 local RunService = game:GetService("RunService")
@@ -20,7 +20,8 @@ Gui.Main = Main
 Gui.Elements = {
     Text = {},
     Border = {},
-    Background = {}
+    Background = {},
+    Base = {}
 }
 Gui.Data = {}
 Gui.Data.Color = Color3.fromRGB(255, 255, 255)
@@ -37,6 +38,7 @@ Gui.KeybindNames = {
     ["DOWN"] = "D",
     ["RIGHT"] = "R",
     ["DOUBLE"] = "DB",
+    ["UNKNOWN"] = "...",
     ["MULTIPLY"] = "MUL",
     ["MOUSEBUTTON"] = "M"
 }
@@ -149,9 +151,9 @@ Gui.Tab = function(Name)
         for _, v in ipairs(TabIndex:GetChildren()) do
             if v:IsA("GuiButton") then
                 v.TextColor3 = Color3.fromRGB(180, 180, 180)
-                for i, _ in ipairs(Gui.Elements.Text) do
-                    if i == Button then
-                        table.remove(Gui.Elements.Text, Button)
+                for i, v2 in ipairs(Gui.Elements.Text) do
+                    if v == v2 then
+                        table.remove(Gui.Elements.Text, i)
                     end
                 end
             end
@@ -159,7 +161,10 @@ Gui.Tab = function(Name)
     
         Tab.Visible = true
         Button.TextColor3 = Gui.Data.Color
-        table.insert(Gui.Elements.Text, Button)
+        if not table.find(Gui.Elements.Text, Button) then
+            table.insert(Gui.Elements.Text, Button)
+        end
+
         if FollowFrame then
             FollowFrame:Destroy()
         end
@@ -221,31 +226,22 @@ Gui.Tab = function(Name)
         ChangeTab()
     end)
     
-    for _, v in ipairs(Tabs:GetChildren()) do
-        v.Visible = false
-    end
-    for _, v in ipairs(TabIndex:GetChildren()) do
-        if v:IsA("GuiButton") then
-            v.TextColor3 = Color3.fromRGB(180, 180, 180)
-        end
-    end
-
-    Tab.Visible = true
-    Button.TextColor3 = Gui.Data.Color
+    ChangeTab()
 
     return Tab, Button
 end
 
 Gui.Container = function(Tab, Name, Side)
+    local Tab = Tabs[Tab]
     local Container = Instance.new("Frame")
     local Title = Instance.new("TextLabel")
-    local PushAmount = Instance.new("NumberValue")
 
     Container.Parent = Side == "Right" and Tab.Right or Tab.Left
     Container.Name = Name
     Container.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
     Container.BorderColor3 = Gui.Data.Color
-    Container.Size = UDim2.new(1, 0, 0, 0)
+    Container.Size = UDim2.new(1, 0, 0, 5)
+    Container:SetAttribute("PushAmount", 5)
     table.insert(Gui.Elements.Border, Container)
 
     Title.Parent = Container
@@ -256,18 +252,16 @@ Gui.Container = function(Tab, Name, Side)
     Title.TextColor3 = Color3.fromRGB(200, 200, 200)
     Title.TextSize = 14
 
-    PushAmount.Parent = Container
-    PushAmount.Name = "PushAmount"
-
-    return Side == "Right" and Tab.Right or Tab.Left, Title
+    return Container
 end
 
-Gui.Label = function(Container, Name)
+Gui.Label = function(Tab, Container, Name)
+    local Container = Tabs[Tab].Left:FindFirstChild(Container) and Tabs[Tab].Left[Container] or Tabs[Tab].Right[Container]
     local Label = Instance.new("TextLabel")
     Label.Parent = Container
     Label.Name = Name or ""
     Label.BackgroundTransparency = 1
-    Label.Position = UDim2.new(0, 20, 0, Container.PushAmount.Value + (#Container:GetChildren() * 20) - 55)
+    Label.Position = UDim2.new(0, 20, 0, Container:GetAttribute("PushAmount") + (#Container:GetChildren() * 20) - 40)
     Label.Size = UDim2.new(0, 0, 0, 15)
     Label.Font = Enum.Font.Code
     Label.Text = Name or ""
@@ -280,13 +274,15 @@ Gui.Label = function(Container, Name)
     return Label
 end
 
-Gui.Button = function(Container, Name, Callback)
+Gui.Button = function(Tab, Container, Name, Callback)
+    local Callback = Callback or tostring
+    local Container = Tabs[Tab].Left:FindFirstChild(Container) and Tabs[Tab].Left[Container] or Tabs[Tab].Right[Container]
     local Button = Instance.new("TextButton")
     Button.Parent = Container
-    Button.Name = Name or ""
+    Button.Name = Name and Name .. "Button" or "Button"
     Button.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
     Button.BorderColor3 = Gui.Data.BackgroundColor
-    Button.Position = UDim2.new(0, 8, 0, Container.PushAmount.Value + (#Container:GetChildren() * 20) - 55)
+    Button.Position = UDim2.new(0, 8, 0, Container:GetAttribute("PushAmount") + (#Container:GetChildren() * 20) - 40)
     Button.Size = UDim2.new(0, 142, 0, 15)
     Button.Font = Enum.Font.Code
     Button.Text = Name or ""
@@ -294,7 +290,7 @@ Gui.Button = function(Container, Name, Callback)
     Button.TextSize = 14
     Button.MouseButton1Click:Connect(function()
         Button.TextColor3 = Color3.fromRGB(220, 220, 220)
-        Callback()
+        Callback(true)
         delay(0.3, function()
             Button.TextColor3 = Color3.fromRGB(200, 200, 200)
         end)
@@ -305,13 +301,15 @@ Gui.Button = function(Container, Name, Callback)
     return Button
 end
 
-Gui.TextBox = function(Container, Name, Callback)
+Gui.TextBox = function(Tab, Container, Name, Callback)
+    local Callback = Callback or tostring
+    local Container = Tabs[Tab].Left:FindFirstChild(Container) and Tabs[Tab].Left[Container] or Tabs[Tab].Right[Container]
     local TextBox = Instance.new("TextBox")
     TextBox.Parent = Container
-    TextBox.Name = Name or ""
+    TextBox.Name = Name and Name .. "TextBox" or "Button"
     TextBox.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
     TextBox.BorderColor3 = Gui.Data.BackgroundColor
-    TextBox.Position = UDim2.new(0, 8, 0, Container.PushAmount.Value + (#Container:GetChildren() * 20) - 55)
+    TextBox.Position = UDim2.new(0, 8, 0, Container:GetAttribute("PushAmount") + (#Container:GetChildren() * 20) - 40)
     TextBox.Size = UDim2.new(0, 142, 0, 15)
     TextBox.Font = Enum.Font.Code
     TextBox.Text = Name or ""
@@ -331,7 +329,10 @@ Gui.TextBox = function(Container, Name, Callback)
     return TextBox
 end
 
-Gui.CheckBox = function(Label, Bool, Callback)
+Gui.CheckBox = function(Tab, Container, Label, Bool, Callback)
+    local Callback = Callback or tostring
+    local Container = Tabs[Tab].Left:FindFirstChild(Container) and Tabs[Tab].Left[Container] or Tabs[Tab].Right[Container]
+    local Label = Container[Label]
     local CheckBox = Instance.new("TextButton")
     CheckBox.Parent = Label
     CheckBox.Name = Label.Name .. " CheckBox"
@@ -347,17 +348,33 @@ Gui.CheckBox = function(Label, Bool, Callback)
         if CheckBox.BackgroundColor3 == Gui.Data.Color then
             CheckBox.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
             Callback(false)
+            if table.find(Gui.Elements.Background, CheckBox) then
+                for i, v in ipairs(Gui.Elements.Background) do
+                    if v == CheckBox then
+                        table.remove(Gui.Elements.Background, i)
+                    end
+                end
+            end
         else
             CheckBox.BackgroundColor3 = Gui.Data.Color
             Callback(true)
+            if not table.find(Gui.Elements.Background, CheckBox) then
+                table.insert(Gui.Elements.Background, CheckBox)
+            end
         end
     end)
-    table.insert(Gui.Elements.Background, CheckBox)
+
+    if Bool then
+        table.insert(Gui.Elements.Background, CheckBox)
+    end
 
     return CheckBox
 end
 
-Gui.ColorPicker = function(Label, Color, Callback)
+Gui.ColorPicker = function(Tab, Container, Label, Color, Callback)
+    local Callback = Callback or tostring
+    local Container = Tabs[Tab].Left:FindFirstChild(Container) and Tabs[Tab].Left[Container] or Tabs[Tab].Right[Container]
+    local Label = Container[Label]
     local ColorPicker = Label:FindFirstChild(Label.Name .. " ColorPicker")
     if ColorPicker then
         ColorPicker.Position -= UDim2.new(0, 20)
@@ -439,7 +456,7 @@ Gui.ColorPicker = function(Label, Color, Callback)
         SideChanger.Text = ""
         SideChanger.MouseButton1Down:Connect(function()
             SideSliding = true
-            local Y = UserInput:GetMouseLocation().Y - 55
+            local Y = UserInput:GetMouseLocation().Y - 40
             local YPercentage = math.clamp((Y - SideChanger.AbsolutePosition.Y) / SideChanger.AbsoluteSize.Y, 0, 1)
             SideInfo.Position = UDim2.new(0, 0, YPercentage, -5)
             Hue = YPercentage
@@ -517,13 +534,18 @@ Gui.ColorPicker = function(Label, Color, Callback)
     return ColorPicker
 end
 
-Gui.ComboBox = function(Container, Name, Items, Selected, Callback)
+Gui.ComboBox = function(Tab, Container, Name, Items, Selected, Callback)
+    local Name = Name or ""
+    local Items = Items or {}
+    local Selected = Selected or ""
+    local Callback = Callback or tostring
+    local Container = Tabs[Tab].Left:FindFirstChild(Container) and Tabs[Tab].Left[Container] or Tabs[Tab].Right[Container]
     local ComboBox = Instance.new("TextButton")
     ComboBox.Parent = Container
-    ComboBox.Name = Name or ""
+    ComboBox.Name = Name
     ComboBox.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
     ComboBox.BorderColor3 = Gui.Data.BackgroundColor
-    ComboBox.Position = UDim2.new(0, 8, 0, Container.PushAmount.Value + (#Container:GetChildren() * 20) - 55)
+    ComboBox.Position = UDim2.new(0, 8, 0, Container:GetAttribute("PushAmount") + (#Container:GetChildren() * 20) - 40)
     ComboBox.Size = UDim2.new(0, 142, 0, 15)
     ComboBox.Font = Enum.Font.Code
     ComboBox.Text = Selected and Selected or "None"
@@ -579,13 +601,18 @@ Gui.ComboBox = function(Container, Name, Items, Selected, Callback)
     return ComboBox
 end
 
-Gui.MultiBox = function(Container, Name, Items, SelectedItems, Callback)
+Gui.MultiBox = function(Tab, Container, Name, Items, SelectedItems, Callback)
+    local Name = Name or ""
+    local Items = Items or {}
+    local SelectedItems = SelectedItems or {}
+    local Callback = Callback or tostring
+    local Container = Tabs[Tab].Left:FindFirstChild(Container) and Tabs[Tab].Left[Container] or Tabs[Tab].Right[Container]
     local MultiBox = Instance.new("TextButton")
     MultiBox.Parent = Container
-    MultiBox.Name = Name or ""
+    MultiBox.Name = Name
     MultiBox.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
     MultiBox.BorderColor3 = Gui.Data.BackgroundColor
-    MultiBox.Position = UDim2.new(0, 8, 0, Container.PushAmount.Value + (#Container:GetChildren() * 20) - 55)
+    MultiBox.Position = UDim2.new(0, 8, 0, Container:GetAttribute("PushAmount") + (#Container:GetChildren() * 20) - 40)
     MultiBox.Size = UDim2.new(0, 142, 0, 15)
     MultiBox.Font = Enum.Font.Code
     MultiBox.Text = SelectedItems and table.concat(SelectedItems, ", ") or "None"
@@ -652,7 +679,11 @@ Gui.MultiBox = function(Container, Name, Items, SelectedItems, Callback)
     return MultiBox
 end
 
-Gui.Bindable = function(Label, Key, Callback)
+Gui.Bindable = function(Tab, Container, Label, Key, Callback)
+    local Key = Key or Enum.KeyCode.Unknown
+    local Callback = Callback or tostring
+    local Container = Tabs[Tab].Left:FindFirstChild(Container) and Tabs[Tab].Left[Container] or Tabs[Tab].Right[Container]
+    local Label = Container[Label]
     local Bindable = Instance.new("TextButton")
     Bindable.Parent = Label
     Bindable.Name = Label.Name .. " Bindable"
@@ -685,9 +716,11 @@ Gui.Bindable = function(Label, Key, Callback)
     return Bindable
 end
 
-Gui.Slider = function(Label, Name, Min, Max, Init, Decimal, Callback)
+Gui.Slider = function(Tab, Container, Label, Name, Min, Max, Init, Decimal, Callback)
+    local Container = Tabs[Tab].Left:FindFirstChild(Container) and Tabs[Tab].Left[Container] or Tabs[Tab].Right[Container]
+    local Label = Container[Label]
     local Sliding
-    local Text = Label.Text .. " "
+    local Text = Label.Text .. " : "
     local Min = Min or 0
     local Max = Max or 100
     local Init = Init or 0
@@ -698,19 +731,20 @@ Gui.Slider = function(Label, Name, Min, Max, Init, Decimal, Callback)
     local Info = Instance.new("TextLabel")
     local Button = Instance.new("TextButton")
 
-    Label.Parent.PushAmount.Value += 10
+    Label.Parent:SetAttribute("PushAmount", Label.Parent:GetAttribute("PushAmount") + 10)
     Max -= Min
     Label.Text = Text .. string.format("%." .. Decimal .. "f", Init)
-    Label.Parent.Size += UDim2.new(0, 0, 0, 15)
+    Label.Parent.Size += UDim2.new(0, 0, 0, 10)
 
     Slider.Parent = Label
-    Slider.Name = Name or ""
+    Slider.Name = Name and Name .. "Slider" or "Slider"
     Slider.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
     Slider.BorderColor3 = Gui.Data.BackgroundColor
     Slider.Position = UDim2.new(0, -12, 0, 20)
     Slider.Size = UDim2.new(0, 142, 0, 5)
 
     Info.Parent = Slider
+    Info.Name = "Info"
     Info.BackgroundColor3 = Gui.Data.Color
     Info.BorderSizePixel = 0
     Info.Size = UDim2.new(math.clamp((Init - Min) / Max, 0, 1), 0, 1, 0)
@@ -744,7 +778,7 @@ Gui.Slider = function(Label, Name, Min, Max, Init, Decimal, Callback)
         end
     end)
 
-    return Slider, Label, Button
+    return Slider, Info, Button
 end
 
 Gui.Notify = function(Name, Message, Time)
@@ -801,9 +835,28 @@ Gui.Notify = function(Name, Message, Time)
     return Notification
 end
 
-Gui.Update = function(Item)
-    if sring.find(Item.Name, "") then
-        
+Gui.Update = function(Item, Value, ...)
+    if Item:IsA("TextLabel") then
+        Item.Text = Value
+    elseif string.find(Item.Name, "Button") then
+        Item.Text = Value
+    elseif string.find(Item.Name, "TextBox") then
+        Item.Text = Value
+    elseif string.find(Item.Name, "CheckBox") then
+        Item.BackgroundColor3 = Value and Gui.Data.Color or Color3.fromRGB(40, 40, 40)
+    elseif string.find(Item.Name, "ColorPicker") then
+        Item.BackgroundColor3 = Value
+    elseif string.find(Item.Name, "ComboBox") then
+        --Item.Selected = Value
+    elseif string.find(Item.Name, "MultiBox") then
+
+    elseif string.find(Item.Name, "Bindable") then
+        Item.Text = "[" .. Value .. "]"
+    elseif string.find(Item.Name, "Slider") then
+        local Min, Max, Init = ...
+        Max -= Min
+        Item.Parent.Text = Value
+        Item.Info.Size = UDim2.new(math.clamp((Init - Min) / Max, 0, 1), 0, 1, 0)
     end
 end
 
