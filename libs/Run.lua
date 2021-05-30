@@ -1,12 +1,10 @@
 local RunService = game:GetService("RunService")
-local Event = Instance.new("BindableEvent")
-local Run = {}
-Run.Stepped = Event.Event
+local Run = Instance.new("BindableEvent")
 
 for _, v in ipairs({RunService.RenderStepped, RunService.Stepped, RunService.Heartbeat}) do
     v:Connect(function(...)
-        Event:Fire(...)
+        Run:Fire(...)
     end)
 end
 
-return Run
+return Run.Event
