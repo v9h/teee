@@ -82,6 +82,7 @@ Main.Size = UDim2.new(0, 360, 0, 480)
 Main.ImageColor3 = Gui.Data.BackgroundColor
 Main.ScaleType = Enum.ScaleType.Crop
 Main.Active = true
+Main.Visible = false
 Main.Draggable = true
 Main:GetPropertyChangedSignal("Position"):Connect(function()
     if FollowFrame and FollowButton then
