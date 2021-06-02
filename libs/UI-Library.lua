@@ -734,10 +734,6 @@ Gui.Bindable = function(Tab, Container, Label, Key, Callback)
 end
 
 Gui.Slider = function(Tab, Container, Label, Name, Min, Max, Init, Decimal, Callback)
-    Max = Max or 100
-    Min = Min or 0
-    Max -= Min
-
     local Container = Tabs[Tab].Left:FindFirstChild(Container) and Tabs[Tab].Left[Container] or Tabs[Tab].Right[Container]
     local Label = Container[Label]
     local Callback = Callback or tostring
@@ -747,6 +743,12 @@ Gui.Slider = function(Tab, Container, Label, Name, Min, Max, Init, Decimal, Call
     local Button = Instance.new("TextButton")
     local ValueBox = Instance.new("TextBox")
 
+    Min = Min or 0
+    Max = Max or 100
+    Max -= Min
+    Label.Parent.Size += UDim2.new(0, 0, 0, 10)
+    Label.Parent:SetAttribute("PushAmount", Label.Parent:GetAttribute("PushAmount") + 10)
+
     Slider.Parent = Label
     Slider.Name = Name and Name .. " Slider" or "Slider"
     Slider.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
@@ -754,8 +756,8 @@ Gui.Slider = function(Tab, Container, Label, Name, Min, Max, Init, Decimal, Call
     Slider.Position = UDim2.new(0, -12, 0, 20)
     Slider.Size = UDim2.new(0, 142, 0, 5)
     Slider:SetAttribute("Init", Init or 0)
-    Slider:SetAttribute("Min", Min)
-    Slider:SetAttribute("Max", Max)
+    Slider:SetAttribute("Min", Min or 0)
+    Slider:SetAttribute("Max", Max or 100)
     Slider:SetAttribute("Decimal", Decimal or 0)
     Slider:SetAttribute("Sliding", false)
 
@@ -807,15 +809,12 @@ Gui.Slider = function(Tab, Container, Label, Name, Min, Max, Init, Decimal, Call
     ValueBox.TextSize = 14
     ValueBox.TextStrokeTransparency = 0.5
     ValueBox.FocusLost:Connect(function()
-        ValueBox.Text = tonumber(ValueBox.Text) or Slider:GetAttribute("Min")
-        Value = math.clamp(tonumber(ValueBox.Text), Slider:GetAttribute("Min"), Slider:GetAttribute("Max"))
-        ValueBox.Text = Value
+        Value = math.clamp(tonumber(ValueBox.Text), Slider:GetAttribute("Min"), Slider:GetAttribute("Max") + Slider:GetAttribute("Min"))
+        ValueBox.Text = Value or Slider:GetAttribute("Min")
         Info.Size = UDim2.new(math.clamp((Value - Slider:GetAttribute("Min")) / Slider:GetAttribute("Max"), 0, 1), 0, 1, 0)
+        ValueBox.Text = Value
         Callback(Value)
     end)
-
-    Label.Parent.Size += UDim2.new(0, 0, 0, 10)
-    Label.Parent:SetAttribute("PushAmount", Label.Parent:GetAttribute("PushAmount") + 10)
 
     return Slider, Info, Button, ValueBox
 end
