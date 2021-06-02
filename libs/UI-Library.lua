@@ -734,6 +734,10 @@ Gui.Bindable = function(Tab, Container, Label, Key, Callback)
 end
 
 Gui.Slider = function(Tab, Container, Label, Name, Min, Max, Init, Decimal, Callback)
+    Max = Max or 100
+    Min = Min or 0
+    Max -= Min
+
     local Container = Tabs[Tab].Left:FindFirstChild(Container) and Tabs[Tab].Left[Container] or Tabs[Tab].Right[Container]
     local Label = Container[Label]
     local Callback = Callback or tostring
@@ -750,8 +754,8 @@ Gui.Slider = function(Tab, Container, Label, Name, Min, Max, Init, Decimal, Call
     Slider.Position = UDim2.new(0, -12, 0, 20)
     Slider.Size = UDim2.new(0, 142, 0, 5)
     Slider:SetAttribute("Init", Init or 0)
-    Slider:SetAttribute("Min", Min or 0)
-    Slider:SetAttribute("Max", Max or 100)
+    Slider:SetAttribute("Min", Min)
+    Slider:SetAttribute("Max", Max)
     Slider:SetAttribute("Decimal", Decimal or 0)
     Slider:SetAttribute("Sliding", false)
 
@@ -810,7 +814,6 @@ Gui.Slider = function(Tab, Container, Label, Name, Min, Max, Init, Decimal, Call
         Callback(Value)
     end)
 
-    Max -= Min
     Label.Parent.Size += UDim2.new(0, 0, 0, 10)
     Label.Parent:SetAttribute("PushAmount", Label.Parent:GetAttribute("PushAmount") + 10)
 
