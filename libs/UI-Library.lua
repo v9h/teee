@@ -743,10 +743,6 @@ Gui.Slider = function(Tab, Container, Label, Name, Min, Max, Init, Decimal, Call
     local Button = Instance.new("TextButton")
     local ValueBox = Instance.new("TextBox")
 
-    Max -= Min
-    Label.Parent.Size += UDim2.new(0, 0, 0, 10)
-    Label.Parent:SetAttribute("PushAmount", Label.Parent:GetAttribute("PushAmount") + 10)
-
     Slider.Parent = Label
     Slider.Name = Name and Name .. " Slider" or "Slider"
     Slider.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
@@ -813,6 +809,10 @@ Gui.Slider = function(Tab, Container, Label, Name, Min, Max, Init, Decimal, Call
         Info.Size = UDim2.new(math.clamp((Value - Slider:GetAttribute("Min")) / Slider:GetAttribute("Max"), 0, 1), 0, 1, 0)
         Callback(Value)
     end)
+
+    Max -= Min
+    Label.Parent.Size += UDim2.new(0, 0, 0, 10)
+    Label.Parent:SetAttribute("PushAmount", Label.Parent:GetAttribute("PushAmount") + 10)
 
     return Slider, Info, Button, ValueBox
 end
