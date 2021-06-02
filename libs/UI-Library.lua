@@ -887,10 +887,10 @@ Gui.Update = function(Tab, Container, ...)
             Item.Text = Arguments[3]
         end,
         ["CheckBox"] = function()
-            Item.BackgroundColor3 = Arguments[3] and Gui.Data.Color or Color3.fromRGB(40, 40, 40)
+            Item[Item.Name .. " CheckBox"].BackgroundColor3 = Arguments[3] and Gui.Data.Color or Color3.fromRGB(40, 40, 40)
         end,
         ["ColorPicker"] = function()
-            Item.BackgroundColor3 = Arguments[3] or Color3.fromRGB()
+            Item[Item.Name .. " ColorPicker"].BackgroundColor3 = Arguments[3] or Color3.fromRGB()
         end,
         ["ComboBox"] = function()
             Container:SetAttribute("PushAmount", Container:GetAttribute("PushAmount") - 20)
@@ -909,7 +909,7 @@ Gui.Update = function(Tab, Container, ...)
             Item:Destroy()
         end,
         ["Bindable"] = function()
-            Item.Text = "[" .. Arguments[3] .. "]"
+            Item[Item.Name .. " Bindable"].Text = "[" .. Arguments[3] .. "]"
         end,
         ["Slider"] = function()
             local Min, Max, Init, Decimal = Arguments[3], Arguments[4], Arguments[5], Arguments[6]
