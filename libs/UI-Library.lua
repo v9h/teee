@@ -905,20 +905,20 @@ Gui.Update = function(Tab, Container, ...)
             Item[Item.Name .. " ColorPicker"].BackgroundColor3 = Arguments[3] or Color3.fromRGB()
         end,
         ["ComboBox"] = function()
+            local Position, Name = Item.Position, Item.Name
+            Item:Destroy()
             Container:SetAttribute("PushAmount", Container:GetAttribute("PushAmount") - 20)
             Container.Size -= UDim2.new(0, 0, 0, 20)
-            local Position = Item.Position
-            local ComboBox = Gui.ComboBox(Tab, Container.Name, Item.Name, Arguments[3], Arguments[4], Arguments[5])
+            local ComboBox = Gui.ComboBox(Tab, Container.Name, Name, Arguments[3], Arguments[4], Arguments[5])
             ComboBox.Position = Position
-            Item:Destroy()
         end,
         ["MultiBox"] = function()
+            local Position, Name = Item.Position, Item.Name
+            Item:Destroy()
             Container:SetAttribute("PushAmount", Container:GetAttribute("PushAmount") - 25)
             Container.Size -= UDim2.new(0, 0, 0, 25)
-            local Position = Item.Position
-            local MultiBox = Gui.MultiBox(Tab, Container.Name, Item.Name, Arguments[3], Arguments[4], Arguments[5])
+            local MultiBox = Gui.MultiBox(Tab, Container.Name, Name, Arguments[3], Arguments[4], Arguments[5])
             MultiBox.Position = Position
-            Item:Destroy()
         end,
         ["Bindable"] = function()
             Item[Item.Name .. " Bindable"].Text = "[" .. Arguments[3] .. "]"
