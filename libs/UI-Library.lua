@@ -549,6 +549,10 @@ Gui.ComboBox = function(Tab, Container, Name, Items, Selected, Callback)
     local Callback = Callback or tostring
     local Container = Tabs[Tab].Left:FindFirstChild(Container) and Tabs[Tab].Left[Container] or Tabs[Tab].Right[Container]
     local ComboBox = Instance.new("TextButton")
+    for i, Item in ipairs(Items) do
+        table.remove(Items, i)
+        table.insert(Items, i, tostring(Item))
+    end
     ComboBox.Parent = Container
     ComboBox.Name = Name
     ComboBox.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
@@ -619,6 +623,14 @@ Gui.MultiBox = function(Tab, Container, Name, Items, SelectedItems, Callback)
     local SelectedItems = SelectedItems or {}
     local Callback = Callback or tostring
     local Container = Tabs[Tab].Left:FindFirstChild(Container) and Tabs[Tab].Left[Container] or Tabs[Tab].Right[Container]
+    for i, Item in ipairs(Items) do
+        table.remove(Items, i)
+        table.insert(Items, i, tostring(Item))
+    end
+    for i, SelectedItem in ipairs(SelectedItems) do
+        table.remove(SelectedItems, i)
+        table.insert(SelectedItems, i, tostring(SelectedItem))
+    end
     local MultiBox = Instance.new("TextButton")
     MultiBox.Parent = Container
     MultiBox.Name = Name
