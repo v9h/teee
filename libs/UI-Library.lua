@@ -207,9 +207,11 @@ Gui.Tab = function(Name)
     
     AutoAlign.Parent = LeftSide
     AutoAlign.Padding = UDim.new(0, 15)
+    AutoAlign.SortOrder = Enum.SortOrder.LayoutOrder
 
     AutoAlign_2.Parent = RightSide
     AutoAlign_2.Padding = UDim.new(0, 15)
+    AutoAlign_2.SortOrder = Enum.SortOrder.LayoutOrder
     
     Button.Parent = TabIndex
     Button.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
@@ -899,7 +901,21 @@ Gui.Update = function(Tab, Container, ...)
             Item.Text = Arguments[3]
         end,
         ["CheckBox"] = function()
-            Item[Item.Name .. " CheckBox"].BackgroundColor3 = Arguments[3] and Gui.Data.Color or Color3.fromRGB(40, 40, 40)
+            local CheckBox = Item[Item.Name .. " CheckBox"]
+            CheckBox.BackgroundColor3 = Arguments[3] and Gui.Data.Color or Color3.fromRGB(40, 40, 40)
+            if Arguments[3] then
+                if not table.find(Gui.Elements.Background, CheckBox) then
+                    table.insert(Gui.Elements.Background, CheckBox)
+                end
+            else
+                if table.find(Gui.Elements.Background, CheckBox) then
+                    for i, v in ipairs(Gui.Elements.Background) do
+                        if v == CheckBox then
+                            table.remove(Gui.Elements.Background, i)
+                        end
+                    end
+                end
+            end
         end,
         ["ColorPicker"] = function()
             Item[Item.Name .. " ColorPicker"].BackgroundColor3 = Arguments[3] or Color3.fromRGB()
