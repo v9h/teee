@@ -60,6 +60,14 @@ File.Read = function(Path)
     end
 end
 
+File.GetFiles = function(Path)
+    local Files = {}
+    for _, File in ipairs(listfiles(Path)) do
+        table.insert(Files, string.sub(File, #Path + 2))
+    end
+    return Files
+end
+
 File.Append = function(Path, Content)
     if File.Exists(Path) then
         appendfile(Path, Content)
