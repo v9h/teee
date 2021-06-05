@@ -47,13 +47,6 @@ File.Exists = function(Path)
     return isfile(Path)
 end
 
-File.ListFiles = function(Path)
-    if isfolder(Path) then
-        return listfiles(Path)
-    end
-    error("invalid path " .. string.format("%q", Path))
-end
-
 File.Read = function(Path)
     if File.Exists(Path) then
         return readfile(Path)
@@ -74,7 +67,6 @@ File.Append = function(Path, Content)
     else
         writefile(Path, Content)
     end
-    error("invalid path " .. string.format("%q", Path))
 end
 
 File.Write = function(Path, Content)
