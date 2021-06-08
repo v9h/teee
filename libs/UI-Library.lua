@@ -795,7 +795,7 @@ Gui.Slider = function(Tab, Container, Label, Name, Min, Max, Init, Decimal, Call
         local Percentage = math.clamp((UserInput:GetMouseLocation().X - Slider.AbsolutePosition.X) / Slider.AbsoluteSize.X, 0, 1)
         Info.Size = UDim2.new(Percentage, 0, 1, 0)
         ValueBox.Text = string.format("%." .. Slider:GetAttribute("Decimal") .. "f", Slider:GetAttribute("Min") + Slider:GetAttribute("Max") * Percentage)
-        Callback(Percentage * Slider:GetAttribute("Max") + Slider:GetAttribute("Min"))
+        Callback(tonumber(ValueBox.Text))
     end)
     Button.MouseButton1Up:Connect(function()
         Slider:SetAttribute("Sliding", false)
@@ -805,7 +805,7 @@ Gui.Slider = function(Tab, Container, Label, Name, Min, Max, Init, Decimal, Call
             local Percentage = math.clamp((X - Slider.AbsolutePosition.X) / Slider.AbsoluteSize.X, 0, 1)
             Info.Size = UDim2.new(Percentage, 0, 1, 0)
             ValueBox.Text = string.format("%." .. Slider:GetAttribute("Decimal") .. "f", Slider:GetAttribute("Min") + Slider:GetAttribute("Max") * Percentage)
-            Callback(Percentage * Slider:GetAttribute("Max") + Slider:GetAttribute("Min"))
+            Callback(tonumber(ValueBox.Text))
         else
             Slider:SetAttribute("Sliding", false)
         end
@@ -937,7 +937,7 @@ Gui.Update = function(Tab, Container, ...)
             MultiBox.Position = Position
         end,
         ["Bindable"] = function()
-            Item[Item.Name .. " Bindable"].Text = "[" .. Arguments[3] .. "]"
+            Item[Item.Name .. " Bindable"].Text = "[" .. tostring(Arguments[3]) .. "]"
         end,
         ["Slider"] = function()
             local Min, Max, Init, Decimal = Arguments[3], Arguments[4], Arguments[5], Arguments[6]
