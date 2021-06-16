@@ -50,6 +50,8 @@ end
 File.Read = function(Path)
     if File.Exists(Path) then
         return readfile(Path)
+    else
+        return ""
     end
 end
 
