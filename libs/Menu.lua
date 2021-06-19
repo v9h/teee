@@ -432,7 +432,7 @@ Menu.ColorPicker = function(Tab, Container, Label, Color, Callback)
         MainChanger.BorderSizePixel = 0
         MainChanger.Position = UDim2.new(0, 5, 0, 5)
         MainChanger.Size = UDim2.new(0, 125, 0, 125)
-        MainChanger.Image = "rbxassetid://4155801252"
+        MainChanger.Image = "rbxassetid://6881151857"
         MainChanger.ImageColor3 = ColorPicker.BackgroundColor3
         MainChanger.MouseButton1Down:Connect(function()
             MainSliding = true
@@ -538,8 +538,6 @@ Menu.ColorPicker = function(Tab, Container, Label, Color, Callback)
         FollowFrame = Frame
         FollowFrame:SetAttribute("FollowPosition", 15)
         FollowButton = ColorPicker
-
-        Update()
     end)
 
     return ColorPicker
