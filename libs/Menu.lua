@@ -433,7 +433,7 @@ Menu.ColorPicker = function(Tab, Container, Label, Color, Callback)
         MainChanger.Position = UDim2.new(0, 5, 0, 5)
         MainChanger.Size = UDim2.new(0, 125, 0, 125)
         MainChanger.Image = "rbxassetid://4155801252"
-        MainChanger.ImageColor3 = ColorPicker.BackgroundColor
+        MainChanger.ImageColor3 = ColorPicker.BackgroundColor3
         MainChanger.MouseButton1Down:Connect(function()
             MainSliding = true
             local X, Y = UserInput:GetMouseLocation().X, UserInput:GetMouseLocation().Y - 40
@@ -488,7 +488,7 @@ Menu.ColorPicker = function(Tab, Container, Label, Color, Callback)
         end)
 
         ColorOutput.Parent = Frame
-        ColorOutput.BackgroundColor3 = ColorPicker.BackgroundColor
+        ColorOutput.BackgroundColor3 = ColorPicker.BackgroundColor3
         ColorOutput.BorderSizePixel = 0
         ColorOutput.Position = UDim2.new(0, 5, 0, 135)
         ColorOutput.Size = UDim2.new(0, 125, 0, 15)
