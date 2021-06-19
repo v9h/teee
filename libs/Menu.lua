@@ -824,9 +824,14 @@ Menu.Slider = function(Tab, Container, Label, Min, Max, Init, Decimal, Callback)
     ValueBox.TextSize = 14
     ValueBox.TextStrokeTransparency = 0.5
     ValueBox.FocusLost:Connect(function()
-        Value = math.clamp(string.gsub(ValueBox.Text, "%D", ""), Slider:GetAttribute("Min"), Slider:GetAttribute("Max") + Slider:GetAttribute("Min"))
-        Value = Value or Slider:GetAttribute("Min")
-        ValueBox.Text = Value
+        local Text = string.gsub(ValueBox.Text, "%D", "")
+        if Text == "" then
+            local Min = Slider:GetAttribute("Min")
+            ValueBox.Text = Min
+            Callback(Min)
+            return
+        end
+        Value = math.clamp(Text, Slider:GetAttribute("Min"), Slider:GetAttribute("Max") + Slider:GetAttribute("Min"))
         Info.Size = UDim2.new(math.clamp((Value - Slider:GetAttribute("Min")) / Slider:GetAttribute("Max"), 0, 1), 0, 1, 0)
         ValueBox.Text = Value
         Callback(Value)
