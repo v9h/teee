@@ -2,7 +2,7 @@
 
 local UserInput = game:GetService("UserInputService")
 local RunService = game:GetService("RunService")
-local CoreMenu = game:GetService("CoreMenu")
+local CoreGui = game:GetService("CoreGui")
 
 local Call, Mouse1, BindableButton, FollowFrame, FollowButton
 
@@ -79,8 +79,8 @@ local Menu = setmetatable(Menu, {
     end
 })
 
-Menu.Screen = Instance.new("ScreenMenu")
-Menu.Screen.Parent = CoreMenu
+Menu.Screen = Instance.new("ScreenGui")
+Menu.Screen.Parent = CoreGui
 
 Main.Parent = Menu.Screen
 Main.BackgroundColor3 = Menu.Data.BackgroundColor
@@ -151,7 +151,7 @@ Menu.Tab = function(Name)
             v.Visible = false
         end
         for _, v in ipairs(TabIndex:GetChildren()) do
-            if v:IsA("MenuButton") then
+            if v:IsA("GuiButton") then
                 v.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
             end
         end
