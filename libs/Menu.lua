@@ -1,8 +1,8 @@
--- TO DO: Fix Color Picker[Image, Init, Position]
+-- TO DO: Fix Color Picker[Image, Position(why is it even messed up?)]
 
 local UserInput = game:GetService("UserInputService")
 local RunService = game:GetService("RunService")
-local CoreGui = game:GetService("CoreGui")
+local CoreMenu = game:GetService("CoreMenu")
 
 local Call, Mouse1, BindableButton, FollowFrame, FollowButton
 
@@ -13,19 +13,19 @@ local Title = Instance.new("TextLabel")
 local Tabs = Instance.new("Frame")
 local TabIndex = Instance.new("Frame")
 
-local Gui = {}
-Gui.Main = Main
-Gui.Elements = {
+local Menu = {}
+Menu.Main = Main
+Menu.Elements = {
     Text = {},
     Border = {},
     Background = {},
     Base = {}
 }
-Gui.Data = {}
-Gui.Data.Color = Color3.fromRGB(255, 255, 255)
-Gui.Data.BackgroundColor = Color3.fromRGB(20, 20, 20)
+Menu.Data = {}
+Menu.Data.Color = Color3.fromRGB(255, 255, 255)
+Menu.Data.BackgroundColor = Color3.fromRGB(20, 20, 20)
 
-Gui.KeybindNames = {
+Menu.KeybindNames = {
     ["CONTROL"] = "CTRL",
     ["KEYPAD"] = "KP_",
     ["DELETE"] = "DEL",
@@ -41,32 +41,32 @@ Gui.KeybindNames = {
     ["MOUSEBUTTON"] = "M"
 }
 
-Gui.Line = function(Position, Parent)
+Menu.Line = function(Position, Parent)
     local Frame = Instance.new("Frame")
     Frame.Parent = Parent
-    Frame.BackgroundColor3 = Gui.Data.Color
+    Frame.BackgroundColor3 = Menu.Data.Color
     Frame.BorderSizePixel = 0
     Frame.Position = string.lower(Position) == "up" and UDim2.new() or UDim2.new(0, 0, 1, 0)
     Frame.Size = UDim2.new(1, 0, 0, 1)
-    table.insert(Gui.Elements.Background, Frame)
+    table.insert(Menu.Elements.Background, Frame)
     return Frame
 end
 
-local Gui = setmetatable(Gui, {
+local Menu = setmetatable(Menu, {
     __newindex = function(Table, Key, Value)
         if Key == "Title" then
             Title.Text = Value
             return
         end
         if Key == "Color" then
-            Gui.Data.Color = Value
-            for _, v in ipairs(Gui.Elements.Text) do
+            Menu.Data.Color = Value
+            for _, v in ipairs(Menu.Elements.Text) do
                 v.TextColor3 = Value
             end
-            for _, v in ipairs(Gui.Elements.Border) do
+            for _, v in ipairs(Menu.Elements.Border) do
                 v.BorderColor3 = Value
             end
-            for _, v in ipairs(Gui.Elements.Background) do
+            for _, v in ipairs(Menu.Elements.Background) do
                 v.BackgroundColor3 = Value
             end
             return
@@ -79,16 +79,16 @@ local Gui = setmetatable(Gui, {
     end
 })
 
-Gui.Screen = Instance.new("ScreenGui")
-Gui.Screen.Parent = CoreGui
+Menu.Screen = Instance.new("ScreenMenu")
+Menu.Screen.Parent = CoreMenu
 
-Main.Parent = Gui.Screen
-Main.BackgroundColor3 = Gui.Data.BackgroundColor
+Main.Parent = Menu.Screen
+Main.BackgroundColor3 = Menu.Data.BackgroundColor
 Main.BorderColor3 = Color3.fromRGB()
 Main.BorderSizePixel = 2
 Main.Position = UDim2.new(0.5, -180, 0.5, -240)
 Main.Size = UDim2.new(0, 360, 0, 480)
-Main.ImageColor3 = Gui.Data.BackgroundColor
+Main.ImageColor3 = Menu.Data.BackgroundColor
 Main.ScaleType = Enum.ScaleType.Crop
 Main.Active = true
 Main.Visible = false
@@ -99,7 +99,7 @@ Main:GetPropertyChangedSignal("Position"):Connect(function()
     end
 end)
 
-Notifications.Parent = Gui.Screen
+Notifications.Parent = Menu.Screen
 Notifications.BackgroundTransparency = 1
 Notifications.Size = UDim2.new(1, 0, 1.1, 0)
 Notifications.Position = UDim2.new(0, 0, -0.1, 0)
@@ -136,9 +136,9 @@ TabIndex.BorderSizePixel = 0
 TabIndex.Position = UDim2.new(0, 0, 0, 15)
 TabIndex.Size = UDim2.new(1, 0, 0, 25)
 TabIndex:SetAttribute("PushAmount", 0)
-Gui.Line("Up", TabIndex)
+Menu.Line("Up", TabIndex)
 
-Gui.Tab = function(Name)
+Menu.Tab = function(Name)
     local Tab = Instance.new("Frame")
     local LeftSide = Instance.new("ScrollingFrame")
     local RightSide = Instance.new("ScrollingFrame")
@@ -151,7 +151,7 @@ Gui.Tab = function(Name)
             v.Visible = false
         end
         for _, v in ipairs(TabIndex:GetChildren()) do
-            if v:IsA("GuiButton") then
+            if v:IsA("MenuButton") then
                 v.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
             end
         end
@@ -233,7 +233,7 @@ Gui.Tab = function(Name)
     return Tab, Button
 end
 
-Gui.Container = function(Tab, Name, Side)
+Menu.Container = function(Tab, Name, Side)
     local Tab = Tabs[Tab]
     local Container = Instance.new("Frame")
     local Title = Instance.new("TextLabel")
@@ -244,7 +244,7 @@ Gui.Container = function(Tab, Name, Side)
     Container.BorderColor3 = Color3.fromRGB()
     Container.Size = UDim2.new(1, 0, 0, 5)
     Container:SetAttribute("PushAmount", 5)
-    Gui.Line("Up", Container)
+    Menu.Line("Up", Container)
 
     Title.Parent = Container
     Title.BackgroundTransparency = 1
@@ -258,7 +258,7 @@ Gui.Container = function(Tab, Name, Side)
     return Container
 end
 
-Gui.Label = function(Tab, Container, Name)
+Menu.Label = function(Tab, Container, Name)
     local Container = Tabs[Tab].Left:FindFirstChild(Container) and Tabs[Tab].Left[Container] or Tabs[Tab].Right[Container]
     local Label = Instance.new("TextLabel")
     Label.Parent = Container
@@ -279,14 +279,14 @@ Gui.Label = function(Tab, Container, Name)
     return Label
 end
 
-Gui.Button = function(Tab, Container, Name, Callback)
+Menu.Button = function(Tab, Container, Name, Callback)
     local Callback = Callback or tostring
     local Container = Tabs[Tab].Left:FindFirstChild(Container) and Tabs[Tab].Left[Container] or Tabs[Tab].Right[Container]
     local Button = Instance.new("TextButton")
     Button.Parent = Container
     Button.Name = Name and Name .. "Button" or "Button"
     Button.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
-    Button.BorderColor3 = Gui.Data.BackgroundColor
+    Button.BorderColor3 = Menu.Data.BackgroundColor
     Button.Position = UDim2.new(0, 8, 0, Container:GetAttribute("PushAmount"))
     Button.Size = UDim2.new(0, 142, 0, 15)
     Button.Font = Enum.Font.Code
@@ -308,14 +308,14 @@ Gui.Button = function(Tab, Container, Name, Callback)
     return Button
 end
 
-Gui.TextBox = function(Tab, Container, Name, Callback)
+Menu.TextBox = function(Tab, Container, Name, Callback)
     local Callback = Callback or tostring
     local Container = Tabs[Tab].Left:FindFirstChild(Container) and Tabs[Tab].Left[Container] or Tabs[Tab].Right[Container]
     local TextBox = Instance.new("TextBox")
     TextBox.Parent = Container
     TextBox.Name = Name and Name .. "TextBox" or "Button"
     TextBox.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
-    TextBox.BorderColor3 = Gui.Data.BackgroundColor
+    TextBox.BorderColor3 = Menu.Data.BackgroundColor
     TextBox.Position = UDim2.new(0, 8, 0, Container:GetAttribute("PushAmount"))
     TextBox.Size = UDim2.new(0, 142, 0, 15)
     TextBox.Font = Enum.Font.Code
@@ -338,15 +338,15 @@ Gui.TextBox = function(Tab, Container, Name, Callback)
     return TextBox
 end
 
-Gui.CheckBox = function(Tab, Container, Label, Bool, Callback)
+Menu.CheckBox = function(Tab, Container, Label, Bool, Callback)
     local Callback = Callback or tostring
     local Container = Tabs[Tab].Left:FindFirstChild(Container) and Tabs[Tab].Left[Container] or Tabs[Tab].Right[Container]
     local Label = Container[Label]
     local CheckBox = Instance.new("TextButton")
     CheckBox.Parent = Label
     CheckBox.Name = Label.Name .. " CheckBox"
-    CheckBox.BackgroundColor3 = Bool and Gui.Data.Color or Color3.fromRGB(40, 40, 40)
-    CheckBox.BorderColor3 = Gui.Data.BackgroundColor
+    CheckBox.BackgroundColor3 = Bool and Menu.Data.Color or Color3.fromRGB(40, 40, 40)
+    CheckBox.BorderColor3 = Menu.Data.BackgroundColor
     CheckBox.Position = UDim2.new(0, 5 + (#Label:GetChildren() * -20), 0, 2)
     CheckBox.Size = UDim2.new(0, 10, 0, 10)
     CheckBox.Font = Enum.Font.Code
@@ -354,33 +354,33 @@ Gui.CheckBox = function(Tab, Container, Label, Bool, Callback)
     CheckBox.TextColor3 = Color3.fromRGB(200, 200, 200)
     CheckBox.TextSize = 14
     CheckBox.MouseButton1Click:Connect(function()
-        if CheckBox.BackgroundColor3 == Gui.Data.Color then
+        if CheckBox.BackgroundColor3 == Menu.Data.Color then
             CheckBox.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
             Callback(false)
-            if table.find(Gui.Elements.Background, CheckBox) then
-                for i, v in ipairs(Gui.Elements.Background) do
+            if table.find(Menu.Elements.Background, CheckBox) then
+                for i, v in ipairs(Menu.Elements.Background) do
                     if v == CheckBox then
-                        table.remove(Gui.Elements.Background, i)
+                        table.remove(Menu.Elements.Background, i)
                     end
                 end
             end
         else
-            CheckBox.BackgroundColor3 = Gui.Data.Color
+            CheckBox.BackgroundColor3 = Menu.Data.Color
             Callback(true)
-            if not table.find(Gui.Elements.Background, CheckBox) then
-                table.insert(Gui.Elements.Background, CheckBox)
+            if not table.find(Menu.Elements.Background, CheckBox) then
+                table.insert(Menu.Elements.Background, CheckBox)
             end
         end
     end)
 
     if Bool then
-        table.insert(Gui.Elements.Background, CheckBox)
+        table.insert(Menu.Elements.Background, CheckBox)
     end
 
     return CheckBox
 end
 
-Gui.ColorPicker = function(Tab, Container, Label, Color, Callback)
+Menu.ColorPicker = function(Tab, Container, Label, Color, Callback)
     local Callback = Callback or tostring
     local Container = Tabs[Tab].Left:FindFirstChild(Container) and Tabs[Tab].Left[Container] or Tabs[Tab].Right[Container]
     local Label = Container[Label]
@@ -391,8 +391,8 @@ Gui.ColorPicker = function(Tab, Container, Label, Color, Callback)
     local ColorPicker = Instance.new("TextButton")
     ColorPicker.Parent = Label
     ColorPicker.Name = Label.Name .. " ColorPicker"
-    ColorPicker.BackgroundColor3 = Color or Color3.fromRGB(40, 40, 40)
-    ColorPicker.BorderColor3 = Gui.Data.BackgroundColor
+    ColorPicker.BackgroundColor3 = Color or Color3.fromRGB()
+    ColorPicker.BorderColor3 = Menu.Data.BackgroundColor
     ColorPicker.Position = UDim2.new(0, 115, 0, 2.5)
     ColorPicker.Size = UDim2.new(0, 15, 0, 10)
     ColorPicker.Font = Enum.Font.Code
@@ -417,12 +417,12 @@ Gui.ColorPicker = function(Tab, Container, Label, Color, Callback)
         local FinishButton = Instance.new("TextButton")
         local GradientColors = Instance.new("UIGradient")
 
-        local function Update(Type, ...)
+        local function Update()
             ColorOutput.BackgroundColor3 = Color3.fromHSV(Hue, Saturation, Value)
             MainChanger.ImageColor3 = Color3.fromHSV(Hue, Saturation, Value)
         end
 
-        Frame.Parent = Gui.Screen
+        Frame.Parent = Menu.Screen
         Frame.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
         Frame.BorderSizePixel = 0
         Frame.Position = UDim2.new(0, ColorPicker.AbsolutePosition.X, 0, ColorPicker.AbsolutePosition.Y + 15)
@@ -432,7 +432,8 @@ Gui.ColorPicker = function(Tab, Container, Label, Color, Callback)
         MainChanger.BorderSizePixel = 0
         MainChanger.Position = UDim2.new(0, 5, 0, 5)
         MainChanger.Size = UDim2.new(0, 125, 0, 125)
-        MainChanger.Image = "rbxassetid://6881151852"
+        MainChanger.Image = "rbxassetid://4155801252"
+        MainChanger.ImageColor3 = ColorPicker.BackgroundColor
         MainChanger.MouseButton1Down:Connect(function()
             MainSliding = true
             local X, Y = UserInput:GetMouseLocation().X, UserInput:GetMouseLocation().Y - 40
@@ -487,21 +488,21 @@ Gui.ColorPicker = function(Tab, Container, Label, Color, Callback)
         end)
 
         ColorOutput.Parent = Frame
-        ColorOutput.BackgroundColor3 = Color or Color3.fromRGB()
+        ColorOutput.BackgroundColor3 = ColorPicker.BackgroundColor
         ColorOutput.BorderSizePixel = 0
         ColorOutput.Position = UDim2.new(0, 5, 0, 135)
         ColorOutput.Size = UDim2.new(0, 125, 0, 15)
 
         MainInfo.Parent = MainChanger
         MainInfo.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-        MainInfo.BorderColor3 = Gui.Data.BackgroundColor
+        MainInfo.BorderColor3 = Menu.Data.BackgroundColor
         MainInfo.BorderSizePixel = 1
         MainInfo.Size = UDim2.new(0, 5, 0, 5)
         MainInfo.Text = ""
 
         SideInfo.Parent = SideChanger
         SideInfo.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-        SideInfo.BorderColor3 = Gui.Data.BackgroundColor
+        SideInfo.BorderColor3 = Menu.Data.BackgroundColor
         SideInfo.BorderSizePixel = 1
         SideInfo.Size = UDim2.new(0, 15, 0, 5)
         SideInfo.Text = ""
@@ -544,7 +545,7 @@ Gui.ColorPicker = function(Tab, Container, Label, Color, Callback)
     return ColorPicker
 end
 
-Gui.ComboBox = function(Tab, Container, Name, Items, Selected, Callback)
+Menu.ComboBox = function(Tab, Container, Name, Items, Selected, Callback)
     local Name = Name or ""
     local Items = Items or {}
     local Selected = Selected or ""
@@ -558,7 +559,7 @@ Gui.ComboBox = function(Tab, Container, Name, Items, Selected, Callback)
     ComboBox.Parent = Container
     ComboBox.Name = Name
     ComboBox.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
-    ComboBox.BorderColor3 = Gui.Data.BackgroundColor
+    ComboBox.BorderColor3 = Menu.Data.BackgroundColor
     ComboBox.Position = UDim2.new(0, 8, 0, Container:GetAttribute("PushAmount"))
     ComboBox.Size = UDim2.new(0, 142, 0, 15)
     ComboBox.Font = Enum.Font.Code
@@ -567,7 +568,7 @@ Gui.ComboBox = function(Tab, Container, Name, Items, Selected, Callback)
     ComboBox.TextSize = 14
     ComboBox.TextStrokeTransparency = 0.5
     ComboBox.MouseButton1Click:Connect(function()
-        local Frame = Gui.Screen:FindFirstChild(Name)
+        local Frame = Menu.Screen:FindFirstChild(Name)
         if Frame then
             Frame:Destroy()
             return
@@ -578,10 +579,10 @@ Gui.ComboBox = function(Tab, Container, Name, Items, Selected, Callback)
         end
         local Frame = Instance.new("ScrollingFrame")
 
-        Frame.Parent = Gui.Screen
+        Frame.Parent = Menu.Screen
         Frame.Name = Name or ""
         Frame.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
-        Frame.BorderColor3 = Gui.Data.BackgroundColor
+        Frame.BorderColor3 = Menu.Data.BackgroundColor
         Frame.Position = UDim2.new(0, ComboBox.AbsolutePosition.X, 0, ComboBox.AbsolutePosition.Y + 15)
         Frame.ScrollBarImageColor3 = Color3.fromRGB()
         Frame.ScrollBarThickness = 5
@@ -602,7 +603,7 @@ Gui.ComboBox = function(Tab, Container, Name, Items, Selected, Callback)
             Button.Size = UDim2.new(1, 0, 0, 15)
             Button.Font = Enum.Font.Code
             Button.Text = Item
-            Button.TextColor3 = ComboBox.Text ~= Item and Color3.fromRGB(200, 200, 200) or Gui.Data.Color
+            Button.TextColor3 = ComboBox.Text ~= Item and Color3.fromRGB(200, 200, 200) or Menu.Data.Color
             Button.TextSize = 14
             Button.TextStrokeTransparency = 0.5
             Button.MouseButton1Click:Connect(function()
@@ -619,7 +620,7 @@ Gui.ComboBox = function(Tab, Container, Name, Items, Selected, Callback)
     return ComboBox
 end
 
-Gui.MultiBox = function(Tab, Container, Name, Items, SelectedItems, Callback)
+Menu.MultiBox = function(Tab, Container, Name, Items, SelectedItems, Callback)
     local Name = Name or ""
     local Items = Items or {}
     local SelectedItems = SelectedItems or {}
@@ -637,7 +638,7 @@ Gui.MultiBox = function(Tab, Container, Name, Items, SelectedItems, Callback)
     MultiBox.Parent = Container
     MultiBox.Name = Name
     MultiBox.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
-    MultiBox.BorderColor3 = Gui.Data.BackgroundColor
+    MultiBox.BorderColor3 = Menu.Data.BackgroundColor
     MultiBox.Position = UDim2.new(0, 8, 0, Container:GetAttribute("PushAmount"))
     MultiBox.Size = UDim2.new(0, 142, 0, 20)
     MultiBox.Font = Enum.Font.Code
@@ -647,7 +648,7 @@ Gui.MultiBox = function(Tab, Container, Name, Items, SelectedItems, Callback)
     MultiBox.TextTruncate = Enum.TextTruncate.AtEnd
     MultiBox.TextStrokeTransparency = 0.5
     MultiBox.MouseButton1Click:Connect(function()
-        local Frame = Gui.Screen:FindFirstChild(Name)
+        local Frame = Menu.Screen:FindFirstChild(Name)
         if Frame then
             Frame:Destroy()
             return
@@ -658,10 +659,10 @@ Gui.MultiBox = function(Tab, Container, Name, Items, SelectedItems, Callback)
         end
         local Frame = Instance.new("ScrollingFrame")
         
-        Frame.Parent = Gui.Screen
+        Frame.Parent = Menu.Screen
         Frame.Name = Name or ""
         Frame.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
-        Frame.BorderColor3 = Gui.Data.BackgroundColor
+        Frame.BorderColor3 = Menu.Data.BackgroundColor
         Frame.Position = UDim2.new(0, MultiBox.AbsolutePosition.X, 0, MultiBox.AbsolutePosition.Y + 20)
         Frame.ScrollBarImageColor3 = Color3.fromRGB()
         Frame.ScrollBarThickness = 5
@@ -682,7 +683,7 @@ Gui.MultiBox = function(Tab, Container, Name, Items, SelectedItems, Callback)
             Button.Size = UDim2.new(1, 0, 0, 15)
             Button.Font = Enum.Font.Code
             Button.Text = Item
-            Button.TextColor3 = not string.find(MultiBox.Text, Item) and Color3.fromRGB(200, 200, 200) or Gui.Data.Color
+            Button.TextColor3 = not string.find(MultiBox.Text, Item) and Color3.fromRGB(200, 200, 200) or Menu.Data.Color
             Button.TextSize = 14
             Button.TextStrokeTransparency = 0.5
             Button.MouseButton1Click:Connect(function()
@@ -695,7 +696,7 @@ Gui.MultiBox = function(Tab, Container, Name, Items, SelectedItems, Callback)
                     Button.TextColor3 = Color3.fromRGB(200, 200, 200)
                 else
                     table.insert(SelectedItems, Item)
-                    Button.TextColor3 = Gui.Data.Color
+                    Button.TextColor3 = Menu.Data.Color
                 end
                 MultiBox.Text = #SelectedItems > 0 and table.concat(SelectedItems, ", ") or "None"
                 Callback(SelectedItems)
@@ -709,7 +710,7 @@ Gui.MultiBox = function(Tab, Container, Name, Items, SelectedItems, Callback)
     return MultiBox
 end
 
-Gui.Bindable = function(Tab, Container, Label, Key, Callback)
+Menu.Bindable = function(Tab, Container, Label, Key, Callback)
     local Key = Key or Enum.KeyCode.Unknown
     local Callback = Callback or tostring
     local Container = Tabs[Tab].Left:FindFirstChild(Container) and Tabs[Tab].Left[Container] or Tabs[Tab].Right[Container]
@@ -722,7 +723,7 @@ Gui.Bindable = function(Tab, Container, Label, Key, Callback)
     Bindable.Size = UDim2.new(0, 40, 0, 15)
     Bindable.Font = Enum.Font.Code
     local Text = string.upper(Key.Name)
-    for k, v in pairs(Gui.KeybindNames) do
+    for k, v in pairs(Menu.KeybindNames) do
         if string.find(Text, k) then
             Text = string.gsub(Text, k, v)
         end
@@ -747,7 +748,7 @@ Gui.Bindable = function(Tab, Container, Label, Key, Callback)
     return Bindable
 end
 
-Gui.Slider = function(Tab, Container, Label, Name, Min, Max, Init, Decimal, Callback)
+Menu.Slider = function(Tab, Container, Label, Min, Max, Init, Decimal, Callback)
     local Container = Tabs[Tab].Left:FindFirstChild(Container) and Tabs[Tab].Left[Container] or Tabs[Tab].Right[Container]
     local Label = Container[Label]
     local Callback = Callback or tostring
@@ -764,9 +765,9 @@ Gui.Slider = function(Tab, Container, Label, Name, Min, Max, Init, Decimal, Call
     Label.Parent:SetAttribute("PushAmount", Label.Parent:GetAttribute("PushAmount") + 10)
 
     Slider.Parent = Label
-    Slider.Name = Name and Name .. " Slider" or "Slider"
+    Slider.Name = Label.Text .. " Slider"
     Slider.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
-    Slider.BorderColor3 = Gui.Data.BackgroundColor
+    Slider.BorderColor3 = Menu.Data.BackgroundColor
     Slider.Position = UDim2.new(0, -12, 0, 20)
     Slider.Size = UDim2.new(0, 142, 0, 5)
     Slider:SetAttribute("Init", Init or 0)
@@ -777,20 +778,20 @@ Gui.Slider = function(Tab, Container, Label, Name, Min, Max, Init, Decimal, Call
 
     Info.Parent = Slider
     Info.Name = "Info"
-    Info.BackgroundColor3 = Gui.Data.Color
+    Info.BackgroundColor3 = Menu.Data.Color
     Info.BorderSizePixel = 0
     Info.Size = UDim2.new(math.clamp((Slider:GetAttribute("Init") - Slider:GetAttribute("Min")) / Slider:GetAttribute("Max"), 0, 1), 0, 1, 0)
     Info.TextColor3 = Color3.fromRGB(200, 200, 200)
     Info.Text = ""
-    table.insert(Gui.Elements.Background, Info)
+    table.insert(Menu.Elements.Background, Info)
 
     Button.Parent = Slider
+    Button.Name = "Button"
     Button.BackgroundTransparency = 1
     Button.Position = UDim2.new(-0.1, 0, -1, 0)
     Button.Size = UDim2.new(1.2, 0, 2, 0)
     Button.Text = ""
     Button.MouseButton1Down:Connect(function()
-        print(Slider:GetAttribute("Max"))
         Slider:SetAttribute("Sliding", true)
         local Percentage = math.clamp((UserInput:GetMouseLocation().X - Slider.AbsolutePosition.X) / Slider.AbsoluteSize.X, 0, 1)
         Info.Size = UDim2.new(Percentage, 0, 1, 0)
@@ -823,8 +824,9 @@ Gui.Slider = function(Tab, Container, Label, Name, Min, Max, Init, Decimal, Call
     ValueBox.TextSize = 14
     ValueBox.TextStrokeTransparency = 0.5
     ValueBox.FocusLost:Connect(function()
-        Value = math.clamp(tonumber(ValueBox.Text), Slider:GetAttribute("Min"), Slider:GetAttribute("Max") + Slider:GetAttribute("Min"))
-        ValueBox.Text = Value or Slider:GetAttribute("Min")
+        Value = math.clamp(string.gsub(ValueBox.Text, "%D", ""), Slider:GetAttribute("Min"), Slider:GetAttribute("Max") + Slider:GetAttribute("Min"))
+        Value = Value or Slider:GetAttribute("Min")
+        ValueBox.Text = Value
         Info.Size = UDim2.new(math.clamp((Value - Slider:GetAttribute("Min")) / Slider:GetAttribute("Max"), 0, 1), 0, 1, 0)
         ValueBox.Text = Value
         Callback(Value)
@@ -833,14 +835,14 @@ Gui.Slider = function(Tab, Container, Label, Name, Min, Max, Init, Decimal, Call
     return Slider, Info, Button, ValueBox
 end
 
-Gui.Notify = function(Name, Message, Time)
+Menu.Notify = function(Name, Message, Time)
     local Notification = Instance.new("ImageLabel")
     local Title = Instance.new("TextLabel")
     local Text = Instance.new("TextLabel")
 
     Notification.Parent = Notifications
     Notification.Name = "Notification"
-    Notification.BackgroundColor3 = Gui.Data.BackgroundColor
+    Notification.BackgroundColor3 = Menu.Data.BackgroundColor
     Notification.BorderColor3 =  Color3.fromRGB(0, 0, 0)
     Notification.BorderSizePixel = 2
     Notification:TweenPosition(UDim2.new(0.8, -110, 0, #Notifications:GetChildren() * 70))
@@ -856,7 +858,7 @@ Gui.Notify = function(Name, Message, Time)
     Title.Text = Name
     Title.TextColor3 = Color3.fromRGB(200, 200, 200)
     Title.TextSize = 14
-    Gui.Line("Up", Title)
+    Menu.Line("Up", Title)
 
     Text.Parent = Notification
     Text.Name = "Text"
@@ -880,7 +882,7 @@ Gui.Notify = function(Name, Message, Time)
     return Notification
 end
 
-Gui.Update = function(Tab, Container, ...)
+Menu.Update = function(Tab, Container, ...)
     local Container = Tabs[Tab].Left:FindFirstChild(Container) and Tabs[Tab].Left[Container] or Tabs[Tab].Right[Container]
     local function CaseSwitch(Paramater, Dictionary, ...)
         local Case = Dictionary[Paramater]
@@ -902,16 +904,16 @@ Gui.Update = function(Tab, Container, ...)
         end,
         ["CheckBox"] = function()
             local CheckBox = Item[Item.Name .. " CheckBox"]
-            CheckBox.BackgroundColor3 = Arguments[3] and Gui.Data.Color or Color3.fromRGB(40, 40, 40)
+            CheckBox.BackgroundColor3 = Arguments[3] and Menu.Data.Color or Color3.fromRGB(40, 40, 40)
             if Arguments[3] then
-                if not table.find(Gui.Elements.Background, CheckBox) then
-                    table.insert(Gui.Elements.Background, CheckBox)
+                if not table.find(Menu.Elements.Background, CheckBox) then
+                    table.insert(Menu.Elements.Background, CheckBox)
                 end
             else
-                if table.find(Gui.Elements.Background, CheckBox) then
-                    for i, v in ipairs(Gui.Elements.Background) do
+                if table.find(Menu.Elements.Background, CheckBox) then
+                    for i, v in ipairs(Menu.Elements.Background) do
                         if v == CheckBox then
-                            table.remove(Gui.Elements.Background, i)
+                            table.remove(Menu.Elements.Background, i)
                         end
                     end
                 end
@@ -925,7 +927,7 @@ Gui.Update = function(Tab, Container, ...)
             Item:Destroy()
             Container:SetAttribute("PushAmount", Container:GetAttribute("PushAmount") - 20)
             Container.Size -= UDim2.new(0, 0, 0, 20)
-            local ComboBox = Gui.ComboBox(Tab, Container.Name, Name, Arguments[3], Arguments[4], Arguments[5])
+            local ComboBox = Menu.ComboBox(Tab, Container.Name, Name, Arguments[3], Arguments[4], Arguments[5])
             ComboBox.Position = Position
         end,
         ["MultiBox"] = function()
@@ -933,7 +935,7 @@ Gui.Update = function(Tab, Container, ...)
             Item:Destroy()
             Container:SetAttribute("PushAmount", Container:GetAttribute("PushAmount") - 25)
             Container.Size -= UDim2.new(0, 0, 0, 25)
-            local MultiBox = Gui.MultiBox(Tab, Container.Name, Name, Arguments[3], Arguments[4], Arguments[5])
+            local MultiBox = Menu.MultiBox(Tab, Container.Name, Name, Arguments[3], Arguments[4], Arguments[5])
             MultiBox.Position = Position
         end,
         ["Bindable"] = function()
@@ -952,11 +954,11 @@ Gui.Update = function(Tab, Container, ...)
     })
 end
 
-Gui.OnInput = function(Input, Process)
+Menu.OnInput = function(Input, Process)
     if BindableButton then
         if Input.UserInputType == Enum.UserInputType.Keyboard then
             local Text = string.upper(Input.KeyCode.Name)
-            for k, v in pairs(Gui.KeybindNames) do
+            for k, v in pairs(Menu.KeybindNames) do
                 if string.find(Text, k) then
                     Text = string.gsub(Text, k, v)
                 end
@@ -965,7 +967,7 @@ Gui.OnInput = function(Input, Process)
             Call(Input.KeyCode)
         else
             local Text = string.upper(Input.UserInputType.Name)
-            for k, v in pairs(Gui.KeybindNames) do
+            for k, v in pairs(Menu.KeybindNames) do
                 if string.find(Text, k) then
                     Text = string.gsub(Text, k, v)
                 end
@@ -980,15 +982,15 @@ Gui.OnInput = function(Input, Process)
     end
 end
 
-Gui.OnInputEnded = function(Input, Process)
+Menu.OnInputEnded = function(Input, Process)
     if Input.UserInputType == Enum.UserInputType.MouseButton1 then
         Mouse1 = false
     end
 end
 
-UserInput.InputBegan:Connect(Gui.OnInput)
-UserInput.InputEnded:Connect(Gui.OnInputEnded)
+UserInput.InputBegan:Connect(Menu.OnInput)
+UserInput.InputEnded:Connect(Menu.OnInputEnded)
 
---Gui.Main.Visible = true
+--Menu.Main.Visible = true
 
-return Gui
+return Menu
