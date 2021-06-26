@@ -822,7 +822,9 @@ Menu.Slider = function(Tab, Container, Label, Min, Max, Init, Decimal, Callback)
     ValueBox.TextSize = 14
     ValueBox.TextStrokeTransparency = 0.5
     ValueBox.FocusLost:Connect(function()
-        local Text = string.gsub(ValueBox.Text, "%D", "")
+        local Text = string.gsub(ValueBox.Text, "%a", "")
+        Text = string.gsub(Text, "%u", "")
+        -- MEH GOOD ENOUGH FOR NOW, HOPEFULLY THIS DIDN'T MESS EVERYTHING UP AGAIN LOL!
         if Text == "" then
             local Min = Slider:GetAttribute("Min")
             ValueBox.Text = Min
@@ -942,7 +944,8 @@ Menu.Update = function(Tab, Container, ...)
             MultiBox.Position = Position
         end,
         ["Bindable"] = function()
-            Item[Item.Name .. " Bindable"].Text = "[" .. tostring(Arguments[3]) .. "]"
+            local Keybind = Arguments[3] or "..."
+            Item[Item.Name .. " Bindable"].Text = "[" .. Keybind .. "]"
         end,
         ["Slider"] = function()
             local Min, Max, Init, Decimal = Arguments[3], Arguments[4], Arguments[5], Arguments[6]
