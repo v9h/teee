@@ -74,7 +74,9 @@ Gui.TextBox = function(Data, OnFocusLost)
     TextBox.TextSize = 14
     TextBox.Font = Enum.Font.Code
     TextBox.Text = ""
-    TextBox.FocusLost:Connect(OnFocusLost)
+    TextBox.FocusLost:Connect(function()
+        OnFocusLost(TextBox.Text)
+    end)
     SetProperties(TextBox, Data)
     return TextBox
 end
