@@ -85,3 +85,5 @@ Gui.Round = function(Element, Amount)
     UICorner.CornerRadius = UDim(0, Amount)
     return UICorner
 end
+
+return Gui
