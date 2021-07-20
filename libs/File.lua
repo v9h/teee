@@ -1,9 +1,11 @@
+local string_sub, string_format, table_remove, table_insert = string.sub, string.format, table.remove, table.insert
+
 local File = {}
 
 File.Create = function(Path)
     local PathString = ""
     local Folders = string.split(Path, "/")
-    table.remove(Folders, #Folders)
+    table_remove(Folders, #Folders)
     for _, Folder in ipairs(Folders) do
         if not isfolder(PathString .. Folder) then
             makefolder(PathString .. Folder)
@@ -22,7 +24,7 @@ File.Delete = function(Path)
         delfolder(Path)
         return true
     end
-    error("invalid path " .. string.format("%q", Path))
+    error("invalid path " .. string_format("%q", Path))
 end
 
 File.Decrypt = function(Path)
@@ -31,7 +33,7 @@ File.Decrypt = function(Path)
         File.Write(Path, decrypt(File.Read(Path), "ROBLOX"))
         return File.Read(Path)
     end
-    error("invalid path " .. string.format("%q", Path))
+    error("invalid path " .. string_format("%q", Path))
 end
 
 File.Encrypt = function(Path)
@@ -40,7 +42,7 @@ File.Encrypt = function(Path)
         File.Write(Path, encrypt(File.Read(Path), "ROBLOX"))
         return File.Read(Path)
     end
-    error("invalid path " .. string.format("%q", Path))
+    error("invalid path " .. string_format("%q", Path))
 end
 
 File.Exists = function(Path)
@@ -50,15 +52,13 @@ end
 File.Read = function(Path)
     if File.Exists(Path) then
         return readfile(Path)
-    else
-        return ""
     end
 end
 
 File.GetFiles = function(Path)
     local Files = {}
     for _, File in ipairs(listfiles(Path)) do
-        table.insert(Files, string.sub(File, #Path + 2))
+        table_insert(Files, string_sub(File, #Path + 2))
     end
     return Files
 end
