@@ -28,7 +28,7 @@ local DupePosition = CFrame.new(random(-2e5, 2e5), 2e5, random(-2e5, 2e5))
 function GrabTools(Character)
     local Humanoid = Character:WaitForChild("Humanoid")
     for _, v in ipairs(GetChildren(Workspace)) do
-        if IsA(v, "Tool") and (not _G.NewRejoin and v:GetAttribute(Player.Name)) then
+        if IsA(v, "Tool") and not (_G.NewRejoin and v:GetAttribute(Player.Name)) then
             Humanoid:EquipTool(v)
             v.Handle.Anchored = false
         end
