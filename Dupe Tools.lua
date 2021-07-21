@@ -54,7 +54,8 @@ for _ = 1, DUPE_AMOUNT do
     local Backpack = Player:WaitForChild("Backpack")
     local Humanoid = Character:WaitForChild("Humanoid")
     local Root = Humanoid.Torso
-    
+	
+    GrabTools(Character)
     Root.CFrame = DupePosition
     wait(0.1)
     Root.Anchored = true
