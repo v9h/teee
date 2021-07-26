@@ -51,6 +51,7 @@ function GetTools(Player)
 end
 
 GrabTools(Character)
+print("Grab tools")
 
 for _ = 1, DUPE_AMOUNT do
     Character = Player.Character or Player.CharacterAdded:Wait()
