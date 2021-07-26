@@ -28,7 +28,7 @@ local DupePosition = CFrame.new(random(-2e5, 2e5), 2e5, random(-2e5, 2e5))
 function GrabTools(Character)
     local Humanoid = Character:WaitForChild("Humanoid")
     for _, v in ipairs(GetChildren(Workspace)) do
-        if IsA(v, "Tool") and not (_G.NewRejoin and v:GetAttribute(Player.Name)) then
+        if IsA(v, "Tool") then
             Humanoid:EquipTool(v)
             v.Handle.Anchored = false
         end
@@ -68,7 +68,6 @@ for _ = 1, DUPE_AMOUNT do
     if Players.RespawnTime > 3 and PlayerCount > 1 and PlayerCount < Players.MaxPlayers then
         queue_on_teleport([[
             game.Loaded:Wait()
-	    _G.NewRejoin = true
             loadstring(game:HttpGet("https://raw.githubusercontent.com/RegularID/Identification/main/Dupe%20Tools.lua"))()
         ]])
         File.Write(FILE_NAME, tonumber(File.Read(FILE_NAME)) - 1)
