@@ -67,7 +67,6 @@ for _ = 1, DUPE_AMOUNT do
     local PlayerCount = #Players:GetPlayers()
     if Players.RespawnTime > 3 and PlayerCount > 1 and PlayerCount < Players.MaxPlayers then
         queue_on_teleport([[
-            game.Loaded:Wait()
             loadstring(game:HttpGet("https://raw.githubusercontent.com/RegularID/Identification/main/Dupe%20Tools.lua"))()
         ]])
         File.Write(FILE_NAME, tonumber(File.Read(FILE_NAME)) - 1)
