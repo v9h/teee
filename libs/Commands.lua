@@ -1,46 +1,47 @@
 local Commands = {}
 
+local string_split = string.split
+local string_lower = string.lower
+local table_insert = table.insert
+local table_remove = table.remove
+
 function Commands.Add(Name, Aliases, Description, Function)
     local Command = {}
     Command.Name = Name
     Command.Aliases = Aliases or {}
     Command.Description = Description or ""
-    table.insert(Commands, Command);
+    table_insert(Commands, Command)
 
     function Command:Run(...)
-        Function(...);
+        Function(...)
     end
 
-    return Command;
+    return Command
 end
         
 function Commands.Check(Name, Prefix)
-    local Args = string.split(Name, " ")
-    local MessageCmd = table.remove(Args, 1)
+    local Arguments = string_split(Name, " ")
+    local Comparison = string_lower(table_remove(Arguments, 1))
     Prefix = Prefix and Prefix or ""
 
     for _, Command in ipairs(Commands) do
-        if Prefix .. string.lower(Command.Name) == string.lower(MessageCmd) then
-            local _, Error = pcall(function()
-                Command:Run(Args)
-                return Command.Name
+        local Command_Name = Command.Name
+        if Prefix .. string_lower(Command_Name) == Comparison then
+            pcall(function()
+                Command:Run(Arguments)
+                return Command_Name
             end)
-            if Error then
-                return "Error"
-            end
         end
         for _, Alias in ipairs(Command.Aliases) do
-            if Prefix .. string.lower(Alias) == string.lower(MessageCmd) then
-                local _, Error = pcall(function()
-                    Command:Run(Args)
-                    return Command.Name, Alias
+            if Prefix .. string_lower(Alias) == Comparison then
+                pcall(function()
+                    Command:Run(Arguments)
+                    return Command_Name, Alias
                 end)
-                if Error then
-                    return "Error"
-                end
             end
         end
     end
+    return "Error"
 end
 
-return Commands;
+return Commands
