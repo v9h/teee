@@ -14,9 +14,9 @@ File.Create = function(Path)
         end
         PathString ..= Folder .. "/"
     end
-    if string_find(Path, ".") then
-        File.Write(Path, "")
-    end
+    pcall(function()
+        writefile(Path, "")
+    end)
     return Path
 end
 
@@ -33,15 +33,15 @@ end
 
 File.Decrypt = function(Path)
     if isfile(Path) then
-        File.Write(Path, decrypt(File.Read(Path), "ROBLOX"))
-        return File.Read(Path)
+        writefile(Path, decrypt(File.Read(Path), "ROBLOX"))
+        return readfile(Path)
     end
     error("invalid path " .. string_format("%q", Path))
 end
 
 File.Encrypt = function(Path)
     if isfile(Path) then
-        File.Write(Path, encrypt(File.Read(Path), "ROBLOX"))
+        writefile(Path, encrypt(File.Read(Path), "ROBLOX"))
         return File.Read(Path)
     end
     error("invalid path " .. string_format("%q", Path))
