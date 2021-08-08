@@ -27,17 +27,13 @@ function Commands.Check(Name, Prefix)
     for _, Command in ipairs(Commands) do
         local Command_Name = Command.Name
         if Prefix .. string_lower(Command_Name) == Comparison then
-            pcall(function()
-                Command:Run(Arguments)
-                return Command_Name
-            end)
+            Command:Run(Arguments)
+            return Command_Name
         end
         for _, Alias in ipairs(Command.Aliases) do
             if Prefix .. string_lower(Alias) == Comparison then
-                pcall(function()
-                    Command:Run(Arguments)
-                    return Command_Name, Alias
-                end)
+                Command:Run(Arguments)
+                return Command_Name, Alias
             end
         end
     end
