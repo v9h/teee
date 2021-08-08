@@ -1,4 +1,4 @@
-local string_sub, string_split, string_format, table_remove, table_insert = string.sub, string.split, string.format, table.remove, table.insert
+local string_sub, string_find, string_split, string_format, table_remove, table_insert = string.sub, string.find, string.split, string.format, table.remove, table.insert
 local decrypt = syn and syn.crypt.decrypt or crypt.decrypt
 local encrypt = syn and syn.crypt.encrypt or crypt.encrypt
 
@@ -14,7 +14,9 @@ File.Create = function(Path)
         end
         PathString ..= Folder .. "/"
     end
-    File.Write(Path, "")
+    if string_find(Path, ".") then
+        File.Write(Path, "")
+    end
     return Path
 end
 
