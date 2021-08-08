@@ -19,7 +19,7 @@ File.Create = function(Path)
 end
 
 File.Delete = function(Path)
-    if File.Exists(Path) then
+    if isfile(Path) then
         delfile(Path)
         return true
     elseif isfolder(Path) then
@@ -30,7 +30,7 @@ File.Delete = function(Path)
 end
 
 File.Decrypt = function(Path)
-    if File.Exists(Path) then
+    if isfile(Path) then
         File.Write(Path, decrypt(File.Read(Path), "ROBLOX"))
         return File.Read(Path)
     end
@@ -38,7 +38,7 @@ File.Decrypt = function(Path)
 end
 
 File.Encrypt = function(Path)
-    if File.Exists(Path) then
+    if isfile(Path) then
         File.Write(Path, encrypt(File.Read(Path), "ROBLOX"))
         return File.Read(Path)
     end
@@ -50,14 +50,14 @@ File.Exists = function(Path)
 end
 
 File.Read = function(Path)
-    if File.Exists(Path) then
+    if isfile(Path) then
         return readfile(Path)
     end
 end
 
 File.GetFiles = function(Path)
     local Files = {}
-    if not File.Exists(Path) then
+    if not isfolder(Path) then
         error("invalid path " .. string_format("%q", Path))
         return
     end
@@ -68,7 +68,7 @@ File.GetFiles = function(Path)
 end
 
 File.Append = function(Path, Content)
-    if File.Exists(Path) then
+    if isfile(Path) then
         appendfile(Path, Content)
     else
         writefile(Path, Content)
