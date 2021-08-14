@@ -1,6 +1,6 @@
 local string_sub, string_find, string_split, string_format, table_remove, table_insert = string.sub, string.find, string.split, string.format, table.remove, table.insert
-local decrypt = syn and syn.crypt.decrypt or crypt.decrypt or tostring
-local encrypt = syn and syn.crypt.encrypt or crypt.encrypt or tostring
+local decrypt = (syn and syn.crypt.decrypt) or (crypt and crypt.decrypt) or tostring
+local encrypt = (syn and syn.crypt.encrypt) or (crypt and crypt.encrypt) or tostring
 
 local File = {}
 
