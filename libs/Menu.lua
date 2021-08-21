@@ -90,13 +90,13 @@ local Menu = setmetatable(Menu, {
         if Key == "Color" then
             local Elements = Menu.Elements
             Menu.Data.Color = Value
-            for _, v in ipairs(Elements.Text) do
+            for _, v in pairs(Elements.Text) do
                 v.TextColor3 = Value
             end
-            for _, v in ipairs(Elements.Border) do
+            for _, v in pairs(Elements.Border) do
                 v.BorderColor3 = Value
             end
-            for _, v in ipairs(Elements.Background) do
+            for _, v in pairs(Elements.Background) do
                 v.BackgroundColor3 = Value
             end
             return
