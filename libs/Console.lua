@@ -30,7 +30,7 @@ Console.ReadLine = function(Text)
         end
         rconsoleprint(Text, Console.Colors[Console.ForegroundColor] or Console.Colors["White"])
     end
-    rconsoleinput()
+    return rconsoleinput()
 end
 Console.Clear = rconsoleclear
 Console.ForegroundColor = "White"
