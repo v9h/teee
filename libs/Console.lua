@@ -1,6 +1,6 @@
 local Console = {}
 Console.Colors = {
-    --["Black"] =	syn and "@@BLACK@@" or "Black",
+    --["Black"] = syn and "@@BLACK@@" or "Black",
     ["Blue"] = syn and "@@BLUE@@" or "blue",
     ["Green"] = syn and "@@GREEN@@" or "green",
     ["Cyan"] = syn and "@@CYAN@@" or "cyan",
@@ -20,10 +20,18 @@ Console.Colors = {
 Console.WriteLine = function(Text)
     if syn then
         rconsoleprint(Console.Colors[Console.ForegroundColor] or Console.Colors["White"])
-	end
+    end
     rconsoleprint(Text .. "\n", Console.Colors[Console.ForegroundColor] or Console.Colors["White"])
 end
-Console.ReadLine = rconsoleinput
+Console.ReadLine = function(Text)
+    if Text then
+        if syn then
+            rconsoleprint(Console.Colors[Console.ForegroundColor] or Console.Colors["White"])
+        end
+        rconsoleprint(Text, Console.Colors[Console.ForegroundColor] or Console.Colors["White"])
+    end
+    rconsoleinput()
+end
 Console.Clear = rconsoleclear
 Console.ForegroundColor = "White"
 
