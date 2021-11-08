@@ -25,7 +25,7 @@ function Commands.Remove(Name)
 end
 
         
-function Commands.Find(Name, Prefix)
+function Commands.Check(Name, Prefix)
     local Arguments = string.split(Name, " ")
     local __Name = string.lower(table.remove(Arguments, 1))
     Prefix = Prefix or ""
