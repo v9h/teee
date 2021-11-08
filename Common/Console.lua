@@ -1,4 +1,9 @@
 local Console = {}
+
+
+local set_console_title = syn and rconsolename or rconsolesettitle
+
+
 Console.Colors = {
     --["Black"] = syn and "@@BLACK@@" or "Black",
     ["Blue"] = syn and "@@BLUE@@" or "blue",
@@ -17,34 +22,31 @@ Console.Colors = {
     ["Yellow"] = syn and "@@YELLOW@@" or "yellow",
     ["White"] = syn and "@@WHITE@@" or "white"
 }
+
 Console.WriteLine = function(Text)
+    if not Text then return end
     if syn then
         rconsoleprint(Console.Colors[Console.ForegroundColor] or Console.Colors["White"])
     end
     rconsoleprint(Text .. "\n", Console.Colors[Console.ForegroundColor] or Console.Colors["White"])
 end
+
 Console.ReadLine = function(Text)
-    if Text then
-        if syn then
-            rconsoleprint(Console.Colors[Console.ForegroundColor] or Console.Colors["White"])
-        end
-        rconsoleprint(Text, Console.Colors[Console.ForegroundColor] or Console.Colors["White"])
-    end
+    Console.WriteLine(Text)
     return rconsoleinput()
 end
+
+
 Console.Clear = rconsoleclear
 Console.ForegroundColor = "White"
 
-local Console = setmetatable(Console, {
+
+local __Console = setmetatable(Console, {
     __newindex = function (Table, Key, Value)
         if Key == "Title" then
-            if syn then
-                rconsolename(Value)
-            else
-                rconsolesettitle(Value)
-            end
+            set_console_title(Value)
         end
     end
 })
 
-return Console
+return __Console
