@@ -32,7 +32,13 @@ Console.WriteLine = function(Text)
 end
 
 Console.ReadLine = function(Text)
-    Console.WriteLine(Text)
+    if Text then
+        if syn then
+            rconsoleprint(Console.Colors[Console.ForegroundColor] or Console.Colors["White"])
+        end
+        rconsoleprint(Text, Console.Colors[Console.ForegroundColor] or Console.Colors["White"])
+    end
+    
     return rconsoleinput()
 end
 
