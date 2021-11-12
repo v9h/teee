@@ -92,6 +92,7 @@ local ToolData = {
         Range = 150,
         TextureId = "rbxassetid://4529721915",
         Grip = CFrame.new(0.4, -0.1, 0, 0.008, 0, 0.1, 0, 1, 0, -0.1, 0, 0.008),
+        IsAGun = true,
         SkinParts = {
             "Handle",
             "Union",
@@ -104,6 +105,7 @@ local ToolData = {
         TextureId = "rbxassetid://4529712484",
         EspId = "328964620",
         Grip = CFrame.new(0.4, -0.1, -0.2, 1, 0, 0, 0, 1, 0, 0, 0, 1),
+        IsAGun = true,
         SkinParts = {
             "Eject",
             "Union"
@@ -115,6 +117,7 @@ local ToolData = {
         TextureId = "rbxassetid://4529701363",
         EspId = "142383762",
         Grip = CFrame.new(0.5, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1),
+        IsAGun = true,
         SkinParts = {
             "Union"
         }
@@ -125,6 +128,7 @@ local ToolData = {
         TextureId = "rbxassetid://4529698047",
         EspId = "rbxassetid://219397110",
         Grip = CFrame.new(0.5, 0, -0.15, 1, 0, 0, 0, 1, 0, 0, 0, 1),
+        IsAGun = true,
         SkinParts = {
             "MeshPart"
         }
