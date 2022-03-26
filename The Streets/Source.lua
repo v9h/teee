@@ -1,8 +1,6 @@
-
-
 --[[ TO DO:
 Main Things > Configs, ESP, Code clean / Bug fixes
-might be mem leak since gcinfo can go upto 100k+
+might be mem leak since gcinfo can go upto 100k+? maybe Lol
 Performance Tests
 
 esp fix; breaks idk
@@ -132,11 +130,17 @@ pcall(function()
 end)
 ]]
 
---local ESP = _G.Import("The Streets/ESP")
---local Menu = _G.Import("The Streets/Menu")
---local Console = _G.Import("The Streets/Console")
---local Commands = _G.Import("The Streets/Commands")
---ToolData; DoorData
+
+if not Import then messagebox("Error 0x5; Something went wrong with initializing the script (couldn't load modules)", "Identification.cc", 0) end
+
+local ESP = Import("ESP.lua")
+local Menu = Import("Menu.lua")
+local Console = Import("Console.lua")
+local Commands = Import("Commands.lua")
+local ToolData = Import("ToolData.lua")
+local DoorData = Import("DoorData.lua")
+
+getgenv().Import = nil
 
 
 local Original = game.PlaceId == 455366377 and true
@@ -188,6 +192,7 @@ local Config = {
     AutoFire = {
         Enabled = false,
         Range = 50,
+        Priority = "Head",
         Key = nil
     },
     CameraLock = {
@@ -268,6 +273,11 @@ local Config = {
     InfiniteJump = {Enabled = false},
     InfiniteStamina = {Enabled = false},
     DeathTeleport = {Enabled = false},
+    BrickTrajectory = {
+        Enabled = false,
+        Color = Color3.new(1, 1, 1),
+        Transparency = 1
+    },
     FakeLag = {
         Enabled = false,
         Visualize = false,
@@ -691,6 +701,7 @@ local CustomCharacter
 local FloatPart
 local FlyVelocity
 local FlyAngularVelocity
+local BrickTrajectory = ESP.Trajectory()
 local FakeLagVisualizer = ESP.Skeleton()
 
 local AimbotIndicator
@@ -754,7 +765,6 @@ do
     if not isfile(SubFolder .. "Spam.dat") then writefile(SubFolder .. "Spam.dat", "") end
     if not isfile(SubFolder .. "bin/sounds/hitsound.mp3") then writefile(SubFolder .. "bin/sounds/hitsound.mp3", "") end
     if not isfile(SubFolder .. "bin/crosshairs/crosshair.png") then writefile(SubFolder .. "bin/crosshairs/crosshair.png", "") end
-    if not isfile(SubFolder .. "bin/crosshairs/hit_crosshair.png") then writefile(SubFolder .. "bin/crosshairs/hit_crosshair.png", "") end
     if not isfile(SubFolder .. "bin/crosshairs/reload_crosshair.png") then writefile(SubFolder .. "bin/crosshairs/reload_crosshair.png", "") end
 
     HitSound = get_custom_asset(SubFolder .. "bin/sounds/hitsound.mp3")
@@ -1065,7 +1075,6 @@ function RefreshMenu()
     Menu:FindItem("Visuals", "Hats", "CheckBox", "Hat Color Changer"):SetValue(Config.HatChanger.Enabled)
     Menu:FindItem("Visuals", "Hats", "CheckBox", "Hat Color Sequence"):SetValue(Config.HatChanger.Sequence)
     Menu:FindItem("Visuals", "Hats", "Slider", "Hat Color Rate"):SetValue(Config.HatChanger.Speed)
-
     Menu:FindItem("Visuals", "Hats", "ColorPicker", "Hat Color"):SetValue(Config.HatChanger.Color)
 
     Menu:FindItem("Player", "Movement", "Slider", "Walk Speed"):SetValue(Config.WalkSpeed.Value)
@@ -1117,8 +1126,16 @@ function RefreshMenu()
     Menu:FindItem("Misc", "Main", "CheckBox", "Door Aura"):SetValue(Config.DoorAura.Enabled)
     Menu:FindItem("Misc", "Main", "CheckBox", "Door Menu"):SetValue(Config.DoorMenu.Enabled)
 
-    Menu:FindItem("Misc", "Animations", "CheckBox", "Run")
-    Menu:FindItem("Misc", "Animations", "ComboBox", "Run Animation")
+    Menu:FindItem("Misc", "Animations", "CheckBox", "Run"):SetValue(Config.Animations.Run.Enabled)
+    Menu:FindItem("Misc", "Animations", "ComboBox", "Run Animation"):SetValue(Config.Animations.Run.Style)
+    Menu:FindItem("Misc", "Animations", "CheckBox", "Glock"):SetValue(Config.Animations.Glock.Enabled)
+    Menu:FindItem("Misc", "Animations", "ComboBox", "Glock Animation"):SetValue(Config.Animations.Glock.Style)
+    Menu:FindItem("Misc", "Animations", "CheckBox", "Uzi"):SetValue(Config.Animations.Uzi.Enabled)
+    Menu:FindItem("Misc", "Animations", "ComboBox", "Uzi Animation"):SetValue(Config.Animations.Uzi.Style)
+    Menu:FindItem("Misc", "Animations", "CheckBox", "Shotty"):SetValue(Config.Animations.Shotty.Enabled)
+    Menu:FindItem("Misc", "Animations", "ComboBox", "Shotty Animation"):SetValue(Config.Animations.Shotty.Style)
+    Menu:FindItem("Misc", "Animations", "CheckBox", "Sawed Off"):SetValue(Config.Animations["Sawed Off"].Enabled)
+    Menu:FindItem("Misc", "Animations", "ComboBox", "Sawed Off Animation"):SetValue(Config.Animations["Sawed Off"].Style)
     
     Menu:FindItem("Misc", "Exploits", "CheckBox", "Infinite Stamina"):SetValue(Config.InfiniteStamina.Enabled)
     Menu:FindItem("Misc", "Exploits", "CheckBox", "Infinite Force-Field"):SetValue(Config.InfiniteForceField.Enabled)
@@ -1127,6 +1144,7 @@ function RefreshMenu()
     Menu:FindItem("Misc", "Exploits", "CheckBox", "Click Spam"):SetValue(Config.ClickSpam.Enabled)
     Menu:FindItem("Misc", "Exploits", "CheckBox", "Lag On Dragged"):SetValue(Config.LagOnDragged.Enabled)
     Menu:FindItem("Misc", "Exploits", "CheckBox", "Fake Lag"):SetValue(Config.FakeLag.Enabled)
+    Menu:FindItem("Misc", "Exploits", "Slider", "Fake Lag Limit"):SetValue(Config.FakeLag.Limit)
 
     --Menu:FindItem("Misc", "Players", "ListBox", "Target"):SetValue(SelectedTarget, Players:GetPlayers())
     Menu:FindItem("Misc", "Players", "CheckBox", "Target Lock"):SetValue(TargetLock)
@@ -1204,15 +1222,34 @@ function get_clipboard()
 
     text_box:CaptureFocus()
     keypress(0x11)
-    keypress(0x56)
+    keypress(0x44)
     wait()
     keyrelease(0x11)
-    keyrelease(0x56)
+    keyrelease(0x44)
     text_box:ReleaseFocus()
 
     local clipboard = text_box.Text
     text_box:Destroy()
     return clipboard
+end
+
+
+function set_clipboard(text)
+    while not iswindowactive() do wait() end
+
+    local text_box = Instance.new("TextBox")
+    text_box.Parent = CoreGui
+
+    text_box.Text = text
+    text_box:CaptureFocus()
+    keypress(0x11)
+    keypress(0x43)
+    wait()
+    keyrelease(0x11)
+    keyrelease(0x43)
+    text_box:ReleaseFocus()
+
+    text_box:Destroy()
 end
 
 
@@ -2006,7 +2043,6 @@ function SetTimer(Name, Time)
             return error("Timer is already running")
         end
     end
-
 
     function Timer:Destroy()
         Thread.Running = false
@@ -3421,6 +3457,7 @@ function Heartbeat(Step) -- after phys :: after heartbeat comes network stepped
                         if Style == "Style-2" then
                             Animations.Gun.self:Play()
                             Animations.Gun2.self:Stop()
+                            Animations.Gun3.self:Stop()
                         elseif Style == "Style-3" then
                             Animations.Gun.self:Stop()
                             Animations.Gun2.self:Stop()
@@ -3463,11 +3500,12 @@ end
 function Stepped(_, Step) -- before phys
     UpdateESP()
 
+    BrickTrajectory:Remove()
     if Tool and tostring(Tool) == "Brick" then
         local Points = GetBrickTrajectoryPoints(Tool)
         if typeof(Points) == "table" and #Points > 0 then
-            local Trajectory = ESP.Trajectory(Points)
-            Trajectory:SetColor(Config.BrickTrajectory.Color, 1 - Config.BrickTrajectory.Transparency)
+            BrickTrajectory = ESP.Trajectory(Points)
+            BrickTrajectory:SetColor(Config.BrickTrajectory.Color, 1 - Config.BrickTrajectory.Transparency)
         end
     end
 
@@ -4240,7 +4278,6 @@ function OnPlayerDamaged(Victim:player, Attacker:player, Damage:number, Time:tic
     if typeof(Victim) ~= "Instance" or typeof(Attacker) ~= "Instance" then return end -- if not instance then ignore
     if not Victim:IsA("Player") or not Attacker:IsA("Player") then return end -- if it's the DUMMY or a GHOST? or a buypad?
     if Victim ~= Player and Attacker ~= Player then return end -- if it's not connected to localplayer then ignore
-
 
     -- damage
     local MessageLog
@@ -6464,6 +6501,7 @@ $$$$$$\\$$$$$$$ |\$$$$$$$\ $$ |  $$ | \$$$$  |$$ |$$ |      $$ |\$$$$$$$\\$$$$$$
                 wait()
                 if not Config.HatChanger.Enabled then coroutine.yield() end
                 --BrickColor.random().Color
+
                 if Config.HatChanger.Sequence then
                     if CurrentStep >= #Sequence then CurrentStep = 1 end
                     SetHatColor(Color3.fromHex(Sequence[CurrentStep].color))
@@ -6476,6 +6514,8 @@ $$$$$$\\$$$$$$$ |\$$$$$$$\ $$ |  $$ | \$$$$  |$$ |$$ |      $$ |\$$$$$$$\\$$$$$$
             end
         end)
 
+
+        -- pasted function don't know from who
         local function HMS(Seconds)
             local Minutes = (Seconds - Seconds % 60) / 60
             Seconds = Seconds - Minutes * 60
