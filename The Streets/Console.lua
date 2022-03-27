@@ -74,3 +74,5 @@ end
 function Console:Error(Message)
     Console:Write(Message, "Red")
 end
+
+return Console
