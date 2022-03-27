@@ -133,13 +133,23 @@ end)
 
 if not Import then messagebox("Error 0x5; Something went wrong with initializing the script (couldn't load modules)", "Identification.cc", 0) end
 
-local ESP = Import("ESP.lua")
-local Menu = Import("Menu.lua")
-local Console = Import("Console.lua")
-local Commands = Import("Commands.lua")
-local ToolData = Import("ToolData.lua")
-local DoorData = Import("DoorData.lua")
+local ESP
+local Menu
+local Console
+local Commands
+local ToolData
+local DoorData
 
+-- Importing the modules and yielding until they are loaded
+
+spawn(function() ESP = Import("ESP") end)
+spawn(function() Menu = Import("Menu") end)
+spawn(function() Console = Import("Console") end)
+spawn(function() Commands = Import("Commands") end)
+spawn(function() ToolData = Import("ToolData") end)
+spawn(function() DoorData = Import("DoorData") end)
+
+while not ESP or not Menu or not Console or not Commands or not ToolData or not DoorData do wait() end -- waiting for the modules to load...
 getgenv().Import = nil
 
 
@@ -274,7 +284,7 @@ local Config = {
     InfiniteStamina = {Enabled = false},
     DeathTeleport = {Enabled = false},
     BrickTrajectory = {
-        Enabled = false,
+        Enabled = true,
         Color = Color3.new(1, 1, 1),
         Transparency = 1
     },
@@ -554,7 +564,7 @@ local Config = {
     FirstPerson = {Enabled = false},
     HitMarkers = {
         Enabled = false,
-        Fade = false,
+        Fade = true,
         Color = Color3.new(1, 1, 1),
         Transparency = 1,
         Size = 5,
@@ -688,6 +698,7 @@ local Windows = {}
 local Animations = {}
 local AudioLogs = isfile("Identification/Games/The Streets/Audios.dat") and string.split(readfile("Identification/Games/The Streets/Audios.dat"), "\n") or {}
 local DamageLogs = {} -- debounce
+local ChatScheduler = {}
 local PlayerRemovingCallbacks = {}
 
 local BuyPart
@@ -1028,6 +1039,12 @@ function RefreshMenu()
     Menu:FindItem("Visuals", "Item ESP", "ColorPicker", "Font Color"):SetValue(Config.ESP.Item.Font.Color, 1 - Config.ESP.Item.Font.Transparency)
     Menu:FindItem("Visuals", "Item ESP", "Slider", "Font Size"):SetValue(Config.ESP.Item.Font.Size)
 
+    Menu:FindItem("Visuals", "Hit markers", "CheckBox", "Hit markers"):SetValue(Config.HitMarkers.Enabled)
+    Menu:FindItem("Visuals", "Hit markers", "ComboBox", "Hit markers type"):SetValue(Config.HitMarkers.Type)
+    Menu:FindItem("Visuals", "Hit markers", "ColorPicker", "Hit markers color"):SetValue(Config.HitMarkers.Color, 1 - Config.HitMarkers.Transparency)
+    Menu:FindItem("Visuals", "Hit markers", "Slider", "Hit markers size"):SetValue(Config.HitMarkers.Size)
+    Menu:FindItem("Visuals", "Hit markers", "CheckBox", "Hit sound"):SetValue(Config.HitMarkers.Sound)
+
     Menu:FindItem("Visuals", "World", "CheckBox", "Ambient Changer"):SetValue(Config.Enviorment.Ambient.Enabled)
     Menu:FindItem("Visuals", "World", "ColorPicker", "Ambient"):SetValue(Config.Enviorment.Ambient[1].Color, 0)
     Menu:FindItem("Visuals", "World", "ColorPicker", "Outdoor Ambient"):SetValue(Config.Enviorment.Ambient[2].Color, 0)
@@ -1035,11 +1052,6 @@ function RefreshMenu()
     Menu:FindItem("Visuals", "World", "Slider", "World Time"):SetValue(Config.Enviorment.Time.Value)
     Menu:FindItem("Visuals", "World", "CheckBox", "Saturation Changer"):SetValue(Config.Enviorment.Saturation.Enabled)
     Menu:FindItem("Visuals", "World", "Slider", "Saturation"):SetValue(Config.Enviorment.Saturation.Value)
-    Menu:FindItem("Visuals", "World", "CheckBox", "Hit markers"):SetValue(Config.HitMarkers.Enabled)
-    Menu:FindItem("Visuals", "World", "ComboBox", "Hit markers type"):SetValue(Config.HitMarkers.Type)
-    Menu:FindItem("Visuals", "World", "ColorPicker", "Hit markers color"):SetValue(Config.HitMarkers.Color, 1 - Config.HitMarkers.Transparency)
-    Menu:FindItem("Visuals", "World", "Slider", "Hit markers size"):SetValue(Config.HitMarkers.Size)
-    Menu:FindItem("Visuals", "World", "CheckBox", "Hit sound"):SetValue(Config.HitMarkers.Sound)
     Menu:FindItem("Visuals", "World", "CheckBox", "Bullet impacts"):SetValue(Config.BulletImpact.Enabled)
     Menu:FindItem("Visuals", "World", "ColorPicker", "Bullet impacts color"):SetValue(Config.BulletImpact.Color, 1 - Config.BulletImpact.Transparency)
     Menu:FindItem("Visuals", "World", "CheckBox", "Bullet Tracers"):SetValue(Config.BulletTracers.Enabled)
@@ -1185,6 +1197,7 @@ function RefreshMenu()
     Menu.Keybinds.List.Blink:SetVisible(Config.Blink.Enabled)
     Menu.Keybinds.List.Float:SetVisible(Config.Float.Enabled)
     Menu.Keybinds.List.Noclip:SetVisible(Config.Noclip.Enabled)
+
     Menu.Keybinds.List["Anti Aim"]:SetVisible(Config.AntiAim.Enabled)
 
     Menu.Watermark:SetVisible(Config.Interface.Watermark.Enabled)
@@ -1621,24 +1634,49 @@ end
 
 
 function GetBrickTrajectoryPoints(Brick)
-    local Points = {}
+    local Handle = Brick:FindFirstChild("Handle")
+    if not Handle then return end
 
-    local Handle = Brick.Handle
+    local Points = {}
+    local MaxPoints = 100
 
     local Origin = Handle.Position
     local End = Mouse.Hit.Position
-
-    local Direction = (End - Origin).unit
-    local Distance = (End - Origin).magnitude
-
-    local Step = 0.1
-    local StepCount = math.ceil(Distance / Step)
-
-    for i = 1, StepCount do
-        local Point = Origin + Direction * Step * i
-        table.insert(Points, Point)
+    if Target and Config.Aimbot.Enabled then
+        local AimbotCFrame = GetAimbotCFrame()
+        if AimbotCFrame then
+            End = AimbotCFrame.Position
+        end
     end
 
+    local Direction = (End - Origin).Unit
+    local Distance = (End - Origin).Magnitude
+
+    local Result = Raycast(Origin, Direction * Distance, {Camera, Character})
+    local InterSection = Result and Result.Position or Origin + Direction
+
+
+    local Speed = Brick.Speed.Value
+    local Gravity = Brick.Gravity.Value
+
+    local VelocityAmplifier:Vector3 = Player:GetAttribute("ServerVelocity") -- i think this is just a multiplier for the speed value?
+
+    local Time = Distance / Speed
+    local TimeStep = Time / MaxPoints
+
+    local TimeSteps = {}
+    for i = 1, MaxPoints do
+        TimeSteps[i] = TimeStep * i
+    end
+
+    for _, TimeStep in ipairs(TimeSteps) do
+        local Point = Origin + Direction * Speed * TimeStep + Vector3.new(0, Gravity * TimeStep ^ 2 / 2, 0)
+        local Result = Raycast(Origin, (Point - Origin).Unit, {Camera, Character})
+        if Result then
+            Point = Result.Position
+        end
+        table.insert(Positions, Point)
+    end
 
     return Points
 end
@@ -1876,6 +1914,7 @@ do
                 RunService.Heartbeat:Wait()
                 local LastCFrame = Root.CFrame
                 Root.CFrame = CFrameToSend
+                Player:SetAttribute("ServerVector", CFrameToSend.Position)
                 CFrameSending = false
 
                 Event.Event:Wait()
@@ -1896,6 +1935,8 @@ do
                 local LastAngularVelocity = Root.AssemblyAngularVelocity
                 Root.AssemblyLinearVelocity = Velocity
                 Root.AssemblyAngularVelocity = AngularVelocity
+                Player:SetAttribute("ServerVelocity", Velocity)
+                Player:SetAttribute("ServerAngularVelocity", AngularVelocity)
                 VelocitySending = false
 
                 Event.Event:Wait()
@@ -3282,6 +3323,10 @@ end
 function Heartbeat(Step) -- after phys :: after heartbeat comes network stepped
     Camera = workspace.CurrentCamera
     if UserInput:GetFocusedTextBox() ~= Menu.CommandBar then OnCommandBarFocusLost() end
+    for i, v in ipairs(ChatScheduler) do
+        table.remove(ChatScheduler, i)
+        spawn(OnChatted, v)
+    end
     local SelectedTarget = GetSelectedTarget()
     Target = TargetLock and SelectedTarget or GetTarget()
     do
@@ -3500,15 +3545,6 @@ end
 function Stepped(_, Step) -- before phys
     UpdateESP()
 
-    BrickTrajectory:Remove()
-    if Tool and tostring(Tool) == "Brick" then
-        local Points = GetBrickTrajectoryPoints(Tool)
-        if typeof(Points) == "table" and #Points > 0 then
-            BrickTrajectory = ESP.Trajectory(Points)
-            BrickTrajectory:SetColor(Config.BrickTrajectory.Color, 1 - Config.BrickTrajectory.Transparency)
-        end
-    end
-
     if Root and Humanoid then
         if Config.Float.Enabled then
             if not Player:GetAttribute("KnockedOut") then
@@ -3717,7 +3753,6 @@ function RenderStepped(Step)
         Menu.Watermark:Update("Identification | " .. GetFrameRate() .. "fps | " .. math.round(Ping) .. "ms | " .. os.date("%X"))
     end
 
-
     local Timer = Player:GetAttribute("KnockOut") or 0
     if Timer > 0 then
         Menu.Indicators.List["Knocked Out"]:SetVisible(true)
@@ -3757,6 +3792,17 @@ function RenderStepped(Step)
             AmmoLabel.Visible = true
         else
             AmmoLabel.Visible = false
+        end
+    end
+
+    if BrickTrajectory then BrickTrajectory:Remove() end
+    if Config.BrickTrajectory.Enabled then
+        if Tool and tostring(Tool) == "Brick" then
+            local Points = GetBrickTrajectoryPoints(Tool)
+            if typeof(Points) == "table" and #Points > 0 then
+                BrickTrajectory = ESP.Trajectory(Points)
+                BrickTrajectory:SetColor(Config.BrickTrajectory.Color, 0.5)
+            end
         end
     end
 end
@@ -4434,7 +4480,7 @@ function OnBulletAdded(Bullet)
                     Cross:SetPosition(Vector2.new(Position.x, Position.y))
                     -- umm if some math god hits me up so true;
                     local Distance = (Camera.CFrame.Position - End).Magnitude
-                    Cross:SetSize((Distance / 100) * Config.HitMarkers.Size)
+                    Cross:SetSize((Distance / 100) * 1 - Config.HitMarkers.Size)
                     RunService.RenderStepped:Wait()
                 end
             end)
@@ -4764,7 +4810,7 @@ function OnNameCall(self, ...)
             if string.find(Name, "l") and string.find(Name, "i") and #Name < 7 then return end
         end
         if Name == "SayMessageRequest" then
-            spawn(OnChatted, Arguments[1]) -- For People Who Have Anti Chat Logger
+            table.insert(ChatScheduler, Arguments[1])
         end
         if Name == "Input" then
             local Key = Arguments[1]
@@ -5118,7 +5164,7 @@ Commands.Add("steal", {"st", "log"}, "steal ([audio]/[decal]) from [player]", fu
 
     local Target = GetPlayer(player_name)[1]
     if not Target then
-        return Menu.Notify(string.format("<font color = '#%s'>player_name for argument[2] expected</font>"), Config.EventLogs.Colors.Error:ToHex())
+        return Menu.Notify(string.format("<font color = '#%s'>player_name for argument[2] expected</font>", Config.EventLogs.Colors.Error:ToHex()))
     end
 
     if asset_type == "audio" or asset_type == "sound" or asset_type == "radio" or asset_type == "boombox" then
@@ -5130,26 +5176,27 @@ Commands.Add("steal", {"st", "log"}, "steal ([audio]/[decal]) from [player]", fu
                     local sound_id = sound and sound.SoundId
                     if sound_id then
                         setclipboard(sound_id)
-                        return Menu.Notify(string.format("<font color = '#%s'>set audio_id rbxassetid://'%s' to your clipboard</font>"), Config.EventLogs.Colors.Success:ToHex(), sound_id)
+                        return Menu.Notify(string.format("<font color = '#%s'>set audio_id rbxassetid://'%s' to your clipboard</font>", Config.EventLogs.Colors.Success:ToHex(), sound_id))
                     end
                 end
             end
 
-            return Menu.Notify(string.format("<font color = '#%s'>no audio from player '%s' found</font>"), Config.EventLogs.Colors:ToHex(), tostring(Target))
+            return Menu.Notify(string.format("<font color = '#%s'>no audio from player '%s' found</font>", Config.EventLogs.Colors:ToHex(), tostring(Target)))
         end
     elseif asset_type == "decal" or asset_type == "spray" then
         local spray_part = workspace:FindFirstChild(tostring(Target) .. "Spray")
         if spray_part then
             local decal = spray_part:WaitForChild("Decal")
             local decal_id = string.match(decal.Texture, "%d+")
+            if not Original then decal_id += 1 end
             setclipboard(decal_id)
-            return Menu.Notify(string.format("<font color = '#%s'>set decal_id rbxassetid://'%s' to your clipboard</font>"), Config.EventLogs.Colors.Success:ToHex(), decal_id)
+            return Menu.Notify(string.format("<font color = '#%s'>set decal_id rbxassetid://'%s' to your clipboard</font>", Config.EventLogs.Colors.Success:ToHex(), decal_id))
         else
-            return Menu.Notify(string.format("<font color = '#%s'>no decal from player '%s' found</font>"), Config.EventLogs.Colors.Error:ToHex(), tostring(Target))
+            return Menu.Notify(string.format("<font color = '#%s'>no decal from player '%s' found</font>", Config.EventLogs.Colors.Error:ToHex(), tostring(Target)))
         end
         -- sign check?
     else
-        return Menu.Notify(string.format("<font color = '#%s'>asset-type for argument[1] expected</font>"), Config.EventLogs.Colors.Error:ToHex())
+        return Menu.Notify(string.format("<font color = '#%s'>asset-type for argument[1] expected</font>", Config.EventLogs.Colors.Error:ToHex()))
     end
 end)
 
@@ -5200,6 +5247,7 @@ do
     Menu.Container("Visuals", "ESP", "Left")
     Menu.Container("Visuals", "Local ESP", "Left")
     Menu.Container("Visuals", "Item ESP", "Left")
+    Menu.Container("Visuals", "Hit markers", "Left")
     Menu.Container("Visuals", "Other", "Right")
     Menu.Container("Visuals", "Interface", "Right")
     Menu.Container("Visuals", "World", "Right")
@@ -5558,6 +5606,23 @@ do
         Config.ESP.Item.Font.Size = Value
     end)
 
+    Menu.CheckBox("Visuals", "Hit markers", "Hit markers", Config.HitMarkers.Enabled, function(Bool)
+        Config.HitMarkers.Enabled = Bool
+    end)
+    Menu.ColorPicker("Visuals", "Hit markers", "Hit markers color", Config.HitMarkers.Color, 1 - Config.HitMarkers.Transparency, function(Color, Transparency)
+        Config.HitMarkers.Color = Color
+        Config.HitMarkers.Transparency = 1 - Transparency
+    end)
+    Menu.Slider("Visuals", "Hit markers", "Hit markers size", 5, 20, Config.HitMarkers.Size, nil, 0, function(Value)
+        Config.HitMarkers.Size = Value
+    end)
+    Menu.ComboBox("Visuals", "Hit markers", "Hit markers type", Config.HitMarkers.Type, {"Crosshair", "Model", "Crosshair + Model"}, function(String)
+        Config.HitMarkers.Type = String
+    end)
+    Menu.CheckBox("Visuals", "Hit markers", "Hit sound", Config.HitSound.Enabled, function(Bool)
+        Config.HitSound.Enabled = Bool
+    end)
+
     Menu.CheckBox("Visuals", "World", "Ambient Changer", Config.Enviorment.Ambient.Enabled, function(Bool)
         Config.Enviorment.Ambient.Enabled = Bool
         if Config.Enviorment.Ambient.Enabled then
@@ -5595,22 +5660,6 @@ do
     Menu.Slider("Visuals", "World", "Saturation", -1, 0, Config.Enviorment.Saturation.Value, nil, 2, function(Value)
         Config.Enviorment.Saturation.Value = Value
         Lighting.ColorCorrection.Saturation = Config.Enviorment.Saturation.Enabled and Config.Enviorment.Saturation.Value or 0
-    end)
-    Menu.CheckBox("Visuals", "World", "Hit markers", Config.HitMarkers.Enabled, function(Bool)
-        Config.HitMarkers.Enabled = Bool
-    end)
-    Menu.ColorPicker("Visuals", "World", "Hit markers color", Config.HitMarkers.Color, 1 - Config.HitMarkers.Transparency, function(Color, Transparency)
-        Config.HitMarkers.Color = Color
-        Config.HitMarkers.Transparency = 1 - Transparency
-    end)
-    Menu.Slider("Visuals", "World", "Hit markers size", 5, 20, Config.HitMarkers.Size, nil, 0, function(Value)
-        Config.HitMarkers.Size = Value
-    end)
-    Menu.ComboBox("Visuals", "World", "Hit markers type", Config.HitMarkers.Type, {"Crosshair", "Model", "Crosshair + Model"}, function(String)
-        Config.HitMarkers.Type = String
-    end)
-    Menu.CheckBox("Visuals", "World", "Hit sound", Config.HitSound.Enabled, function(Bool)
-        Config.HitSound.Enabled = Bool
     end)
     Menu.CheckBox("Visuals", "World", "Bullet impacts", Config.BulletImpact.Enabled, function(Bool)
         Config.BulletImpact.Enabled = Bool
@@ -5961,7 +6010,12 @@ do
     Menu.Slider("Misc", "Exploits", "Fake Lag Limit", 3, 15, Config.FakeLag.Limit, "", 1, function(Value)
         Config.FakeLag.Limit = Value / 10
     end)
-    --Menu.Button("Misc", "Exploits", "Crash Server")
+    Menu.Button("Misc", "Exploits", "Crash Server", function()
+        local Success, Result = coroutine.resume(Threads.CrashServer)
+        if not Success then
+            Console:Error("[ERROR] " .. Result)
+        end
+    end)
     Menu.ListBox("Misc", "Players", "Target", false, Players:GetPlayers(), function(Player_Name)
         local Player = GetPlayer(Player_Name)[1]
         if not Player then return end
@@ -6795,6 +6849,10 @@ $$$$$$\\$$$$$$$ |\$$$$$$$\ $$ |  $$ | \$$$$  |$$ |$$ |      $$ |\$$$$$$$\\$$$$$$
         end
     end)
 
+    Threads.CrashServer = coroutine.create(function()
+        
+    end)
+
     for _, Thread in pairs(Threads) do
         coroutine.resume(Thread)
     end
@@ -6821,7 +6879,6 @@ $$$$$$\\$$$$$$$ |\$$$$$$$\ $$ |  $$ | \$$$$  |$$ |$$ |      $$ |\$$$$$$$\\$$$$$$
     Client.BuyItem = BuyItem
     Client.SetCharacterServerCFrame = SetCharacterServerCFrame
     Client.SetCharacterServerVelocity = SetCharacterServerVelocity
-
     
     Client.GetPing = function() return Ping, SendPing, ReceivePing end
     Client.GetTarget = function() return Target end
