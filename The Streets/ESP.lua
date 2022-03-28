@@ -728,6 +728,4 @@ end
 
 RenderLoop = RunService.RenderStepped:Connect(UpdateDrawnObjects)
 
-getgenv().ESP = ESP
-
 return ESP
