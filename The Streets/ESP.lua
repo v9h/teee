@@ -23,7 +23,11 @@ local RenderLoop
 
 
 function RemoveDrawn(self, Item)
-    if self then pcall(self.Remove) end
+    if self then
+        pcall(function()
+            self:Remove()
+        end)
+    end
     pcall(function()
         Drawn[Item] = nil
     end)
