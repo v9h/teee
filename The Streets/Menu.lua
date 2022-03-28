@@ -224,6 +224,7 @@ MenuScaler_Button.Parent = Menu_Frame
 MenuScaler_Button.InputBegan:Connect(function(Input, Process)
     if Process then return end
     if (Input.UserInputType == Enum.UserInputType.MouseButton1) then
+        UpdateSelected()
         Scaling = {
             True = true,
             Origin = Vector2.new(Input.Position.X, Input.Position.Y),
@@ -233,6 +234,7 @@ MenuScaler_Button.InputBegan:Connect(function(Input, Process)
 end)
 MenuScaler_Button.InputEnded:Connect(function(Input, Process)
     if (Input.UserInputType == Enum.UserInputType.MouseButton1) then
+        UpdateSelected()
         Scaling = {
             True = false,
             Origin = nil,
@@ -533,6 +535,7 @@ end
 
 function Menu.Container(Tab_Name, Container_Name, Side)
     local Tab = GetTab(Tab_Name)
+    assert(typeof(Tab_Name) == "string", "TAB_NAME REQUIRED")
     if Tab[Container_Name] then return error("CONTAINER_NAME '" .. tostring(Container_Name) .. "' ALREADY EXISTS") end
     local Side = Side or "Left"
 
@@ -895,7 +898,7 @@ function Menu.Hotkey(Tab_Name, Container_Name, Name, Key, Callback)
 
     Button.Name = "Hotkey"
     Button.BackgroundTransparency = 1
-    Button.Position = UDim2.fromOffset(130, 4)
+    Button.Position = UDim2.new(1, -100, 0, 4)
     Button.Size = UDim2.fromOffset(75, 8)
     Button.Font = Enum.Font.SourceSans
     Button.Text = Key and "[" .. Key.Name .. "]" or "[None]"
@@ -908,8 +911,8 @@ function Menu.Hotkey(Tab_Name, Container_Name, Name, Key, Callback)
     Selected_Hotkey.Visible = false
     Selected_Hotkey.BackgroundColor3 = Menu.ItemColor
     Selected_Hotkey.BorderColor3 = Menu.BorderColor
-    Selected_Hotkey.Position = UDim2.new(0, 200, 0, 100)
-    Selected_Hotkey.Size = UDim2.new(0, 100, 0, 30)
+    Selected_Hotkey.Position = UDim2.fromOffset(200, 100)
+    Selected_Hotkey.Size = UDim2.fromOffset(100, 30)
     Selected_Hotkey.Parent = nil
     CreateStroke(Selected_Hotkey, Color3.new(), 1)
     AddEventListener(Selected_Hotkey, function()
@@ -1083,7 +1086,7 @@ function Menu.Slider(Tab_Name, Container_Name, Name, Min, Max, Value, Unit, Scal
     
     ValueBox.Name = "ValueBox"
     ValueBox.BackgroundTransparency = 1
-    ValueBox.Position = UDim2.new(0, 153, 0, 5)
+    ValueBox.Position = UDim2.new(1, -65, 0, 5)
     ValueBox.Size = UDim2.fromOffset(50, 10)
     ValueBox.Font = Enum.Font.SourceSans
     ValueBox.Text = ""
@@ -1220,7 +1223,7 @@ function Menu.ColorPicker(Tab_Name, Container_Name, Name, Color, Alpha, Callback
     Button.Name = "ColorPicker"
     Button.BackgroundColor3 = ColorPicker.Color
     Button.BorderColor3 = Color3.new()
-    Button.Position = UDim2.fromOffset(182, 4)
+    Button.Position = UDim2.new(1, -35, 0, 4)
     Button.Size = UDim2.fromOffset(20, 8)
     Button.Font = Enum.Font.SourceSans
     Button.Text = ""
@@ -1544,6 +1547,7 @@ function Menu.ComboBox(Tab_Name, Container_Name, Name, Value, Value_Items, Callb
     Button.Parent = Label
     Button.MouseButton1Click:Connect(function()
         UpdateSelected(List, Button, UDim2.fromOffset(0, 15))
+        List.Size = UDim2.fromOffset(Button.AbsoluteSize.X, math.clamp(#ComboBox.Items * 15, 15, 90))
     end)
     AddEventListener(Button, function()
         Button.BackgroundColor3 = Menu.ItemColor
@@ -1711,6 +1715,7 @@ function Menu.MultiSelect(Tab_Name, Container_Name, Name, Value_Items, Callback)
     Button.Parent = Label
     Button.MouseButton1Click:Connect(function()
         UpdateSelected(List, Button, UDim2.fromOffset(0, 15))
+        List.Size = UDim2.fromOffset(Button.AbsoluteSize.X, math.clamp(GetDictionaryLength(MultiSelect.Items) * 15, 15, 90))
     end)
     AddEventListener(Button, function()
         Button.BackgroundColor3 = Menu.ItemColor
@@ -2567,7 +2572,5 @@ end)
 Menu.Screen:GetPropertyChangedSignal("AbsoluteSize"):Connect(function()
     Menu.ScreenSize = Menu.Screen.AbsoluteSize
 end)
-
-getgenv().Menu = Menu
 
 return Menu
