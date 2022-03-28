@@ -14,6 +14,7 @@ local Items = {}
 local EventObjects = {} -- For updating items on menu property change
 local Notifications = {}
 
+local Scaling = {True = false, Origin = nil, Size = nil}
 local Dragging = {Gui = nil, True = false}
 local Draggables = {}
 
@@ -26,6 +27,9 @@ local Selected = {
 }
 
 
+local wait = task.wait
+local delay = task.delay
+local spawn = task.spawn
 local protect_gui = function(Gui, Parent)
     if syn and syn.protect_gui then
         syn.protect_gui(Gui)
@@ -71,7 +75,7 @@ Menu.ItemColor = Color3.fromRGB(30, 30, 30)
 Menu.BorderColor = Color3.fromRGB(45, 45, 45)
 Menu.ScreenSize = Vector2.new()
 Menu.MinSize = Vector2.new(300, 400)
-Menu.MaxSize = Vector2.new(800, 1000)
+Menu.MaxSize = Vector2.new(800, 750)
 
 
 function AddEventListener(self, Update)
@@ -147,7 +151,7 @@ function SetDraggable(self)
             self.ZIndex = 2
 
             Dragging = {Gui = self, True = true}
-            DragOrigin = Input.Position
+            DragOrigin = Vector2.new(Input.Position.X, Input.Position.Y)
             GuiOrigin = self.Position
         end
     end)
@@ -159,7 +163,7 @@ function SetDraggable(self)
             return
         end
         if (Input.UserInputType == Enum.UserInputType.MouseMovement) then
-            local Delta = Input.Position - DragOrigin
+            local Delta = Vector2.new(Input.Position.X, Input.Position.Y) - DragOrigin
             local ScreenSize = Menu.ScreenSize
 
             local ScaleX = (ScreenSize.X * GuiOrigin.X.Scale)
@@ -209,13 +213,34 @@ MenuScaler_Button.Name = "MenuScaler"
 MenuScaler_Button.BackgroundColor3 = Color3.fromRGB(10, 10, 10)
 MenuScaler_Button.BorderColor3 = Color3.fromRGB(40, 40, 40)
 MenuScaler_Button.BorderSizePixel = 0
-MenuScaler_Button.Position = UDim2.new(1, -20, 1, -20)
-MenuScaler_Button.Size = UDim2.new(0, 20, 0, 20)
+MenuScaler_Button.Position = UDim2.new(1, -15, 1, -15)
+MenuScaler_Button.Size = UDim2.fromOffset(15, 15)
 MenuScaler_Button.Font = Enum.Font.SourceSans
 MenuScaler_Button.Text = ""
 MenuScaler_Button.TextColor3 = Color3.new(1, 1, 1)
 MenuScaler_Button.TextSize = 14
+MenuScaler_Button.AutoButtonColor = false
 MenuScaler_Button.Parent = Menu_Frame
+MenuScaler_Button.InputBegan:Connect(function(Input, Process)
+    if Process then return end
+    if (Input.UserInputType == Enum.UserInputType.MouseButton1) then
+        Scaling = {
+            True = true,
+            Origin = Vector2.new(Input.Position.X, Input.Position.Y),
+            Size = Menu_Frame.AbsoluteSize - Vector2.new(0, 36)
+        }
+    end
+end)
+MenuScaler_Button.InputEnded:Connect(function(Input, Process)
+    if (Input.UserInputType == Enum.UserInputType.MouseButton1) then
+        Scaling = {
+            True = false,
+            Origin = nil,
+            Size = nil
+        }
+    end
+end)
+
 
 Title_Label.Name = "Title"
 Title_Label.BackgroundTransparency = 1
@@ -395,12 +420,18 @@ end
 
 function Menu:SetSize(Size)
     local Size = typeof(Size) == "Vector2" and Size or typeof(Size) == "UDim2" and Vector2.new(Size.X, Size.Y) or Menu.MinSize
-    if (Size.X > Menu.MinSize.X and Size.X < Menu.MaxSize.X) and (Size.Y > Menu.MinSize.Y and Size.Y < Menu.MaxSize.Y) then
-        Menu_Frame.Size = UDim2.fromOffset(Size.X, Size.Y)
-        UpdateTabs()
-    else
-        return string.format("SIZE OUT OF BOUNDARIES MIN (%s), MAX(%s)", tostring(Menu.MinSize), tostring(Menu.MaxSize))
+    local X = Size.X
+    local Y = Size.Y
+
+    if (X > Menu.MinSize.X and X < Menu.MaxSize.X) then
+        X = math.clamp(X, Menu.MinSize.X, Menu.MaxSize.X)
     end
+    if (Y > Menu.MinSize.Y and Y < Menu.MaxSize.Y) then
+        Y = math.clamp(Y, Menu.MinSize.Y, Menu.MaxSize.Y)
+    end
+
+    Menu_Frame.Size = UDim2.fromOffset(X, Y)
+    UpdateTabs()
 end
 
 
@@ -1947,6 +1978,16 @@ function Menu.Notify(Content, Delay)
         --Text.Font = Menu.Font
     end
 
+    local function CustomTweenOffset(Offset)
+        spawn(function()
+            local Steps = 30
+            for i = 1, Steps do
+                Text.Position += UDim2.fromOffset(Offset / Steps, 0)
+                wait()
+            end
+        end)
+    end
+
     function Notification:Destroy()
         table.remove(Notifications, 1)
         Text:Destroy()
@@ -1956,13 +1997,7 @@ function Menu.Notify(Content, Delay)
             local self = v.self
             local Parent = self.Parent
             if not Parent then return end
-
-            local Status = v.Status
-            if Status == 0 then
-                self:TweenPosition(UDim2.new(0.5, 0, 1, -150 - (Index * 15)), nil, nil, 0.2, true)
-            else
-                self.Position = UDim2.new(0.5, self.Position.X.Offset, 1, -150 - (Index * 15))
-            end
+            self.Position += UDim2.fromOffset(0, 15)
             Index += 1
         end
     end
@@ -1973,14 +2008,12 @@ function Menu.Notify(Content, Delay)
     local TweenOut = TweenService:Create(Text, TweenInfo.new(0.2, Enum.EasingStyle.Linear, Enum.EasingDirection.Out, 0, false, 0), {TextTransparency = 1})
     
     TweenIn:Play()
-    Text:TweenPosition(UDim2.new(0.5, 0, 1, Text.Position.Y.Offset), nil, nil, 0.2, false) -- This line breaks the.Y position
+    CustomTweenOffset(100)
     
     TweenIn.Completed:Connect(function()
-        Notification.Status = 1
         delay(Delay, function()
             TweenOut:Play()
-            Text:TweenPosition(UDim2.new(0.5, 100, 1, Text.Position.Y.Offset), nil, nil, 0.2, true)
-            Notification.Status = 2
+            CustomTweenOffset(100)
 
             TweenOut.Completed:Connect(function()
                 Notification:Destroy()
@@ -2498,8 +2531,8 @@ end)
 RunService.RenderStepped:Connect(function(Step)
     local Menu_Frame = Menu.Screen.Menu
     Menu_Frame.Position = UDim2.fromOffset(
-        math.clamp(Menu_Frame.AbsolutePosition.X,   0, Menu.ScreenSize.X - Menu_Frame.AbsoluteSize.X), 
-        math.clamp(Menu_Frame.AbsolutePosition.Y, -36, Menu.ScreenSize.Y - Menu_Frame.AbsoluteSize.Y)
+        math.clamp(Menu_Frame.AbsolutePosition.X,   0, math.clamp(Menu.ScreenSize.X - Menu_Frame.AbsoluteSize.X, 0, Menu.ScreenSize.X    )),
+        math.clamp(Menu_Frame.AbsolutePosition.Y, -36, math.clamp(Menu.ScreenSize.Y - Menu_Frame.AbsoluteSize.Y, 0, Menu.ScreenSize.Y - 36))
     )
     local Selected_Frame = Selected.Frame
     local Selected_Item = Selected.Item
@@ -2508,6 +2541,25 @@ RunService.RenderStepped:Connect(function(Step)
         local Position = UDim2.fromOffset(Selected_Item.AbsolutePosition.X, Selected_Item.AbsolutePosition.Y)
         Selected_Frame.Position = Position + Offset
     end
+
+    if Scaling.True then
+        MenuScaler_Button.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
+        local Origin = Scaling.Origin
+        local Size = Scaling.Size
+
+        if Origin and Size then
+            local Location = UserInput:GetMouseLocation()
+            local NewSize = Location + (Size - Origin)
+
+            Menu:SetSize(Vector2.new(
+                math.clamp(NewSize.X, Menu.MinSize.X, Menu.MaxSize.X),
+                math.clamp(NewSize.Y, Menu.MinSize.Y, Menu.MaxSize.Y)
+            ))
+        end
+    else
+        MenuScaler_Button.BackgroundColor3 = Color3.fromRGB(10, 10, 10)
+    end
+
     -- Uuh do this IN ur own script for the other windows I guess
     Menu.Hue += math.clamp(Step, 0, 1)
     if Menu.Hue >= 1 then Menu.Hue = 0 end
@@ -2515,5 +2567,7 @@ end)
 Menu.Screen:GetPropertyChangedSignal("AbsoluteSize"):Connect(function()
     Menu.ScreenSize = Menu.Screen.AbsoluteSize
 end)
+
+getgenv().Menu = Menu
 
 return Menu
