@@ -472,8 +472,10 @@ function ESP.Trajectory(Points)
     Trajectory.Points = Points
     Trajectory.Lines = {}
 
-    for _ = 1, #Points do
-        table.insert(Trajectory.Lines, Drawing.new("Line"))
+    if typeof(Points) == "table" then
+        for _ = 1, #Points do
+            table.insert(Trajectory.Lines, Drawing.new("Line"))
+        end
     end
 
 
@@ -703,15 +705,17 @@ function UpdateDrawnObjects()
             local Lines = v.Lines
             local Points = v.Points
 
-            local From = WorldToScreen(Points[1])
-            for i, Point in ipairs(Points) do
-                local Position, OnScreen = WorldToScreen(Point)
-                Lines[i].Visible = OnScreen
-                if OnScreen then
-                    Lines[i].From = From
-                    Lines[i].To = Position
+            if typeof(Points) == "table" and #Points > 0 then
+                local From = WorldToScreen(Points[1])
+                for i, Point in ipairs(Points) do
+                    local Position, OnScreen = WorldToScreen(Point)
+                    Lines[i].Visible = OnScreen
+                    if OnScreen then
+                        Lines[i].From = From
+                        Lines[i].To = Position
+                    end
+                    From = Position
                 end
-                From = Position
             end
         end
     end
