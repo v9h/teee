@@ -910,7 +910,7 @@ function LoadConfig(Name)
     if Original and Config.HatChanger.Enabled then
         local Success, Result = coroutine.resume(Threads.HatChanger)
         if not Success then
-            Console:Error("[ERROR] " .. Result)
+            Console:Error("[HAT CHANGER] " .. Result)
         end
     end
 
@@ -918,42 +918,42 @@ function LoadConfig(Name)
     if Original and Config.ClanTag.Enabled then
         local Success, Result = coroutine.resume(Threads.ClanTagChanger)
         if not Success then
-            Console:Error("[ERROR] " .. Result)
+            Console:Error("[CLAN TAG] " .. Result)
         end
     end
 
     if Config.KnockDoors.Enabled then
         local Success, Result = coroutine.resume(Threads.KnockDoors)
         if not Success then
-            Console:Error("[ERROR] " .. Result)
+            Console:Error("[KNCOK DOORS] " .. Result)
         end
     end
 
     if Config.InfiniteForceField.Enabled then
         local Success, Result = coroutine.resume(Threads.InfiniteForceField)
         if not Success then
-            Console:Error("[ERROR] " .. Result)
+            Console:Error("[INFINITE FORCEFIELD] " .. Result)
         end
     end
 
     if Config.FakeLag.Enabled then
         local Success, Result = coroutine.resume(Threads.FakeLag)
         if not Success then
-            Console:Error("[ERROR] " .. Result)
+            Console:Error("[FAKE LAG] " .. Result)
         end
     end
 
     if not Original and Config.ClickSpam.Enabled then
         local Success, Result = coroutine.resume(Threads.ClickSpam)
         if not Success then
-            Console:Error("[ERROR] " .. Result)
+            Console:Error("[CLICK SPAM] " .. Result)
         end
     end
 
     if Config.Attach.Enabled then
         local Success, Result = coroutine.resume(Threads.Attach)
         if not Success then
-            Console:Error("[ERROR] " .. Result)
+            Console:Error("[ATTACH] " .. Result)
         end
     end
 
@@ -1683,7 +1683,7 @@ function GetBrickTrajectoryPoints(Brick)
         if Result then
             Point = Result.Position
         end
-        table.insert(Positions, Point)
+        table.insert(Points, Point)
     end
 
     return Points
@@ -1724,7 +1724,7 @@ function GetAssetInfo(AssetId)
         Info = Marketplace:GetProductInfo(AssetId)
     end)
     if not Success then
-        Console:Error("[ERROR] " .. Result)
+        Console:Error("[GET ASSET INFO] " .. Result)
         wait(3)
         return GetAssetInfo(AssetId)
     end
@@ -2508,6 +2508,7 @@ function UpdateESP()
             v.Snapline.Visible = IS_VISIBLE() and ESP_Snaplines.Enabled
             v.Snapline.OffScreen = ESP_Snaplines.OffScreen
             v.Arrow.Visible = IS_VISIBLE() and ESP_Arrows.Enabled
+            v.Arrow.Offset = ESP_Arrows.Offset
 
             v.Skeleton.Visible = false
             if IS_VISIBLE() and ESP_Skeleton.Enabled then
@@ -2678,7 +2679,7 @@ function UpdateAntiAim()
             Menu.Indicators.List["Fake Velocity"]:SetVisible(true)
             local Success, Result = coroutine.resume(Threads.FakeVelocity)
             if not Success then
-                Console:Error("[ERROR] " .. Result)
+                Console:Error("[ANTI AIM] " .. Result)
             end
         elseif Config.AntiAim.Type == "Desync" then
             local DesyncKeyPoints = {1, 2, 6}
@@ -3916,7 +3917,7 @@ function OnCommandBarFocusLost(CheckCommand)
         Commands.Check(CommandBar.Text)
     end)
     if not Success then
-        Console:Error("[ERROR] " .. Result)
+        Console:Error("[COMMAND ERROR] " .. Result)
     end
     CommandBar.Text = ""
 end
@@ -5495,7 +5496,7 @@ do
         Config.ESP.Arrows.Color = Color
         Config.ESP.Arrows.Transparency = 1 - Transparency
     end)
-    Menu.Slider("Visuals", "ESP", "OOF Arrows offset", 5, 50, Config.ESP.Arrows.Offset, 1, function(Int)
+    Menu.Slider("Visuals", "ESP", "OOF Arrows offset", 5, 200, Config.ESP.Arrows.Offset, "px", 1, function(Int)
         Config.ESP.Arrows.Offset = Int
     end)
     Menu.CheckBox("Visuals", "ESP", "Health Bar", Config.ESP.Bars.Health.Enabled, function(Bool)
@@ -5816,7 +5817,7 @@ do
         if Original and Bool then
             local Success, Result = coroutine.resume(Threads.HatChanger)
             if not Success then
-                Console:Error("[ERROR] " .. Result)
+                Console:Error("[HAT CHANGER] " .. Result)
             end
         end
         Menu:FindItem("Visuals", "Hats", "CheckBox", "Hat Color Sequence"):SetVisible(Original and Bool)
@@ -6030,7 +6031,7 @@ do
         if Bool then
             local Success, Result = coroutine.resume(Threads.FakeLag)
             if not Success then
-                Console:Error("[ERROR] " .. Result)
+                Console:Error("[FAKE LAG] " .. Result)
             end
         end
     end)
@@ -6040,7 +6041,7 @@ do
     Menu.Button("Misc", "Exploits", "Crash Server", function()
         local Success, Result = coroutine.resume(Threads.CrashServer)
         if not Success then
-            Console:Error("[ERROR] " .. Result)
+            Console:Error("[CRASH SERVER] " .. Result)
         end
     end)
     Menu.ListBox("Misc", "Players", "Target", false, Players:GetPlayers(), function(Player_Name)
@@ -6069,7 +6070,7 @@ do
         if Bool then 
             local Success, Result = coroutine.resume(Threads.Attach)
             if not Success then
-                Console:Error("[ERROR] " .. Result)
+                Console:Error("[ATTACH] " .. Result)
             end
         else
             for _, Tool in ipairs(GetTools()) do
@@ -6155,7 +6156,7 @@ do
         if Bool then
             local Success, Result = coroutine.resume(Threads.ClanTagChanger)
             if not Success then
-                Console:Error("[ERROR] " .. Result)
+                Console:Error("[CLAN TAG] " .. Result)
             end
         end
         Menu:FindItem("Misc", "Clan Tag", "CheckBox", "Visualize"):SetVisible(Bool)
