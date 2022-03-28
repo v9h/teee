@@ -3,9 +3,10 @@ Main Things > Configs, ESP, Code clean / Bug fixes
 might be mem leak since gcinfo can go upto 100k+? maybe Lol
 Performance Tests
 
+fix set bar points on esp bars
+
 esp fix; breaks idk
 ammo text?
-ammo bar esp
 chams
 
 SetVisibles for refreshmenusS
@@ -131,23 +132,23 @@ end)
 ]]
 
 
-if not Import then messagebox("Error 0x5; Something went wrong with initializing the script (couldn't load modules)", "Identification.cc", 0) end
+--if not Import then return messagebox("Error 0x5; Something went wrong with initializing the script (couldn't load modules)", "Identification.cc", 0) end
 
-local ESP
-local Menu
-local Console
-local Commands
-local ToolData
-local DoorData
-
--- Importing the modules and yielding until they are loaded
-
-spawn(function() ESP = Import("ESP") end)
-spawn(function() Menu = Import("Menu") end)
-spawn(function() Console = Import("Console") end)
-spawn(function() Commands = Import("Commands") end)
-spawn(function() ToolData = Import("ToolData") end)
-spawn(function() DoorData = Import("DoorData") end)
+--local ESP
+--local Menu
+--local Console
+--local Commands
+--local ToolData
+--local DoorData
+--
+---- Importing the modules and yielding until they are loaded
+--
+--spawn(function() ESP = Import("ESP") end)
+--spawn(function() Menu = Import("Menu") end)
+--spawn(function() Console = Import("Console") end)
+--spawn(function() Commands = Import("Commands") end)
+--spawn(function() ToolData = Import("ToolData") end)
+--spawn(function() DoorData = Import("DoorData") end)
 
 while not ESP or not Menu or not Console or not Commands or not ToolData or not DoorData do wait() end -- waiting for the modules to load...
 getgenv().Import = nil
@@ -458,7 +459,14 @@ local Config = {
         Snaplines = {
             Enabled = false,
             Color = Color3.new(1, 1, 1),
-            Transparency = 1
+            Transparency = 1,
+            OffScreen = false
+        },
+        Arrows = {
+            Enabled = false,
+            Color = Color3.new(1, 1, 1),
+            Transparency = 1,
+            Offset = 15
         },
         Font = {
             Font = "Plex",
@@ -744,7 +752,6 @@ do
     FlyVelocity = Instance.new("BodyVelocity")
     FlyAngularVelocity = Instance.new("BodyAngularVelocity")
 
-    AimbotIndicator = Drawing.new("Circle")
     FieldOfViewCircle = Drawing.new("Circle")
     
     Events.Reset = Instance.new("BindableEvent")
@@ -1002,6 +1009,7 @@ function RefreshMenu()
     Menu:FindItem("Visuals", "ESP", "ColorPicker", "Knocked Out Chams Color"):SetValue(Config.ESP.Chams.KnockedOut.Color, Config.ESP.Chams.KnockedOut.Transparency)
     Menu:FindItem("Visuals", "ESP", "CheckBox", "Snapline"):SetValue(Config.ESP.Snaplines.Enabled)
     Menu:FindItem("Visuals", "ESP", "ColorPicker", "Snapline Color"):SetValue(Config.ESP.Snaplines.Color, 1 - Config.ESP.Snaplines.Transparency)
+    Menu:FindItem("Visuals", "ESP", "CheckBox", "Snapline offscreen"):SetValue(Config.ESP.Snaplines.OffScreen)
     Menu:FindItem("Visuals", "ESP", "CheckBox", "Health Bar"):SetValue(Config.ESP.Bars.Health.Enabled)
     Menu:FindItem("Visuals", "ESP", "CheckBox", "Health Bar Auto Color"):SetValue(Config.ESP.Bars.Health.AutoColor)
     Menu:FindItem("Visuals", "ESP", "ColorPicker", "Health Bar Color"):SetValue(Config.ESP.Bars.Health.Color, 1 - Config.ESP.Bars.Health.Transparency)
@@ -2251,7 +2259,8 @@ function AddPlayerESP(_Player)
         KnockedOutBar = ESP.Bar(Torso),
 
         WeaponIcon = ESP.Image(Torso),
-        Snapline = ESP.Snapline(Config.Aimbot.HitBox == "Head" and Head or Torso)
+        Snapline = ESP.Snapline(Config.Aimbot.HitBox == "Head" and Head or Torso),
+        Arrow = ESP.Arrow(Torso)
     }
 
     table.insert(Drawn, Player_ESP)
@@ -2314,6 +2323,7 @@ function UpdateESP()
     local ESP_Box = ESP.Box
     local ESP_Skeleton = ESP.Skeleton
     local ESP_Snaplines = ESP.Snaplines
+    local ESP_Arrows = ESP.Arrows
 
     local Item_ESP = ESP.Item
     local Item_ESP_Enabled = Item_ESP.Enabled
@@ -2361,28 +2371,28 @@ function UpdateESP()
             end
 
 
-            local TOP_BAR_PUSH = 0
-            local LEFT_BAR_PUSH = 0
-            local RIGHT_BAR_PUSH = 0
-            local BOTTOM_BAR_PUSH = 0
+            local TOP_BAR_PUSH = 7
+            local LEFT_BAR_PUSH = 6
+            local RIGHT_BAR_PUSH = 6
+            local BOTTOM_BAR_PUSH = 7
 
             local function SET_BAR_POINTS(Bar, Position)
                 if Position == "Top" then
                     Bar.Axis = "x"
-                    Bar:SetPoints(7 + TOP_BAR_PUSH, -7 + TOP_BAR_PUSH, 6, 6)
-                    TOP_BAR_PUSH -= 2
+                    Bar:SetPoints(TOP_BAR_PUSH, -TOP_BAR_PUSH, 6, 6)
+                    TOP_BAR_PUSH -= 1
                 elseif Position == "Left" then
                     Bar.Axis = "y"
-                    Bar:SetPoints(6, 7, 6 + LEFT_BAR_PUSH, -6 + LEFT_BAR_PUSH)
-                    LEFT_BAR_PUSH -= 2
+                    Bar:SetPoints(6, 7, LEFT_BAR_PUSH, -LEFT_BAR_PUSH)
+                    LEFT_BAR_PUSH += 1
                 elseif Position == "Right" then
                     Bar.Axis = "y"
-                    Bar:SetPoints(6 + RIGHT_BAR_PUSH, 7 + RIGHT_BAR_PUSH, 6, -6)
-                    RIGHT_BAR_PUSH += 2
+                    Bar:SetPoints(6, -7, RIGHT_BAR_PUSH, -RIGHT_BAR_PUSH)
+                    RIGHT_BAR_PUSH += 1
                 elseif Position == "Bottom" then
-                    Bar:SetPoints(7 + BOTTOM_BAR_PUSH, -7 + BOTTOM_BAR_PUSH, 6, 6)
                     Bar.Axis = "x"
-                    BOTTOM_BAR_PUSH += 2
+                    Bar:SetPoints(BOTTOM_BAR_PUSH, -BOTTOM_BAR_PUSH, 6, 6)
+                    BOTTOM_BAR_PUSH += 1
                 end
             end
 
@@ -2496,6 +2506,8 @@ function UpdateESP()
             v.Box.Visible = IS_VISIBLE() and ESP_Box.Enabled and ESP_Box.Type == "Default" or false
             --v.CornerBox.Visible = IS_VISIBLE() and ESP_Box.Enabled and ESP_Box.Type == "Corners" or false
             v.Snapline.Visible = IS_VISIBLE() and ESP_Snaplines.Enabled
+            v.Snapline.OffScreen = ESP_Snaplines.OffScreen
+            v.Arrow.Visible = IS_VISIBLE() and ESP_Arrows.Enabled
 
             v.Skeleton.Visible = false
             if IS_VISIBLE() and ESP_Skeleton.Enabled then
@@ -2530,18 +2542,26 @@ function UpdateESP()
                 v.Skeleton:SetColor(Admin.Color, ESP_Skeleton.Transparency)
                 v.Snapline:SetColor(Admin.Color, ESP_Snaplines.Transparency)
                 v.Box:SetColor(Admin.Color, ESP_Box.Transparency)
+                --v.CornerBox:SetColor(Admin.Color, ESP_Box.Transparency)
+                v.Arrow:SetColor(Admin.Color, ESP_Arrows.Transparency)
             elseif Whitelisted and ESP.WhitelistOverride.Enabled then
                 v.Skeleton:SetColor(ESP.WhitelistOverride.Color, ESP_Skeleton.Transparency)
                 v.Snapline:SetColor(ESP.WhitelistOverride.Color, ESP_Snaplines.Transparency)
                 v.Box:SetColor(ESP.WhitelistOverride.Color, ESP_Box.Transparency)
+                --v.CornerBox:SetColor(ESP.WhitelistOverride.Color, ESP_Box.Transparency)
+                v.Arrow:SetColor(Admin.Color, ESP_Arrows.Transparency)
             elseif Target and ESP.TargetOverride.Enabled then
                 v.Skeleton:SetColor(ESP.TargetOverride.Color, ESP_Skeleton.Transparency)
                 v.Snapline:SetColor(ESP.TargetOverride.Color, ESP_Snaplines.Transparency)
                 v.Box:SetColor(ESP.TargetOverride.Color, ESP_Box.Transparency)
+                --v.CornerBox:SetColor(ESP.TargetOverride.Color, ESP_Box.Transparency)
+                v.Arrow:SetColor(ESP.TargetOverride.Color, ESP_Arrows.Transparency)
             else
                 v.Skeleton:SetColor(ESP_Skeleton.Color, ESP_Skeleton.Transparency)
                 v.Snapline:SetColor(ESP_Snaplines.Color, ESP_Snaplines.Transparency)
                 v.Box:SetColor(ESP_Box.Color, ESP_Box.Transparency)
+                --v.CornerBox:SetColor(ESP_Box.Color, ESP_Box.Transparency)
+                v.Arrow:SetColor(ESP_Arrows.Color, ESP_Arrows.Transparency)
             end
         elseif Type == "Item" then
             local Item = v.self
@@ -2684,21 +2704,15 @@ end
 
 
 function UpdateAimbotIndicator()
-    AimbotIndicator.Visible = Config.Aimbot.Visualize and Config.Aimbot.Enabled
-    if AimbotIndicator.Visible then
+    if (Config.Aimbot.Visualize and Config.Aimbot.Enabled) then
+        AimbotIndicator:SetVisible(true)
         local Vector, OnScreen = Camera:WorldToViewportPoint(GetAimbotCFrame(false).Position)
-
-        AimbotIndicator.Visible = (Target and OnScreen) and true or false
         if OnScreen then
-            AimbotIndicator.Position = Vector2.new(Vector.x, Vector.y)
-
-            AimbotIndicator.Thickness = 2
-            AimbotIndicator.Transparency = 0.5
-            AimbotIndicator.NumSides = 0
-            AimbotIndicator.Radius = 8
-            AimbotIndicator.Color = Color3.new(1, 0, 0)
-            AimbotIndicator.Filled = true
+            AimbotIndicator:SetPosition(Vector2.new(Vector.x, Vector.y))
+            AimbotIndicator:SetColor(Color3.fromRGB(100, 40, 175), 0)
         end
+    else
+        AimbotIndicator:SetVisible(false)
     end
 end
 
@@ -2846,8 +2860,6 @@ function DrawCross(Size, Offset)
         end
     end
 
-
-    
     function Cross:SetColor(Color, Transparency)
         if not Cross.Alive then return error("CROSS IS DEAD") end
         Cross.Color = typeof(Color) == "Color3" and Color or Cross.Color
@@ -3795,7 +3807,7 @@ function RenderStepped(Step)
         end
     end
 
-    if BrickTrajectory then BrickTrajectory:Remove() end
+    if BrickTrajectory then BrickTrajectory:Remove() BrickTrajectory = nil end
     if Config.BrickTrajectory.Enabled then
         if Tool and tostring(Tool) == "Brick" then
             local Points = GetBrickTrajectoryPoints(Tool)
@@ -5466,10 +5478,25 @@ do
     Menu.CheckBox("Visuals", "ESP", "Snapline", Config.ESP.Snaplines.Enabled, function(Bool)
         Config.ESP.Snaplines.Enabled = Bool
         Menu:FindItem("Visuals", "ESP", "ColorPicker", "Snapline Color"):SetVisible(Bool)
+        Menu:FindItem("Visuals", "ESP", "CheckBox", "Snapline offscreen"):SetVisible(Bool)
     end)
     Menu.ColorPicker("Visuals", "ESP", "Snapline Color", Config.ESP.Snaplines.Color, 1 - Config.ESP.Snaplines.Transparency, function(Color, Transparency)
         Config.ESP.Snaplines.Color = Color
         Config.ESP.Snaplines.Transparency = 1 - Transparency
+    end)
+    Menu.CheckBox("Visuals", "ESP", "Snapline offscreen", Config.ESP.Snaplines.OffScreen, function(Bool)
+        Config.ESP.Snaplines.OffScreen = Bool
+    end)
+    Menu.CheckBox("Visuals", "ESP", "OOF Arrows", Config.ESP.Arrows.Enabled, function(Bool)
+        Config.ESP.Arrows.Enabled = Bool
+        Menu:FindItem("Visuals", "ESP", "ColorPicker", "OOF Arrows Color"):SetVisible(Bool)
+    end)
+    Menu.ColorPicker("Visuals", "ESP", "OOF Arrows Color", Config.ESP.Arrows.Color, 1 - Config.ESP.Arrows.Transparency, function(Color, Transparency)
+        Config.ESP.Arrows.Color = Color
+        Config.ESP.Arrows.Transparency = 1 - Transparency
+    end)
+    Menu.Slider("Visuals", "ESP", "OOF Arrows offset", 5, 50, Config.ESP.Arrows.Offset, 1, function(Int)
+        Config.ESP.Arrows.Offset = Int
     end)
     Menu.CheckBox("Visuals", "ESP", "Health Bar", Config.ESP.Bars.Health.Enabled, function(Bool)
         Config.ESP.Bars.Health.Enabled = Bool
@@ -6403,6 +6430,8 @@ function Initialize()
         SunRays:SetAttribute("DefaultSpread", SunRays.Spread)
         SunRays:SetAttribute("DefaultIntensity", SunRays.Intensity)
     end
+
+    AimbotIndicator = DrawCross(20, 4)
 
     CustomCharacter.Name = "CustomCharacter"
 
