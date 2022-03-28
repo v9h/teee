@@ -1,11 +1,11 @@
--- R15 Support ?? ;
+-- R15 Support ?? ; might already exist never attempted; yeah like all of the configs are done by the user
 -- Image and Text Offset;
 -- Fix Boxes, Bars, Arrows
 -- Corner 2D BOX
--- OffScreen Snaplines?
--- Skeleton ESP
 -- Chams
 -- Outline Color Text
+-- Gradient lines
+-- Fix offscreen esp
 
 if ESP and ESP.__CHECK and ESP.Clear then ESP:Clear() end
 
@@ -23,8 +23,10 @@ local RenderLoop
 
 
 function RemoveDrawn(self, Item)
-    if self then pcall(function() self:Remove() end) end
-    Drawn[Item] = nil
+    if self then pcall(self.Remove) end
+    pcall(function()
+        Drawn[Item] = nil
+    end)
 end
 
 
@@ -34,8 +36,40 @@ function WorldToScreen(Position)
 end
 
 
-function DrawGradientLine(From, To) -- snapline; trajectory; skeleton; bar
+function DrawLine(Color, Transparency, From, To)
+    local Line = Drawing.new("Line")
+    Line.Color = Color or Color3.new(1, 1, 1)
+    Line.Transparency = Transparency or 1
+    Line.From = From or Vector2.new()
+    Line.To = To or Vector2.new()
+    Line.Visible = false
+    Line.ZIndex = 1
+    return Line
+end
 
+
+function DrawGradientLine(Gradient, From, To) -- snapline; trajectory; skeleton; bar
+    local Lines = {}
+    local Axis = (From.x - To.x) == 0 and "y" or "x"
+    local Length = (Axis == "y" and math.abs(From.y - To.y)) or (Axis == "x" and math.abs(From.x - To.x))
+
+    local Gradient_From = Gradient.From
+    local Gradient_To = Gradient.To
+    
+    for i = 1, Length do
+        local Percent = i / Length
+        local Color = Color3.new(
+            Gradient_From.r + (Gradient_To.r - Gradient_From.r) * Percent,
+            Gradient_From.g + (Gradient_To.g - Gradient_From.g) * Percent,
+            Gradient_From.b + (Gradient_To.b - Gradient_From.b) * Percent
+        )
+
+        local Line = DrawLine(Color, Gradient.Transparency, 
+            Axis == "y" and Vector2.new(From.x, From.y + (To.y - From.y) * Percent) or Vector2.new(From.x + (To.x - From.x) * Percent, From.y),
+            Axis == "y" and Vector2.new(To.x, To.y + (To.y - From.y) * Percent) or Vector2.new(To.x + (To.x - From.x) * Percent, To.y)
+        )
+        Lines[i] = Line
+    end
 end
 
 
@@ -62,9 +96,10 @@ function ESP.Arrow(self)
     Arrow.self.Thickness = 1
     Arrow.self.Color = Color3.new(1, 1, 1)
 
-    function Arrow:SetColor()
+    function Arrow:SetColor(Color, Transparency)
         if render_object_exists(Arrow.self) then
-
+            Arrow.self.Color = typeof(Color) == "Color3" and Color or Arrow.self.Color
+            Arrow.self.Transparency = typeof(Transparency) == "number" and Transparency or Arrow.self.Transparency
         end
     end
 
@@ -392,6 +427,7 @@ function ESP.Snapline(self) -- I liked tracer more but whateva
     local Snapline = {}
     Snapline.Type = "Snapline"
     Snapline.Visible = false
+    Snapline.OffScreen = false
     Snapline.Root = self
     
     Snapline.self = Drawing.new("Line")
@@ -399,10 +435,6 @@ function ESP.Snapline(self) -- I liked tracer more but whateva
     Snapline.self.Transparency = 1
     Snapline.self.Color = Color3.new(1, 1, 1)
     Snapline.self.From = Vector2.new(Camera.ViewportSize.x / 2, Camera.ViewportSize.y / 2)
-
-    function Snapline:Set(From, Transparency, Thickness)
-
-    end
 
     function Snapline:SetColor(Color, Transparency)
         if render_object_exists(Snapline.self) then
@@ -440,10 +472,8 @@ function ESP.Trajectory(Points)
     Trajectory.Points = Points
     Trajectory.Lines = {}
 
-    if typeof(Points) == "table" then
-        for _ = 1, #Points do
-            table.insert(Trajectory.Lines, Drawing.new("Line"))
-        end
+    for _ = 1, #Points do
+        table.insert(Trajectory.Lines, Drawing.new("Line"))
     end
 
 
@@ -509,17 +539,61 @@ function UpdateDrawnObjects()
 
         if Type == "Snapline" then
             local Root = v.Root
-            local Position, OnScreen = WorldToScreen(Root.Position)
+            local Position, OnScreen, Depth = WorldToScreen(Root.Position)
             self.Visible = OnScreen
-            if OnScreen then
+
+            if not OnScreen and v.OffScreen and Depth < 0 then
+                -- make the position be angled towards the Root
+                local Angle = math.atan2(Root.Position.y - Camera.CFrame.p.y, Root.Position.x - Camera.CFrame.p.x)
+                Position = Vector2.new(Position.x + math.cos(Angle) * Depth, ScreenSize.y)
+
+                self.Visible = true
+            end
+
+            if self.Visible then
                 self.To = Position
             end
         elseif Type == "Arrow" then
-            do continue end
             local Root = v.Root
             local Position, OnScreen = WorldToScreen(Root.Position)
             self.Visible = not OnScreen
             self.Filled = v.Filled
+
+            if Position.x < 0 or Position.y < 0 or Position.x > ScreenSize.x or Position.y > ScreenSize.y then
+                local ScreenCenter = ScreenSize / 2
+
+                local Angle = ScreenCenter - Position
+                local AngleYaw = math.rad(Angle.y)
+    
+                local NewPoint = Vector2.new(ScreenCenter.x + v.Offset * math.cos(AngleYaw), ScreenCenter.y + v.Offset * math.sin(AngleYaw))
+    
+                local Points = {}
+                Points[1] = NewPoint - Vector2.new(10, 10)
+                Points[2] = NewPoint + Vector2.new(25, 0)
+                Points[3] = NewPoint + Vector2.new(-10, 10)
+    
+                local function RotateTriangle(Points, Rotation)
+                    local Center = (Points[1] + Points[2] + Points[3]) / 3
+                    local NewPoints = {}
+                    for _, Point in ipairs(Points) do
+                        local NewPoint = Point - Center
+                        NewPoint = Vector2.new(NewPoint.x * math.cos(Rotation) - NewPoint.y * math.sin(Rotation), NewPoint.x * math.sin(Rotation) + NewPoint.y * math.cos(Rotation))
+                        NewPoint = NewPoint + Center
+                        table.insert(NewPoints, NewPoint)
+                    end
+                    
+                    
+                    self.PointA = NewPoints[1]
+                    self.PointB = NewPoints[2]
+                    self.PointC = NewPoints[3]
+                end
+    
+    
+                RotateTriangle(Points, AngleYaw)
+            else
+                self.Visible = false
+                continue
+            end
         elseif Type == "Text" then
             local Root = v.Root
             if Root then
@@ -629,17 +703,15 @@ function UpdateDrawnObjects()
             local Lines = v.Lines
             local Points = v.Points
 
-            if typeof(Points) == "table" and #Points > 0 then
-                local From = WorldToScreen(Points[1])
-                for i, Point in ipairs(Points) do
-                    local Position, OnScreen = WorldToScreen(Point)
-                    Lines[i].Visible = OnScreen
-                    if OnScreen then
-                        Lines[i].From = From
-                        Lines[i].To = Position
-                    end
-                    From = Position
+            local From = WorldToScreen(Points[1])
+            for i, Point in ipairs(Points) do
+                local Position, OnScreen = WorldToScreen(Point)
+                Lines[i].Visible = OnScreen
+                if OnScreen then
+                    Lines[i].From = From
+                    Lines[i].To = Position
                 end
+                From = Position
             end
         end
     end
@@ -647,5 +719,7 @@ end
 
 
 RenderLoop = RunService.RenderStepped:Connect(UpdateDrawnObjects)
+
+getgenv().ESP = ESP
 
 return ESP
