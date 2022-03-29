@@ -132,23 +132,23 @@ end)
 ]]
 
 
---if not Import then return messagebox("Error 0x5; Something went wrong with initializing the script (couldn't load modules)", "Identification.cc", 0) end
+if not Import then return messagebox("Error 0x5; Something went wrong with initializing the script (couldn't load modules)", "Identification.cc", 0) end
 
---local ESP
---local Menu
---local Console
---local Commands
---local ToolData
---local DoorData
---
----- Importing the modules and yielding until they are loaded
---
---spawn(function() ESP = Import("ESP") end)
---spawn(function() Menu = Import("Menu") end)
---spawn(function() Console = Import("Console") end)
---spawn(function() Commands = Import("Commands") end)
---spawn(function() ToolData = Import("ToolData") end)
---spawn(function() DoorData = Import("DoorData") end)
+local ESP
+local Menu
+local Console
+local Commands
+local ToolData
+local DoorData
+
+-- Importing the modules and yielding until they are loaded
+
+spawn(function() ESP = Import("ESP") end)
+spawn(function() Menu = Import("Menu") end)
+spawn(function() Console = Import("Console") end)
+spawn(function() Commands = Import("Commands") end)
+spawn(function() ToolData = Import("ToolData") end)
+spawn(function() DoorData = Import("DoorData") end)
 
 while not ESP or not Menu or not Console or not Commands or not ToolData or not DoorData do wait() end -- waiting for the modules to load...
 getgenv().Import = nil
@@ -1678,12 +1678,19 @@ function GetBrickTrajectoryPoints(Brick)
     end
 
     for _, TimeStep in ipairs(TimeSteps) do
-        local Point = Origin + Direction * Speed * TimeStep + Vector3.new(0, Gravity * TimeStep ^ 2 / 2, 0)
-        local Result = Raycast(Origin, (Point - Origin).Unit, {Camera, Character})
-        if Result then
-            Point = Result.Position
+        local Position = Origin + Direction * Speed * TimeStep
+        local Velocity = Direction * Speed * VelocityAmplifier
+        local Acceleration = Vector3.new(0, -Gravity, 0)
+        local NewPosition = Position + Velocity * TimeStep + Acceleration * TimeStep ^ 2 / 2
+
+        -- add a check if newposition is going over the Intersection
+        -- if it is, then we should stop the loop and set the position to the intersection
+
+        if NewPosition.Y < InterSection.Y then
+            NewPosition = InterSection
         end
-        table.insert(Points, Point)
+
+        table.insert(Points, NewPosition)
     end
 
     return Points
@@ -1719,6 +1726,7 @@ end
 
 
 function GetAssetInfo(AssetId)
+    local AssetId = tonumber(AssetId)
     local Info = {}
     local Success, Result = pcall(function()
         Info = Marketplace:GetProductInfo(AssetId)
@@ -2707,10 +2715,12 @@ end
 function UpdateAimbotIndicator()
     if (Config.Aimbot.Visualize and Config.Aimbot.Enabled) then
         AimbotIndicator:SetVisible(true)
+        AimbotIndicator:SetPosition(UserInput:GetMouseLocation())
+        AimbotIndicator:SetColor(Color3.fromRGB(100, 40, 175), 0)
+
         local Vector, OnScreen = Camera:WorldToViewportPoint(GetAimbotCFrame(false).Position)
         if OnScreen then
             AimbotIndicator:SetPosition(Vector2.new(Vector.x, Vector.y))
-            AimbotIndicator:SetColor(Color3.fromRGB(100, 40, 175), 0)
         end
     else
         AimbotIndicator:SetVisible(false)
@@ -4477,7 +4487,7 @@ function OnBulletAdded(Bullet)
         end
     
         if Config.HitMarkers.Enabled and (Config.HitMarkers.Type == "Model" or Config.HitMarkers.Type == "Crosshair + Model") then
-            local Cross = DrawCross(Config.HitMarkers.Size)
+            local Cross = DrawCross(Config.HitMarkers.Size, 2)
             Cross:SetColor(Config.HitMarkers.Color, 1 - Config.HitMarkers.Transparency)
             delay(1, function()
                 if Config.HitMarkers.Fade then
