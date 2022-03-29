@@ -151,10 +151,23 @@ spawn(function() ToolData = Import("Tool Data") end)
 spawn(function() DoorData = Import("Door Data") end)
 
 while not ESP or not Menu or not Console or not Commands or not ToolData or not DoorData do wait() end -- waiting for the modules to load...
-getgenv().Import = nil
+getgenv().Import = nil  -- won't be used anymore
 
 
 local Original = game.PlaceId == 455366377 and true
+
+
+if not Original and game.PlaceId ~= 4669040 then
+    return messagebox("Error 0x1; Place not supported", "Identification.cc", 0) -- why is the 2nd parameter title??
+end
+
+if (Original and game.PlaceVersion ~= 1508) or (not Original and game.PlaceVersion ~= 217) then
+    return messagebox("Error 0x2; Script is not up to date with place version", "Identification.cc", 0)
+end
+
+if _G.Identification then
+    return messagebox("Error 0x3; Script is already running", "Identification.cc", 0)
+end
 
 
 local Player = Players.LocalPlayer or Players:GetPropertyChangedSignal("LocalPlayer"):Wait() and Players.LocalPlayer
@@ -169,19 +182,6 @@ local PlayerGui = Player:WaitForChild("PlayerGui")
 local HUD = PlayerGui and PlayerGui:WaitForChild("HUD")
 local Camera = workspace.CurrentCamera
 local TagSystem = Original and require(ReplicatedStorage:WaitForChild("TagSystem")) -- "creator" || "creatorslow" || "gunslow" || "action" || "Action" || "KO" || "Dragged" || "Dragging" || "reloading" || "equipedgun" || yes with 1 p he's retarded
-
-if not Original and game.PlaceId ~= 4669040 then
-    return messagebox("Error 0x1; Place not supported", "Identification.cc", 0) -- why is the 2nd parameter title??
-end
-
-if (Original and game.PlaceVersion ~= 1508) or (not Original and game.PlaceVersion ~= 217) then
-    return messagebox("Error 0x2; Script is not up to date with place version", "Identification.cc", 0)
-end
-
-if _G.Identification then
-    return messagebox("Error 0x3; Script is already running", "Identification.cc", 0)
-end
-
 
 _G.Identification = true
 
@@ -1660,10 +1660,6 @@ function GetBrickTrajectoryPoints(Brick)
     local Direction = (End - Origin).Unit
     local Distance = (End - Origin).Magnitude
 
-    local Result = Raycast(Origin, Direction * Distance, {Camera, Character})
-    local InterSection = Result and Result.Position or Origin + Direction
-
-
     local Speed = Brick.Speed.Value
     local Gravity = Brick.Gravity.Value
 
@@ -1677,20 +1673,8 @@ function GetBrickTrajectoryPoints(Brick)
         TimeSteps[i] = TimeStep * i
     end
 
-    for _, TimeStep in ipairs(TimeSteps) do
-        local Position = Origin + Direction * Speed * TimeStep
-        local Velocity = Direction * Speed * VelocityAmplifier
-        local Acceleration = Vector3.new(0, -Gravity, 0)
-        local NewPosition = Position + Velocity * TimeStep + Acceleration * TimeStep ^ 2 / 2
-
-        -- add a check if newposition is going over the Intersection
-        -- if it is, then we should stop the loop and set the position to the intersection
-
-        if NewPosition.Y < InterSection.Y then
-            NewPosition = InterSection
-        end
-
-        table.insert(Points, NewPosition)
+    for _, Time in ipairs(TimeSteps) do
+        table.insert(Points, Origin + Direction * Speed * Time + Vector3.new(0, Gravity * Time * Time / 2, 0))
     end
 
     return Points
@@ -1726,17 +1710,21 @@ end
 
 
 function GetAssetInfo(AssetId)
-    local AssetId = tonumber(AssetId)
-    local Info = {}
-    local Success, Result = pcall(function()
-        Info = Marketplace:GetProductInfo(AssetId)
-    end)
-    if not Success then
-        Console:Error("[GET ASSET INFO] " .. Result)
-        wait(3)
-        return GetAssetInfo(AssetId)
+    if AssetId then
+        local AssetId = tonumber(AssetId)
+        local Info = {}
+        local Success, Result = pcall(function()
+            Info = Marketplace:GetProductInfo(AssetId)
+        end)
+        if not Success then
+            Console:Error("[GET ASSET INFO] " .. Result)
+            wait(3)
+            return GetAssetInfo(AssetId)
+        end
+        return Info
     end
-    return Info
+
+    return {}
 end
 
 
