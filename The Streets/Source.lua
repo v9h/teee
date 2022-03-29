@@ -1674,7 +1674,7 @@ function GetBrickTrajectoryPoints(Brick)
     end
 
     for _, Time in ipairs(TimeSteps) do
-        table.insert(Points, Origin + Direction * Speed * Time + Vector3.new(0, Gravity * Time * Time / 2, 0))
+        table.insert(Points, Origin + Direction * Speed * Time + Vector3.new(0, -Gravity * Time * Time / 2, 0))
     end
 
     return Points
