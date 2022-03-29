@@ -147,8 +147,8 @@ spawn(function() ESP = Import("ESP") end)
 spawn(function() Menu = Import("Menu") end)
 spawn(function() Console = Import("Console") end)
 spawn(function() Commands = Import("Commands") end)
-spawn(function() ToolData = Import("ToolData") end)
-spawn(function() DoorData = Import("DoorData") end)
+spawn(function() ToolData = Import("Tool Data") end)
+spawn(function() DoorData = Import("Door Data") end)
 
 while not ESP or not Menu or not Console or not Commands or not ToolData or not DoorData do wait() end -- waiting for the modules to load...
 getgenv().Import = nil
