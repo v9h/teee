@@ -3,7 +3,7 @@ Development of Identification.cc
 
 # Loader.lua
 ```lua
-local AuthToken = [[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]]
+local AuthToken = [[]]
 local ScriptName = "The Streets" -- Script Name here; ex : The Streets
 
 
