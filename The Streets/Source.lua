@@ -2223,7 +2223,6 @@ function AddPlayerESP(_Player)
                 end
             end
 
-            print("Remove Player ESP")
             table.remove(Drawn, table.find(Drawn, Player_ESP))
         end
     end
