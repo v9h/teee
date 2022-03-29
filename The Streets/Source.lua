@@ -1710,21 +1710,19 @@ end
 
 
 function GetAssetInfo(AssetId)
-    if AssetId then
-        local AssetId = tonumber(AssetId)
-        local Info = {}
-        local Success, Result = pcall(function()
-            Info = Marketplace:GetProductInfo(AssetId)
-        end)
-        if not Success then
-            Console:Error("[GET ASSET INFO] " .. Result)
-            wait(3)
-            return GetAssetInfo(AssetId)
-        end
-        return Info
-    end
+    local AssetId = tonumber(AssetId)
+    if not AssetId then return end
 
-    return {}
+    local Info = {}
+    local Success, Result = pcall(function()
+        Info = Marketplace:GetProductInfo(AssetId)
+    end)
+    if not Success then
+        Console:Error("[GET ASSET INFO] " .. Result)
+        wait(3)
+        return GetAssetInfo(AssetId)
+    end
+    return Info
 end
 
 
@@ -2224,6 +2222,8 @@ function AddPlayerESP(_Player)
                     v:Remove()
                 end
             end
+
+            print("Remove Player ESP")
             table.remove(Drawn, table.find(Drawn, Player_ESP))
         end
     end
@@ -2274,6 +2274,7 @@ function AddItemESP(Item)
                     v:Remove()
                 end
             end
+
             table.remove(Drawn, table.find(Drawn, Item_ESP))
         end
     end
@@ -2332,14 +2333,16 @@ function UpdateESP()
     local Item_ESP_Snaplines = Item_ESP.Snaplines
 
     for Index, v in ipairs(Drawn) do
+        local self = v.self
         local Type = v.Type
-        if not v.self.Parent then
+
+        if not self.Parent or not self.Parent.Parent then
             v.Destroy()
             continue
         end
 
         if Type == "Player" then
-            local Player = v.self
+            local Player = self
             local Target = Player == Target and true or false
             local Admin = UserTable.Admin[Player.UserId]
             local Whitelisted = table.find(UserTable.Whitelisted, Player.UserId)
@@ -2561,7 +2564,7 @@ function UpdateESP()
                 v.Arrow:SetColor(ESP_Arrows.Color, ESP_Arrows.Transparency)
             end
         elseif Type == "Item" then
-            local Item = v.self
+            local Item = self
             local Distance = Player:DistanceFromCharacter(Item.Position)
 
             local FONT_PUSH_AMOUNT = 0
@@ -5218,26 +5221,31 @@ do
     Menu.Accent = Config.Menu.Accent
 
     Menu.AddAudioButton = function(Id)
-        local AudioButton = Instance.new("TextButton")
-        AudioButton.BackgroundColor3 = Color3.new(1, 1, 1)
-        AudioButton.Size = UDim2.new(1, 0, 0, 22)
-        AudioButton.Text = GetAssetInfo(Id).Name
-        AudioButton.TextColor3 = Color3.new()
-        AudioButton.Font = Enum.Font.SourceSans
-        AudioButton.TextSize = 22
-        AudioButton.Parent = Menu.BoomboxFrame.List
-        AudioButton.MouseButton1Click:Connect(function()
-            pcall(function()
-                PlayerGui.BoomBoxu.Entry.TextBox.Text = Id
-                LastAudio = Id
-                for _, Object in ipairs(Character:GetChildren()) do
-                    if tostring(Object) == "BoomBox" then Object.RemoteEvent:FireServer("play", Id) end
-                end
-            end)
-        end)
+        local Asset = GetAssetInfo(Id)
+        local Name = Asset and Asset.Name
 
-        Menu.BoomboxFrame.List.CanvasSize += UDim2.fromOffset(0, 22)
-        return AudioButton
+        if typeof(Name) == "string" then
+            local AudioButton = Instance.new("TextButton")
+            AudioButton.BackgroundColor3 = Color3.new(1, 1, 1)
+            AudioButton.Size = UDim2.new(1, 0, 0, 22)
+            AudioButton.Text = Name
+            AudioButton.TextColor3 = Color3.new()
+            AudioButton.Font = Enum.Font.SourceSans
+            AudioButton.TextSize = 22
+            AudioButton.Parent = Menu.BoomboxFrame.List
+            AudioButton.MouseButton1Click:Connect(function()
+                pcall(function()
+                    PlayerGui.BoomBoxu.Entry.TextBox.Text = Id
+                    LastAudio = Id
+                    for _, Object in ipairs(Character:GetChildren()) do
+                        if tostring(Object) == "BoomBox" then Object.RemoteEvent:FireServer("play", Id) end
+                    end
+                end)
+            end)
+
+            Menu.BoomboxFrame.List.CanvasSize += UDim2.fromOffset(0, 22)
+            return AudioButton
+        end
     end
     
 
@@ -6613,9 +6621,13 @@ $$$$$$\\$$$$$$$ |\$$$$$$$\ $$ |  $$ | \$$$$  |$$ |$$ |      $$ |\$$$$$$$\\$$$$$$
         local function GetAudioName(Id)
             if LastId == Id then return LastName end
             LastId = Id
-            local Name = GetAssetInfo(Id).Name
-            LastName = Name
-            return Name
+            
+            local Asset = GetAssetInfo(Id)
+            if Asset then
+                Name = Asset.Name
+                LastName = Name
+                return Name
+            end
         end
 
 
