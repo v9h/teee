@@ -409,6 +409,7 @@ local Config = {
             OutlineColor = Color3.new(),
             Transparency = 0,
             OutlineTransparency = 0,
+            RenderMode = "Default",
 
             KnockedOut = {
                 Enabled = false,
@@ -2400,6 +2401,7 @@ function UpdateESP()
 
 
             v.Chams:SetVisible(IS_VISIBLE() and ESP_Chams.Enabled)
+            v.Chams:SetRenderMode(ESP_Chams.RenderMode)
             v.Chams:SetColor(ESP_Chams.Color, ESP_Chams.Transparency)
             v.Chams:SetOutlineColor(ESP_Chams.OutlineColor, ESP_Chams.OutlineTransparency)
 
@@ -5466,6 +5468,7 @@ do
     end)
     Menu.CheckBox("Visuals", "ESP", "Chams", Config.ESP.Chams.Enabled, function(Bool)
         Config.ESP.Chams.Enabled = Bool
+        Menu:FindItem("Visuals", "ESP", "ComboBox", "Chams Render Mode"):SetVisible(Bool)
         Menu:FindItem("Visuals", "ESP", "ColorPicker", "Chams Color"):SetVisible(Bool)
         Menu:FindItem("Visuals", "ESP", "ColorPicker", "Chams Outline Color"):SetVisible(Bool)
     end)
@@ -5476,6 +5479,9 @@ do
     Menu.ColorPicker("Visuals", "ESP", "Chams Outline Color", Config.ESP.Chams.OutlineColor, Config.ESP.Chams.OutlineTransparency, function(Color, Transparency)
         Config.ESP.Chams.OutlineColor = Color
         Config.ESP.Chams.OutlineTransparency = Transparency
+    end)
+    Menu.ComboBox("Visuals", "ESP", "Chams Render Mode", Config.ESP.Chams.RenderMode, {"Default", "Walls"}, function(String)
+        Config.ESP.Chams.RenderMode = String
     end)
     Menu.CheckBox("Visuals", "ESP", "Knocked Out Chams", Config.ESP.Chams.KnockedOut.Enabled, function(Bool)
         Config.ESP.Chams.KnockedOut.Enabled = Bool
