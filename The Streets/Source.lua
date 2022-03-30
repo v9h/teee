@@ -384,7 +384,7 @@ local Config = {
     ClanTag = {
         Enabled = false,
         Visualize = false,
-        Tag = "Friendship is magic",
+        Tag = "pony-hook.pw",
         Type = "Static", --Forward || Reverse || Static || Blink || Normal || Cheat || Sequences({Tag = "nigger"}, {Tag=  "balls"}) || Boombox || Wave test 
         Prefix = "",
         Suffix = "",
