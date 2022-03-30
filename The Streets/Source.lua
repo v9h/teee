@@ -95,6 +95,9 @@ local messagebox = messagebox or message_box or function()
         game:shutdown()
     end)
 end
+local get_script_version = function()
+    return "1.0.0"
+end
 
 
 local Stats = game:GetService("Stats")
@@ -723,6 +726,8 @@ local FakeLagVisualizer = ESP.Skeleton()
 local AimbotIndicator
 local FieldOfViewCircle
 
+local script_version = get_script_version()
+
 local Ping = 0
 local SendPing = 0
 local ReceivePing = 0
@@ -1292,7 +1297,7 @@ function GetTarget()
         if _Player.Character then
             local _Root = Root -- _Root is equal to local player root
             local Root = GetRoot(_Player) -- Target root
-            --if (IsBehindAWall(_Root, Root)) then continue end
+            if (IsBehindAWall(_Root, Root)) then continue end
             if Root then
                 local Distance = 0
                 if Config.Aimbot.TargetSelection == "Near Mouse" then
@@ -2212,12 +2217,7 @@ function AddPlayerESP(_Player)
 
     local Player_ESP
     
-    local AlreadyCalledDebugTest = false
     local function Destroy_ESP()
-        if AlreadyCalledDebugTest then
-            return warn("Something went wrong with the ESP")
-        end
-        AlreadyCalledDebugTest = true
         if typeof(Player_ESP) == "table" then
             for k, v in pairs(Player_ESP) do
                 if typeof(v) == "table" then
@@ -2232,6 +2232,7 @@ function AddPlayerESP(_Player)
 
     Player_ESP = {
         self = Player,
+        Character = Character,
         Type = "Player",
         Destroy = Destroy_ESP,
 
@@ -2337,13 +2338,14 @@ function UpdateESP()
         local self = v.self
         local Type = v.Type
 
-        if not self or not self:FindFirstAncestor(tostring(workspace)) then
-            v.Destroy()
-            continue
-        end
-
         if Type == "Player" then
             local Player = self
+            local Character = v.Character
+            if not Character or not Character:FindFirstAncestor(tostring(workspace)) then
+                v.Destroy()
+                continue
+            end
+
             local Target = Player == Target and true or false
             local Admin = UserTable.Admin[Player.UserId]
             local Whitelisted = table.find(UserTable.Whitelisted, Player.UserId)
@@ -2565,6 +2567,11 @@ function UpdateESP()
                 v.Arrow:SetColor(ESP_Arrows.Color, ESP_Arrows.Transparency)
             end
         elseif Type == "Item" then
+            if not self or not self:FindFirstAncestor(tostring(workspace)) then
+                v.Destroy()
+                continue
+            end
+
             local Item = self
             local Distance = Player:DistanceFromCharacter(Item.Position)
 
