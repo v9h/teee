@@ -185,8 +185,6 @@ local TagSystem = Original and require(ReplicatedStorage:WaitForChild("TagSystem
 
 _G.Identification = true
 
-
-
 -- Config
 
 
@@ -2215,7 +2213,12 @@ function AddPlayerESP(_Player)
 
     local Player_ESP
     
+    local AlreadyCalledDebugTest = false
     local function Destroy_ESP()
+        if AlreadyCalledDebugTest then
+            return warn("Something went wrong with the ESP")
+        end
+        AlreadyCalledDebugTest = true
         if typeof(Player_ESP) == "table" then
             for k, v in pairs(Player_ESP) do
                 if typeof(v) == "table" then
@@ -2335,7 +2338,7 @@ function UpdateESP()
         local self = v.self
         local Type = v.Type
 
-        if not self.Parent or not self.Parent.Parent then
+        if not self or not self:FindFirstAncestor(tostring(workspace)) then
             v.Destroy()
             continue
         end
@@ -2361,10 +2364,10 @@ function UpdateESP()
             local FONT_SIZE = ESP_Font.Size
             local FONT_COLOR = (Admin and Admin.Color) or (Whitelisted and ESP.WhitelistOverride.Enabled and ESP.WhitelistOverride.Color) or (Target and ESP.TargetOverride.Enabled and ESP.TargetOverride.Color) or (ESP_Font.Color)
             local FONT_TRANSPARENCY = ESP_Font.Transparency
-            local FONT_PUSH_AMOUNT = -5
+            local FONT_PUSH_AMOUNT = -6
 
             local function GET_FONT_PUSH()
-                FONT_PUSH_AMOUNT -= 5
+                FONT_PUSH_AMOUNT -= 4
                 return math.clamp(Distance / 100, 0.5, 10) * FONT_PUSH_AMOUNT
             end
 
@@ -6620,7 +6623,7 @@ $$$$$$\\$$$$$$$ |\$$$$$$$\ $$ |  $$ | \$$$$  |$$ |$$ |      $$ |\$$$$$$$\\$$$$$$
         local function GetAudioName(Id)
             if LastId == Id then return LastName end
             LastId = Id
-            
+
             local Asset = GetAssetInfo(Id)
             if Asset then
                 Name = Asset.Name
