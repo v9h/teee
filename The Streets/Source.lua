@@ -705,7 +705,6 @@ local Animations = {}
 local AudioLogs = isfile("Identification/Games/The Streets/Audios.dat") and string.split(readfile("Identification/Games/The Streets/Audios.dat"), "\n") or {}
 local DamageLogs = {} -- debounce
 local ChatScheduler = {}
-local PlayerRemovingCallbacks = {}
 
 local BuyPart
 local Target
@@ -2226,7 +2225,7 @@ function AddPlayerESP(_Player)
                 end
             end
 
-            table.remove(Drawn, table.find(Drawn, Player_ESP))
+            Drawn[Player] = nil
         end
     end
 
@@ -2261,8 +2260,8 @@ function AddPlayerESP(_Player)
         Arrow = ESP.Arrow(Torso)
     }
 
-    table.insert(Drawn, Player_ESP)
-    return #Drawn, Destroy_ESP
+    Drawn[Player] = Player_ESP
+    return Player_ESP
 end
 
 
@@ -2277,7 +2276,7 @@ function AddItemESP(Item)
                 end
             end
 
-            table.remove(Drawn, table.find(Drawn, Item_ESP))
+            Drawn[Item] = nil
         end
     end
 
@@ -2291,8 +2290,8 @@ function AddItemESP(Item)
         Snapline = ESP.Snapline(Item)
     }
 
-    table.insert(Drawn, Item_ESP)
-    return #Drawn, Destroy_ESP
+    Drawn[Item] = Item_ESP
+    return Item_ESP
 end
 
 
@@ -2334,7 +2333,7 @@ function UpdateESP()
     local Item_ESP_Icon = Item_ESP_Flags.Icon
     local Item_ESP_Snaplines = Item_ESP.Snaplines
 
-    for Index, v in ipairs(Drawn) do
+    for k, v in pairs(Drawn) do
         local self = v.self
         local Type = v.Type
 
@@ -4161,10 +4160,6 @@ end
 function OnPlayerAdded(Player)
     Menu:FindItem("Misc", "Players", "ListBox", "Target"):SetValue(SelectedTarget, Players:GetPlayers())
     if Player == Players.LocalPlayer then return end
-    local ESP_Index, ESP_Destroy = 0, function() end
-    PlayerRemovingCallbacks[Player] = function()
-        if ESP_Destroy then ESP_Destroy() end
-    end
 
     local ToolValue = Instance.new("ObjectValue")
     ToolValue.Name = "Tool" ToolValue.Parent = Player
@@ -4223,7 +4218,7 @@ function OnPlayerAdded(Player)
                 if Player.UserId == 1552377192 then
                     DrawStrawHat(Player)
                 end
-                ESP_Index, ESP_Destroy = AddPlayerESP(Player)
+                local Player_ESP = AddPlayerESP(Player)
 
                 do
                     local Ignore = {}
@@ -4256,7 +4251,6 @@ function OnPlayerAdded(Player)
             local HumanoidDiedEvent
             HumanoidDiedEvent = Humanoid.Died:Connect(function()
                 HumanoidDiedEvent:Disconnect()
-                if ESP_Destroy then ESP_Destroy() end
                 OnPlayerDeath(Player)
                 Player:SetAttribute("IsAlive", false)
                 Player:SetAttribute("KnockedOut", false)
@@ -4264,7 +4258,6 @@ function OnPlayerAdded(Player)
 
             Character.AncestryChanged:Connect(function(Parent)
                 if not Parent then
-                    if ESP_Destroy then ESP_Destroy() end
                     OnPlayerDeath(Player)
                     Player:SetAttribute("IsAlive", false)
                     Player:SetAttribute("KnockedOut", false)
@@ -4307,9 +4300,6 @@ function OnPlayerRemoving(Player)
 
     if Player == Players.LocalPlayer then
         Console:Clear()
-    else
-        PlayerRemovingCallbacks[Player]()
-        PlayerRemovingCallbacks[Player] = nil
     end
 end
 
