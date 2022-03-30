@@ -405,9 +405,9 @@ local Config = {
         },
         Chams = {
             Enabled = false,
-            FillColor = Color3.fromRGB(150, 120, 210),
+            Color = Color3.fromRGB(150, 120, 210),
             OutlineColor = Color3.new(),
-            FillTransparency = 0,
+            Transparency = 0,
             OutlineTransparency = 0,
 
             KnockedOut = {
@@ -5469,9 +5469,9 @@ do
         Menu:FindItem("Visuals", "ESP", "ColorPicker", "Chams Color"):SetVisible(Bool)
         Menu:FindItem("Visuals", "ESP", "ColorPicker", "Chams Outline Color"):SetVisible(Bool)
     end)
-    Menu.ColorPicker("Visuals", "ESP", "Chams Color", Config.ESP.Chams.FillColor, Config.ESP.Chams.FillTransparency, function(Color, Transparency)
-        Config.ESP.Chams.FillColor = Color
-        Config.ESP.Chams.FillTransparency = Transparency
+    Menu.ColorPicker("Visuals", "ESP", "Chams Color", Config.ESP.Chams.Color, Config.ESP.Chams.Transparency, function(Color, Transparency)
+        Config.ESP.Chams.Color = Color
+        Config.ESP.Chams.Transparency = Transparency
     end)
     Menu.ColorPicker("Visuals", "ESP", "Chams Outline Color", Config.ESP.Chams.OutlineColor, Config.ESP.Chams.OutlineTransparency, function(Color, Transparency)
         Config.ESP.Chams.OutlineColor = Color
