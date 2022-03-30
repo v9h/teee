@@ -251,15 +251,39 @@ end
 
 --setfflag("RenderHighlightPass3", "True")
 function ESP.Chams(self, Color, Transparency, Color2, Transparency2)
-    local Chams = Instance.new("Highlight")
-    Chams.FillColor = Color or Color3.new(1, 1, 1)
-    Chams.FillTransparency = Transparency or 0
-    Chams.OutlineColor = Color2 or Color3.new()
-    Chams.OutlineTransparency = Transparency2 or 1
-    Chams.DepthMode = Enum.HighlightDepthMode.AlwaysOnTop
-    Chams.Enabled = true
-    Chams.Adornee = self
-    Chams.Parent = self
+    local Chams = {}
+    Chams.self = Instance.new("Highlight")
+    Chams.self.FillColor = Color or Color3.new(1, 1, 1)
+    Chams.self.FillTransparency = Transparency or 0
+    Chams.self.OutlineColor = Color2 or Color3.new()
+    Chams.self.OutlineTransparency = Transparency2 or 1
+    Chams.self.DepthMode = Enum.HighlightDepthMode.AlwaysOnTop
+    Chams.self.Enabled = false
+    Chams.self.Adornee = self
+    Chams.self.Parent = self
+
+    function Chams:SetColor(Color, Transparency)
+        Chams.self.FillColor = typeof(Color) == "Color3" and Color or Chams.self.FillColor
+        Chams.self.FillTransparency = typeof(Transparency) == "number" and Transparency or Chams.self.FillTransparency
+    end
+
+    function Chams:SetOutlineColor(Color, Transparency)
+        Chams.self.OutlineColor = typeof(Color) == "Color3" and Color or Chams.self.OutlineColor
+        Chams.self.OutlineTransparency = typeof(Transparency) == "number" and Transparency or Chams.self.OutlineTransparency
+    end
+
+    function Chams:SetVisible(Visible)
+        Chams.self.Enabled = typeof(Visible) == "boolean" and Visible or false
+    end
+
+    function Chams.Remove()
+        Chams.self:Destroy()
+    end
+
+    self.AncestryChanged:Connect(function(_, Parent)
+        if Parent then return end
+        Chams.Remove()
+    end)
 
     return Chams
 end
@@ -727,5 +751,6 @@ end
 
 
 RenderLoop = RunService.RenderStepped:Connect(UpdateDrawnObjects)
+
 
 return ESP
