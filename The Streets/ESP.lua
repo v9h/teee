@@ -249,7 +249,6 @@ function ESP.CornerBox(self)
 end
 
 
---setfflag("RenderHighlightPass3", "True")
 function ESP.Chams(self, Color, Transparency, Color2, Transparency2)
     local Chams = {}
     Chams.self = Instance.new("Highlight")
@@ -274,6 +273,14 @@ function ESP.Chams(self, Color, Transparency, Color2, Transparency2)
 
     function Chams:SetVisible(Visible)
         Chams.self.Enabled = typeof(Visible) == "boolean" and Visible or false
+    end
+
+    function Chams:SetRenderMode(Mode)
+        if Mode == "Walls" then
+            Chams.self.DepthMode = Enum.HighlightDepthMode.AlwaysOnTop
+        else
+            Chams.self.DepthMode = Enum.HighlightDepthMode.Default
+        end
     end
 
     function Chams.Remove()
