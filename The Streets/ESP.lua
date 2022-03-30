@@ -279,7 +279,7 @@ function ESP.Chams(self, Color, Transparency, Color2, Transparency2)
         if Mode == "Walls" then
             Chams.self.DepthMode = Enum.HighlightDepthMode.AlwaysOnTop
         else
-            Chams.self.DepthMode = Enum.HighlightDepthMode.Default
+            Chams.self.DepthMode = Enum.HighlightDepthMode.Occluded
         end
     end
 
