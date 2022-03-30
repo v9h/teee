@@ -2399,6 +2399,11 @@ function UpdateESP()
             end
 
 
+            v.Chams:SetVisible(IS_VISIBLE() and ESP_Chams.Enabled)
+            v.Chams:SetColor(ESP_Chams.Color, ESP_Chams.Transparency)
+            v.Chams:SetOutlineColor(ESP_Chams.OutlineColor, ESP_Chams.OutlineTransparency)
+
+
             v.Name.Visible = IS_VISIBLE() and ESP_Name.Enabled
             v.Vest.Visible = IS_VISIBLE() and ESP_Vest.Enabled
             v.Health.Visible = IS_VISIBLE() and ESP_Health.Enabled
@@ -6892,6 +6897,17 @@ $$$$$$\\$$$$$$$ |\$$$$$$$\ $$ |  $$ | \$$$$  |$$ |$$ |      $$ |\$$$$$$$\\$$$$$$
         
     end)
 
+    Threads.VersionCheck = coroutine.create(function()
+        while true do
+            wait(60)
+            local Version = get_script_version()
+            if Version ~= script_version then
+                local Message = "Your version of the script is outdated, rejoin to get the latest build"
+                Menu.Notify(Message, math.huge)
+            end
+        end
+    end)
+
     for _, Thread in pairs(Threads) do
         coroutine.resume(Thread)
     end
@@ -6929,6 +6945,8 @@ $$$$$$\\$$$$$$$ |\$$$$$$$\ $$ |  $$ | \$$$$  |$$ |$$ |      $$ |\$$$$$$$\\$$$$$$
     Client.OnEvent = function(Event)
 
     end
+
+    Client.GetCurrentVersion = function() return script_version end
 
     Client.Debug = {}
     Client.Debug.get_gc = function() return gcinfo() end
