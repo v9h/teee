@@ -2567,7 +2567,7 @@ function UpdateESP()
                 v.Arrow:SetColor(ESP_Arrows.Color, ESP_Arrows.Transparency)
             end
         elseif Type == "Item" then
-            if not self or not self:FindFirstAncestor(tostring(workspace)) then
+            if not self or not self:FindFirstAncestor(tostring(workspace)) then -- wait why Am I just not using a ancestry changed event ? :|
                 v.Destroy()
                 continue
             end
@@ -2823,8 +2823,9 @@ function DrawCross(Size, Offset)
     local Lines = {DrawLine(), DrawLine(), DrawLine(), DrawLine()}
 
     Cross.Alive = true
+    Cross.Angle = false
     Cross.Size = typeof(Size) == "number" and Size or 20
-    Cross.Offset = typeof(Offset) == "number" and Offset or 2
+    Cross.Offset = typeof(Offset) == "number" and Offset or 4
 
     function Cross:SetSize(Size)
         assert(typeof(Size) == "number", "Size must be a number")
@@ -2839,35 +2840,33 @@ function DrawCross(Size, Offset)
     function Cross:SetPosition(Position)
         if not Cross.Alive then return error("CROSS IS DEAD") end
 
-        Lines[1].From = Position + Vector2.new(-Cross.Size, -Cross.Size)
-        Lines[1].To = Position + Vector2.new(-Cross.Offset, -Cross.Offset)
-        Lines[2].From = Position + Vector2.new(-Cross.Size, Cross.Size)
-        Lines[2].To = Position + Vector2.new(-Cross.Offset, Cross.Offset)
+        -- until I figure out a better way to do this and yes I need it to work by the angle to make it spin
+        if Cross.Angle then
+            Lines[1].From = Position + Vector2.new(0, -Cross.Offset)
+            Lines[1].To = Position + Vector2.new(0, -Cross.Size)
+            Lines[2].From = Position + Vector2.new(0, Cross.Offset)
+            Lines[2].To = Position + Vector2.new(0, Cross.Size)
 
-        Lines[3].From = Position + Vector2.new(Cross.Size, -Cross.Size)
-        Lines[3].To = Position + Vector2.new(Cross.Offset, -Cross.Offset)
-        Lines[4].From = Position + Vector2.new(Cross.Size, Cross.Size)
-        Lines[4].To = Position + Vector2.new(Cross.Offset, Cross.Offset)
+            Lines[3].From = Position + Vector2.new(-Cross.Offset, 0)
+            Lines[3].To = Position + Vector2.new(-Cross.Size, 0)
+            Lines[4].From = Position + Vector2.new(Cross.Offset, 0)
+            Lines[4].To = Position + Vector2.new(Cross.Size, 0)
+        else
+            Lines[1].From = Position + Vector2.new(-Cross.Size, -Cross.Size)
+            Lines[1].To = Position + Vector2.new(-Cross.Offset, -Cross.Offset)
+            Lines[2].From = Position + Vector2.new(-Cross.Size, Cross.Size)
+            Lines[2].To = Position + Vector2.new(-Cross.Offset, Cross.Offset)
+
+            Lines[3].From = Position + Vector2.new(Cross.Size, -Cross.Size)
+            Lines[3].To = Position + Vector2.new(Cross.Offset, -Cross.Offset)
+            Lines[4].From = Position + Vector2.new(Cross.Size, Cross.Size)
+            Lines[4].To = Position + Vector2.new(Cross.Offset, Cross.Offset)
+        end
     end
 
     function Cross:Rotate(Angle)
         if not Cross.Alive then return error("CROSS IS DEAD") end
-
-        local function RotateLine(Line, Degrees)
-            local From = Line.From
-            local To = Line.To
-            local Center = (From + To) / 2
-            local Angle = (From - Center).Magnitude
-            local NewAngle = Degrees * math.pi / 180
-            local NewFrom = Center + Vector2.new(math.cos(NewAngle) * Angle, math.sin(NewAngle) * Angle)
-            local NewTo = Center + Vector2.new(math.cos(NewAngle + math.pi) * Angle, math.sin(NewAngle + math.pi) * Angle)
-            Line.From = NewFrom
-            Line.To = NewTo
-        end
-
-        for _, Line in ipairs(Lines) do
-            --RotateLine(Line, Angle)
-        end
+        Cross.Angle = not Cross.Angle
     end
 
     function Cross:SetColor(Color, Transparency)
@@ -4361,7 +4360,7 @@ function OnPlayerDamaged(Victim:player, Attacker:player, Damage:number, Time:tic
             PlaySound(HitSound, 0.8)
         end
         if Config.HitMarkers.Enabled and (Config.HitMarkers.Type == "Crosshair" or Config.HitMarkers.Type == "Crosshair + Model") then
-            local Cross = DrawCross(Config.HitMarkers.Size, 2)
+            local Cross = DrawCross(Config.HitMarkers.Size, 8)
             Cross:SetColor(Config.HitMarkers.Color, 1 - Config.HitMarkers.Transparency)
             Cross:SetVisible(true)
             delay(1, function()
@@ -4477,7 +4476,7 @@ function OnBulletAdded(Bullet)
         end
     
         if Config.HitMarkers.Enabled and (Config.HitMarkers.Type == "Model" or Config.HitMarkers.Type == "Crosshair + Model") then
-            local Cross = DrawCross(Config.HitMarkers.Size, 2)
+            local Cross = DrawCross(Config.HitMarkers.Size, 4)
             Cross:SetColor(Config.HitMarkers.Color, 1 - Config.HitMarkers.Transparency)
             delay(1, function()
                 if Config.HitMarkers.Fade then
@@ -6438,6 +6437,7 @@ function Initialize()
     end
 
     AimbotIndicator = DrawCross(20, 4)
+    AimbotIndicator:Rotate(90)
 
     CustomCharacter.Name = "CustomCharacter"
 
