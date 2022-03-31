@@ -54,13 +54,19 @@ local ClientScript = PlayerGui.ScreenGui:FindFirstChild("LocalScript", true)
 local MouseHover = not IS_LOBBY and PlayerGui.ScreenGui:FindFirstChild("MouseoverSpecial", true):FindFirstChildOfClass("TextButton") -- if MouseHover.Text == "Construct" then hide() end
 local Share = not IS_LOBBY and require(ClientScript.Modules.Share)
 
-local Menu = loadstring(readfile("Identification/Games/The Conquerors 3/DEBUG/Menu.lua"))()
-local Console = loadstring(readfile("Identification/Games/The Conquerors 3/DEBUG/Console.lua"))()
+local Menu
+local Console
+local Network
+local Renderer
+local Pathfinder
+local EventHandler
 
-local Network = not IS_LOBBY and loadstring(readfile("Identification/Games/The Conquerors 3/DEBUG/Network.lua"))()
-local Renderer = loadstring(readfile("Identification/Games/The Conquerors 3/DEBUG/Renderer.lua"))()
-local Pathfinder = not IS_LOBBY and loadstring(readfile("Identification/Games/The Conquerors 3/DEBUG/Pathfinder.lua"))()
-local EventHandler = loadstring(readfile("Identification/Games/The Conquerors 3/DEBUG/Events.lua"))()
+spawn(function() Menu = Import("Menu") end)
+spawn(function() Console = Import("Console") end)
+if not IS_LOBBY then spawn(function() Network = Import("Network") end) end
+spawn(function() Renderer = Import("Renderer") end)
+if not IS_LOBBY then spawn(function() Pathfinder = Import("Pathfinder") end) end
+spawn(function() EventHandler = Import("Events") end)
 
 
 local Config = {
