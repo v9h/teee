@@ -407,6 +407,7 @@ local Config = {
             Enabled = false,
             Color = Color3.fromRGB(150, 120, 210),
             OutlineColor = Color3.new(),
+            OutlineAutoColor = false,
             Transparency = 0,
             OutlineTransparency = 0,
             RenderMode = "Default",
@@ -1008,6 +1009,7 @@ function RefreshMenu()
     Menu:FindItem("Visuals", "ESP", "CheckBox", "Chams"):SetValue(Config.ESP.Chams.Enabled)
     Menu:FindItem("Visuals", "ESP", "ColorPicker", "Chams Color"):SetValue(Config.ESP.Chams.Color, Config.ESP.Chams.Transparency)
     Menu:FindItem("Visuals", "ESP", "ColorPicker", "Chams Outline Color"):SetValue(Config.ESP.Chams.OutlineColor, Config.ESP.Chams.OutlineTransparency)
+    Menu:FindItem("Visuals", "ESP", "CheckBox", "Chams Auto Outline Color"):SetValue(Config.ESP.Chams.AutoOutlineColor)
     Menu:FindItem("Visuals", "ESP", "CheckBox", "Knocked Out Chams"):SetValue(Config.ESP.Chams.KnockedOut.Enabled)
     Menu:FindItem("Visuals", "ESP", "ColorPicker", "Knocked Out Chams Color"):SetValue(Config.ESP.Chams.KnockedOut.Color, Config.ESP.Chams.KnockedOut.Transparency)
     Menu:FindItem("Visuals", "ESP", "CheckBox", "Snapline"):SetValue(Config.ESP.Snaplines.Enabled)
@@ -1298,7 +1300,6 @@ function GetTarget()
         if _Player.Character then
             local _Root = Root -- _Root is equal to local player root
             local Root = GetRoot(_Player) -- Target root
-            if (IsBehindAWall(_Root, Root)) then continue end
             if Root then
                 local Distance = 0
                 if Config.Aimbot.TargetSelection == "Near Mouse" then
@@ -2403,7 +2404,12 @@ function UpdateESP()
             v.Chams:SetVisible(IS_VISIBLE() and ESP_Chams.Enabled)
             v.Chams:SetRenderMode(ESP_Chams.RenderMode)
             v.Chams:SetColor(ESP_Chams.Color, ESP_Chams.Transparency)
-            v.Chams:SetOutlineColor(ESP_Chams.OutlineColor, ESP_Chams.OutlineTransparency)
+            if ESP_Chams.AutoOutlineColor then
+                local Health = Player:GetAttribute("Health")
+                v.Chams:SetOutlineColor(Color3.fromHSV((Health / 100) * 0.3, 1, 1), ESP_Chams.Transparency)
+            else
+                v.Chams:SetOutlineColor(ESP_Chams.OutlineColor, ESP_Chams.OutlineTransparency)
+            end
 
 
             v.Name.Visible = IS_VISIBLE() and ESP_Name.Enabled
@@ -5304,7 +5310,7 @@ do
     Menu.CheckBox("Combat", "Aimbot", "Auto Fire", Config.AutoFire.Enabled, function(Bool)
         AutoFireToggle()
     end)
-    Menu.Slider("Combat", "Aimbot", "Auto Fire Range", 5, 100, Config.AutoFire.Range, nil, 1, function(Value)
+    Menu.Slider("Combat", "Aimbot", "Auto Fire Range", 5, 150, Config.AutoFire.Range, nil, 1, function(Value)
         Config.AutoFire.Range = Value
     end)
     Menu.CheckBox("Combat", "Aimbot", "Camera Lock", Config.CameraLock.Enabled, function(Bool)
