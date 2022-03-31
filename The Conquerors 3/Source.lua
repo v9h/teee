@@ -433,6 +433,9 @@ function Initialize()
 
         local function OnChildAdded(Frame)
             local LevelCircle = Frame:WaitForChild("LevelCircle")
+            LevelCircle:GetPropertyChangedSignal("Visible"):Connect(function()
+                    LevelCircle.Visible = true
+            end)
             LevelCircle.Visible = true
         end
 
