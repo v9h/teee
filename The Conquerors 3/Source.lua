@@ -183,25 +183,27 @@ end
 
 
 do
-    local InfoTable
-    for _, v in pairs(Share) do
-        if typeof(v) == "table" then
-            for k2 in pairs(v) do
-                if k2 == "Landmine" then
-                    InfoTable = v
-                    break
+    if typeof(Share) == "table" then
+        local InfoTable
+        for _, v in pairs(Share) do
+            if typeof(v) == "table" then
+                for k2 in pairs(v) do
+                    if k2 == "Landmine" then
+                        InfoTable = v
+                        break
+                    end
                 end
             end
         end
-    end
 
-    function GetUnitInfo()
-        local Info = InfoTable[Name]
-        if Info.Type ~= "Building" then print(Info.Type) end
-        return {
-            Type = Info.Type,
-            Cost = Info.Cost
-        }
+        function GetUnitInfo()
+            local Info = InfoTable[Name]
+            if Info.Type ~= "Building" then print(Info.Type) end
+            return {
+                Type = Info.Type,
+                Cost = Info.Cost
+            }
+        end
     end
 end
 
