@@ -149,11 +149,6 @@ function EventHandler:Init()
             end
         end)
 
-        if game.PlaceId == 380840554 then -- survival ai bot
-            while Players.MaxPlayers ~= #TeamSettings:GetChildren() - 1 do wait() end
-        else
-            while Players.MaxPlayers ~= #TeamSettings:GetChildren() do wait() end
-        end
         for _, Setting in ipairs(TeamSettings:GetChildren()) do
             local Cash = Setting:WaitForChild("Cash", math.huge)
             local CashPerMinute = Setting:WaitForChild("CashPerMinute", math.huge)
