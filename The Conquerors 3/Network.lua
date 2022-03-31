@@ -20,14 +20,14 @@ for k, v in pairs(pShare) do
 end
 
 local Remotes = {
-    BUY = pRemotes.ijIIII,
-    RESEARCH = pRemotes.ljijlI,
-    PLACE = pRemotes.IlIIji,
-    MOVE = pRemotes.jjlIII,
-    ACTIVATE = pRemotes.Iijljj,
-    CANCEL = pRemotes.IllIiIi,
-    SELL = pRemotes.jliljli,
-    CHAT = pRemotes.lljIlI,
+    BUY = pRemotes.liIljll,
+    RESEARCH = pRemotes.jIIiiI,
+    PLACE = pRemotes.Iliill,
+    MOVE = pRemotes.jjiIIi,
+    ACTIVATE = pRemotes.ilIIjI,
+    CANCEL = pRemotes.ilIlli,
+    SELL = pRemotes.ijiIIiI,
+    CHAT = pRemotes.jIjlIi,
     -- lazy currently
     --EQUIP_SKIN = pRemotes.,
     --EQUIP_FLAG = pRemotes.,
@@ -35,7 +35,7 @@ local Remotes = {
     --EQUIP_HAT = pRemotes.,
     --EQUIP_GUN = pRemotes.,
 
-    SELECTED_UNITS = ReplicatedStorage.lIiIilI
+    SELECTED_UNITS = ReplicatedStorage.ljljjli
 }
 
 
@@ -58,7 +58,7 @@ local Functions = {
         Remotes.MOVE:FireServer({
             isAWaypoint = Waypoint or false,
             Position = Positions,
-            ["llijii"] = Units
+            ["IjlIjlj"] = Units
         })
     end,
     ACTIVATE = function(Unit)
