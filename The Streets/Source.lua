@@ -7,7 +7,6 @@ fix set bar points on esp bars
 
 esp fix; breaks idk
 ammo text?
-chams
 
 SetVisibles for refreshmenusS
 fix animations and animations refresh menu
@@ -30,7 +29,7 @@ bar fade broken?
 fix hidesprays
 
 
-small spray & small boombox(maybe no need cuz we log audios already) library ui to find ids easily?
+small spray & small boombox(maybe no need cuz we log audios already) library ui to find ids easily? 
 
 players list; fixed?
 fix whitelist; owner only work on rejoin
@@ -42,10 +41,9 @@ local chams overlay; lazy
 Gun Chams Fix UsePartColor; fixed?
 
 GetPlayer??
-Nixon Drawing Library Straw Hat
 The TF2 Spin Crosshair
 
-Aimbot Auto Adjust Vector Velocity
+Aimbot Auto Adjust Vector Velocity 
 Wireframe chams?
 Gun outline chams
 
