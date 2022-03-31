@@ -2406,7 +2406,7 @@ function UpdateESP()
             v.Chams:SetColor(ESP_Chams.Color, ESP_Chams.Transparency)
             if ESP_Chams.AutoOutlineColor then
                 local Health = Player:GetAttribute("Health")
-                v.Chams:SetOutlineColor(Color3.fromHSV((Health / 100) * 0.3, 1, 1), ESP_Chams.Transparency)
+                v.Chams:SetOutlineColor(Color3.fromHSV((Health / 100) * 0.3, 1, 1), ESP_Chams.OutlineTransparency)
             else
                 v.Chams:SetOutlineColor(ESP_Chams.OutlineColor, ESP_Chams.OutlineTransparency)
             end
