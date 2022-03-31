@@ -68,6 +68,10 @@ spawn(function() Renderer = Import("Renderer") end)
 if not IS_LOBBY then spawn(function() Pathfinder = Import("Pathfinder") end) end
 spawn(function() EventHandler = Import("Events") end)
 
+while not Menu or not Console or not Renderer or not EventHandler do wait() end
+if not IS_LOBBY then
+    while not Network or not Pathfinder do wait() end
+end
 
 local Config = {
     MoveResolver = {
