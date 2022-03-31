@@ -6,6 +6,7 @@
 -- Outline Color Text
 -- Gradient lines
 -- Fix offscreen esp
+-- Self health bar
 
 if ESP and ESP.__CHECK and ESP.Clear then ESP:Clear() end
 
