@@ -280,7 +280,7 @@ function Loop()
     end
 
     if Config.ShowMines.Enabled then
-        local Mines = workspace.jiliIlI:GetChildren()
+        local Mines = workspace.IljiljI:GetChildren()
         for _, Mine in ipairs(Mines) do
             local Base = Mine.Torso
             if Base.Transparency == 1 then
@@ -288,7 +288,7 @@ function Loop()
             end
         end
     else
-        local Mines = workspace.jiliIlI:GetChildren()
+        local Mines = workspace.IljiljI:GetChildren()
         for _, Mine in ipairs(Mines) do
             local Base = Mine.Torso
             local Team = Base.Team
