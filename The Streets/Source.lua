@@ -5477,6 +5477,10 @@ do
         Menu:FindItem("Visuals", "ESP", "ComboBox", "Chams Render Mode"):SetVisible(Bool)
         Menu:FindItem("Visuals", "ESP", "ColorPicker", "Chams Color"):SetVisible(Bool)
         Menu:FindItem("Visuals", "ESP", "ColorPicker", "Chams Outline Color"):SetVisible(Bool)
+        Menu:FindItem("Visuals", "ESP", "CheckBox", "Chams Auto Outline Color"):SetVisible(Bool)
+    end)
+    Menu.CheckBox("Visuals", "ESP", "Chams Auto Outline Color", Config.ESP.Chams.AutoOutlineColor, function(Bool)
+        Config.ESP.Chams.AutoOutlineColor = Bool
     end)
     Menu.ColorPicker("Visuals", "ESP", "Chams Color", Config.ESP.Chams.Color, Config.ESP.Chams.Transparency, function(Color, Transparency)
         Config.ESP.Chams.Color = Color
