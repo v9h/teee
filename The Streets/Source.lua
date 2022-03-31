@@ -199,6 +199,7 @@ local Config = {
         TargetSelection = "Near Mouse",
         HitBox = "Torso",
         Radius = 100,
+        VelocityMultiplier = 1,
         Key = nil
     },
     AutoFire = {
@@ -748,7 +749,6 @@ local Teleporting = false
 local RefreshingCharacter = false
 
 local DeathPosition = CFrame.new()
-local AimbotVectorVelocityAmplifier = Vector3.new(2, 0, 2)
 
 do
     CustomCharacter = Instance.new("Model")
@@ -984,6 +984,7 @@ function RefreshMenu()
     Menu:FindItem("Combat", "Aimbot", "Slider", "Auto Fire Range"):SetValue(Config.AutoFire.Range)
     Menu:FindItem("Combat", "Aimbot", "CheckBox", "Camera Lock"):SetValue(Config.CameraLock.Enabled)
     Menu:FindItem("Combat", "Aimbot", "Hotkey", "Camera Lock Key"):SetValue(Config.CameraLock.Key)
+    Menu:FindItem("Combat", "Aimbot", "Slider", "Velocity Multiplier"):SetValue(Config.Aimbot.VelocityMultiplier)
     Menu:FindItem("Combat", "Aimbot", "ComboBox", "Target Hitbox"):SetValue(Config.Aimbot.HitBox)
     Menu:FindItem("Combat", "Aimbot", "ComboBox", "Target Selection"):SetValue(Config.Aimbot.TargetSelection)
 
@@ -1457,7 +1458,8 @@ function GetAimbotCFrame(Randomize)
     if not HitPart then return Mouse.Hit end
 
     local VectorVelocity = Target.GetAttribute(Target, "Velocity") or Vector3.new() -- Don't want to error the script
-    VectorVelocity *= AimbotVectorVelocityAmplifier
+    VectorVelocity *= Vector3.new(1, 0, 1) -- Making the y axis 0 due to over prediction
+    VectorVelocity *= Config.Aimbot.VelocityMultiplier
 
     local Random = Vector3.new()
     if Randomize then
@@ -4470,7 +4472,7 @@ function OnBulletAdded(Bullet)
         if Config.BulletImpact.Enabled then CreateBulletImpact(End, Config.BulletImpact.Color) end
         if Target then
             Console:Warn("[DEBUG] Bullet position from target: " .. tostring(End - Target:GetAttribute("Position")))
-            --Console:Warn("[DEBUG] Current Aimbot Vector Velocity Amplifier (" .. tostring(AimbotVectorVelocityAmplifier) .. ")")
+            --Console:Warn("[DEBUG] Current Aimbot Vector Velocity Amplifier (" .. tostring() .. ")")
         end
     
         -- TagSystem doesn't log Client damaged Player, so we have to raycast our bullets
@@ -5319,6 +5321,12 @@ do
     Menu.Hotkey("Combat", "Aimbot", "Camera Lock Key", Config.CameraLock.Key, function(KeyCode)
         Config.CameraLock.Key = KeyCode
         ContextAction:BindAction("cameraLockToggle", CameraLockToggle, false, Config.CameraLock.Key)
+    end)
+    Menu.Slider("Combat", "Aimbot", "Radius", 20, 300, Config.Aimbot.Radius, nil, 1, function(Value)
+        Config.Aimbot.Radius = Value
+    end)
+    Menu.Slider("Combat", "Aimbot", "Velocity Multiplier", 1, 3, Config.Aimbot.VelocityMultiplier, "x", 1, function(Value)
+        Config.Aimbot.VelocityMultiplier = Value
     end)
     Menu.ComboBox("Combat", "Aimbot", "Target Hitbox", Config.Aimbot.HitBox, {"Head", "Torso", "Root"}, function(String)
         Config.Aimbot.HitBox = String
