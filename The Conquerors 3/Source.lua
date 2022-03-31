@@ -200,7 +200,7 @@ do
             end
         end
 
-        function GetUnitInfo()
+        function GetUnitInfo(Name)
             local Info = InfoTable[Name]
             if Info.Type ~= "Building" then print(Info.Type) end
             return {
