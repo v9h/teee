@@ -4220,6 +4220,12 @@ function OnPlayerAdded(Player)
 
                 if Name == "creator" and self:IsA("ObjectValue") then
                     OnCreatorValueAdded(self)
+                elseif Name == "Bullet" then
+                    delay(0, function()
+                        self.Parent = Camera
+                        wait(15)
+                        self:Destroy()
+                    end)
                 elseif Name == "Bone" then
                     if Player:GetAttribute("KnockedOut") then return end
                     for _, Object in ipairs(Character:GetDescendants()) do if Object:IsA("Trail") then Object:Destroy() end end
@@ -4555,7 +4561,8 @@ function OnBulletAdded(Bullet)
         
         if Bullet.Parent == nil then Bullet.AncestryChanged:Wait() end
         Bullet.Parent = Camera -- Snake didn't account for LocalTransparency so if ur in first person we can now see them again
-        delay(15, Bullet.Destroy, Bullet)
+        wait(15) -- we are in a thread so we don't need to make a new one
+        Bullet:Destroy()
     end)
 end
 
