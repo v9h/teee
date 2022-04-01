@@ -1,17 +1,13 @@
 --[[ TO DO:
-Main Things > Configs, ESP, Code clean / Bug fixes
-might be mem leak since gcinfo can go upto 100k+? maybe Lol
 Performance Tests
 
 fix set bar points on esp bars
 
 esp fix; breaks idk
-ammo text?
 
-SetVisibles for refreshmenusS
-fix animations and animations refresh menu
+SetVisibles for refreshmenus ???
+fix animations and animations refresh menu :|
 
-menu clamping on bar indicator
 indicator frame size off?
 
 Right / Bottom bar position might be broken
@@ -22,14 +18,12 @@ fix clan tag  animations (Forward, Normal, Reverse)
 Auto Attack
 Auto Fire Raycast hitpoints fix
 Compare (Bullet_EndPosition - Shot(CFrame.Position)).Magnitude
-SetPlayerChams ignore tools and other shit; fixed? i don't Know?
 Menu fix on ???? WHAT AM I TALKING ABOUT WHAT DOES THIS MEAN
 
 bar fade broken?
 fix hidesprays
 
-
-small spray & small boombox(maybe no need cuz we log audios already) library ui to find ids easily? 
+small spray & small boombox(maybe no need cuz we log audios already) library ui to find ids easily?
 
 players list; fixed?
 fix whitelist; owner only work on rejoin
@@ -40,30 +34,28 @@ local chams overlay; lazy
 
 Gun Chams Fix UsePartColor; fixed?
 
-GetPlayer??
 The TF2 Spin Crosshair
 
-Aimbot Auto Adjust Vector Velocity 
+Aimbot Auto Adjust Vector Velocity ????
 Wireframe chams?
 Gun outline chams
 
 AntiAim:Desync (checkbox); Velocity (checkbox); remove only 1 type at a time
 Resync Desynced antiaim
 desync visualization is not happening since it's different for every client (I think)
-Flipped Mode 
+Flipped Mode :|
 
 Brick Trajectory prediction LOL?
-Animations Container
 menu accent on ["on"] for keybinds while they are on
 Replace gun animation ids with New ones
 Remake bind system?
-ADD TARGET INDICATORS local TargetInfo = Menu.Indicators()
+ADD TARGET INDICATORS local TargetInfo = Menu.Indicators() :|
 Audio Play List, plays a new song when u die || when the song finishes || Maybe audio search func like the audio library
 Crouch Remote True: Hides Name + Health || False: Shows Name + Health (ForceHideName) Disabled due to snake being retarded, but keeping this since he might add the feature back
-FIX FLY DOUBLE KEY HOLD?
+FIX FLY DOUBLE KEY HOLD? :|
 HIT DETECTION STILL SUCKS NUTS (RayCast Fix)
 
-Silent Animation Table Check
+Silent Animation Table Check ???
 ]]
 
 -- Fake Roblex : 6029419 && Roblex : 6029417 && Platinum Rolex : 6094781
@@ -176,6 +168,7 @@ local Mouse = Player:GetMouse()
 local Character = Player.Character or Player.CharacterAdded:Wait()
 local Backpack = Player:WaitForChild("Backpack")
 local Humanoid = Character:WaitForChild("Humanoid")
+local Head = Character:WaitForChild("Head")
 local Torso = Character:WaitForChild("Torso")
 local Root = Humanoid.RootPart
 local Tool = Character:FindFirstChildOfClass("Tool")
@@ -707,6 +700,7 @@ local Timers = {}
 local Windows = {}
 local Animations = {}
 local AudioLogs = isfile("Identification/Games/The Streets/Audios.dat") and string.split(readfile("Identification/Games/The Streets/Audios.dat"), "\n") or {}
+local BulletLogs = {}
 local DamageLogs = {} -- debounce
 local ChatScheduler = {}
 
@@ -963,6 +957,14 @@ function LoadConfig(Name)
         SetPlayerChams(Player, Config.ESP.Chams.Local.Color, Config.ESP.Chams.Local.Material, Config.ESP.Chams.Local.Reflectance, Config.ESP.Chams.Local.Transparency, true)
     else
         SetPlayerChams(Player)
+    end
+
+
+    do
+        local SeatsDisabled = Config.NoSeats.Enabled
+        for _, Seat in pairs(Seats) do
+            Seat.Disabled = SeatsDisabled
+        end
     end
 
 
@@ -1303,7 +1305,7 @@ function GetTarget()
                 local Distance = 0
                 if Config.Aimbot.TargetSelection == "Near Mouse" then
                     Distance = (Mouse.Hit.Position - Root.Position).Magnitude
-                    if Distance > Config.Aimbot.Radius then continue end
+                    if Distance > (Config.Aimbot.Radius / 100) then continue end
                 elseif Config.Aimbot.TargetSelection == "Near Player" then
                     if _Player:GetAttribute("KnockedOut") or not _Player:GetAttribute("IsAlive") then continue end
                     Distance = Player:DistanceFromCharacter(Root.Position)
@@ -2220,6 +2222,8 @@ function AddPlayerESP(_Player)
     local Player_ESP
     
     local function Destroy_ESP()
+        if not Drawn[Player] then return end
+
         if typeof(Player_ESP) == "table" then
             for k, v in pairs(Player_ESP) do
                 if typeof(v) == "table" then
@@ -2262,6 +2266,16 @@ function AddPlayerESP(_Player)
         Snapline = ESP.Snapline(Config.Aimbot.HitBox == "Head" and Head or Torso),
         Arrow = ESP.Arrow(Torso)
     }
+
+    Head.AncestryChanged:Connect(function(_, Parent)
+        if Parent then return end
+        Destroy_ESP()
+    end)
+
+    Torso.AncestryChanged:Connect(function(_, Parent)
+        if Parent then return end
+        Destroy_ESP()
+    end)
 
     Drawn[Player] = Player_ESP
     return Player_ESP
@@ -2343,7 +2357,7 @@ function UpdateESP()
         if Type == "Player" then
             local Player = self
             local Character = v.Character
-            if not Character or not Character:FindFirstAncestor(tostring(workspace)) then
+            if not Character then
                 v.Destroy()
                 continue
             end
@@ -2905,7 +2919,7 @@ function DrawCross(Size, Offset)
             for i = 1, 100 do
                 if Cross.Alive then
                     Cross:SetColor(nil, 1 - i / 100)
-                    wait()
+                    RunService.RenderStepped:Wait()
                 end
             end
             if typeof(Callback) == "function" then Callback() end
@@ -2918,7 +2932,7 @@ function DrawCross(Size, Offset)
             for i = 1, 100 do
                 if Cross.Alive then
                     Cross:SetColor(nil, (i / 100))
-                    wait()
+                    RunService.RenderStepped:Wait()
                 end
             end
             if typeof(Callback) == "function" then Callback() end
@@ -4372,27 +4386,28 @@ function OnPlayerDamaged(Victim:player, Attacker:player, Damage:number, Time:tic
         if Config.HitSound.Enabled then
             PlaySound(HitSound, 0.8)
         end
+
         if Config.HitMarkers.Enabled and (Config.HitMarkers.Type == "Crosshair" or Config.HitMarkers.Type == "Crosshair + Model") then
-            local Cross = DrawCross(Config.HitMarkers.Size, 8)
+            local Cross = DrawCross(Config.HitMarkers.Size, 4)
             Cross:SetColor(Config.HitMarkers.Color, 1 - Config.HitMarkers.Transparency)
             Cross:SetVisible(true)
-            delay(1, function()
-                if Config.HitMarkers.Fade then
-                    Cross:FadeOut(Cross.Destroy)
-                else
-                    Cross:Destroy()
-                end
-            end)
+
+            if Config.HitMarkers.Fade then
+                Cross:FadeOut(Cross.Destroy)
+            else
+                delay(1, Cross.Destroy, Cross)
+            end
 
             spawn(function()
                 while Cross:IsAlive() do
                     --local Location = (Menu.ScreenSize + Vector2.new(0, 36)) / 2
                     local Location = UserInput:GetMouseLocation()
                     Cross:SetPosition(Location)
-                    wait()
+                    RunService.RenderStepped:Wait()
                 end
             end)
         end
+
         local Color = string.format("<font color = '#%s'>", Config.EventLogs.Colors.Hit:ToHex())
         local Health = Victim:GetAttribute("Health") - Damage
         MessageLog = string.format("Damaged %s for %s (%s health remanining)", Color .. tostring(Victim) .. "</font>", Color .. Damage .. "</font>", Color .. Health .. "</font>")
@@ -4466,6 +4481,13 @@ function OnBulletAdded(Bullet)
         local End = Bullet.Position
         local Direction = (End - Origin).Unit
         local Distance = 150
+
+        table.insert(BulletLogs, {
+            Origin = Origin,
+            End = End,
+            TargetOrigin = Target and Target:GetAttribute("Position"),
+            Time = tick()
+        })
     
         if Config.BulletImpact.Enabled then CreateBulletImpact(End, Config.BulletImpact.Color) end
         if Target then
@@ -4491,21 +4513,19 @@ function OnBulletAdded(Bullet)
         if Config.HitMarkers.Enabled and (Config.HitMarkers.Type == "Model" or Config.HitMarkers.Type == "Crosshair + Model") then
             local Cross = DrawCross(Config.HitMarkers.Size, 4)
             Cross:SetColor(Config.HitMarkers.Color, 1 - Config.HitMarkers.Transparency)
-            delay(1, function()
-                if Config.HitMarkers.Fade then
-                    Cross:FadeOut(Cross.Destroy)
-                else
-                    Cross:Destroy()
-                end
-            end)
+            if Config.HitMarkers.Fade then
+                Cross:FadeOut(Cross.Destroy)
+            else
+                delay(1, Cross.Destroy, Cross)
+            end
             spawn(function()
                 while Cross:IsAlive() do
                     local Position, Visible = Camera:WorldToViewportPoint(End)
-                    Cross:SetVisible(Visible)
-                    Cross:SetPosition(Vector2.new(Position.x, Position.y))
-                    -- umm if some math god hits me up so true;
                     local Distance = (Camera.CFrame.Position - End).Magnitude
+
+                    Cross:SetVisible(Visible)
                     Cross:SetSize((Distance / 100) * 1 - Config.HitMarkers.Size)
+                    Cross:SetPosition(Vector2.new(Position.x, Position.y))
                     RunService.RenderStepped:Wait()
                 end
             end)
@@ -5982,11 +6002,7 @@ do
     Menu.CheckBox("Misc", "Main", "No Seats", Config.NoSeats.Enabled, function(Bool)
         Config.NoSeats.Enabled = Bool
         for _, Seat in pairs(Seats) do
-            if Config.NoSeats.Enabled then
-                Seat.Parent = nil
-            else
-                Seat.Parent = workspace
-            end
+            Seat.Disabled = Bool
         end
     end)
     Menu.CheckBox("Misc", "Main", "Door Aura", Config.DoorAura.Enabled, function(Bool)
@@ -6546,7 +6562,7 @@ function Initialize()
 
         if ClassName == "Seat" then -- Don't care about saving car seats, they don't matter;
             Seats[self] = self
-            if Config.NoSeats.Enabled then self.Parent = nil end -- There are only 2 cars; I doubt u care about accidentally sitting on one
+            if Config.NoSeats.Enabled then self.Disabled = true end -- There are only 2 cars; I doubt u care about accidentally sitting on one
         end
     end
 
