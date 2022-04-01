@@ -1985,10 +1985,10 @@ function Menu.Notify(Content, Delay)
 
     local function CustomTweenOffset(Offset)
         spawn(function()
-            local Steps = 23
+            local Steps = 50
             for i = 1, Steps do
                 Text.Position += UDim2.fromOffset(Offset / Steps, 0)
-                wait()
+                RunService.RenderStepped:Wait()
             end
         end)
     end
