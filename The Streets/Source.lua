@@ -3384,6 +3384,7 @@ function Heartbeat(Step) -- after phys :: after heartbeat comes network stepped
         table.remove(ChatScheduler, i)
         spawn(OnChatted, v)
     end
+
     local SelectedTarget = GetSelectedTarget()
     Target = TargetLock and SelectedTarget or GetTarget()
     do
@@ -4298,11 +4299,13 @@ function OnPlayerAdded(Player)
             HumanoidDiedEvent = Humanoid.Died:Connect(function()
                 HumanoidDiedEvent:Disconnect()
                 OnPlayerDeath(Player)
+                ToolValue.Value = nil
             end)
 
             Character.AncestryChanged:Connect(function(Parent)
                 if Parent then return end
                 OnPlayerDeath(Player)
+                ToolValue.Value = nil
             end)
 
             local Animator = Humanoid:FindFirstChild("Animator")
@@ -4438,8 +4441,8 @@ end
 
 
 function OnPlayerDeath(Victim:player, Attacker:player)
-    Player:SetAttribute("IsAlive", false)
-    Player:SetAttribute("KnockedOut", false)
+    Victim:SetAttribute("IsAlive", false)
+    Victim:SetAttribute("KnockedOut", false)
 
     local Color = string.format("<font color = '#%s'>", Config.EventLogs.Colors.Death:ToHex())
     Client.OnEvent({
