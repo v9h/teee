@@ -968,7 +968,7 @@ function LoadConfig(Name)
 
     if Config.Enviorment.Ambient.Enabled then
         Lighting.Ambient = Config.Enviorment.Ambient.Colors[1]
-        Lighting.OutdoorAmbient = Config.Enviorment.Ambient.Colors[2].Color
+        Lighting.OutdoorAmbient = Config.Enviorment.Ambient.Colors[2]
     else
         Lighting.Ambient = Lighting:GetAttribute("DefaultAmbient")
         Lighting.OutdoorAmbient = Lighting:GetAttribute("DefaultOutdoorAmbient")
@@ -1068,7 +1068,7 @@ function RefreshMenu()
 
     Menu:FindItem("Visuals", "World", "CheckBox", "Ambient Changer"):SetValue(Config.Enviorment.Ambient.Enabled)
     Menu:FindItem("Visuals", "World", "ColorPicker", "Ambient"):SetValue(Config.Enviorment.Ambient.Colors[1], 0)
-    Menu:FindItem("Visuals", "World", "ColorPicker", "Outdoor Ambient"):SetValue(Config.Enviorment.Ambient.Colors[2].Color, 0)
+    Menu:FindItem("Visuals", "World", "ColorPicker", "Outdoor Ambient"):SetValue(Config.Enviorment.Ambient.Colors[2], 0)
     Menu:FindItem("Visuals", "World", "CheckBox", "World Time Changer"):SetValue(Config.Enviorment.Time.Enabled)
     Menu:FindItem("Visuals", "World", "Slider", "World Time"):SetValue(Config.Enviorment.Time.Value)
     Menu:FindItem("Visuals", "World", "CheckBox", "Saturation Changer"):SetValue(Config.Enviorment.Saturation.Enabled)
@@ -4462,7 +4462,7 @@ function OnLightingChanged(Property)
             Lighting.Ambient = Config.Enviorment.Ambient.Colors[1]
         end
         if Property == "OutdoorAmbient" then
-            Lighting.OutdoorAmbient = Config.Enviorment.Ambient.Colors[2].Color
+            Lighting.OutdoorAmbient = Config.Enviorment.Ambient.Colors[2]
         end
     end
 end
@@ -5719,7 +5719,7 @@ do
         Config.Enviorment.Ambient.Enabled = Bool
         if Config.Enviorment.Ambient.Enabled then
             Lighting.Ambient = Config.Enviorment.Ambient.Colors[1]
-            Lighting.OutdoorAmbient = Config.Enviorment.Ambient.Colors[2].Color
+            Lighting.OutdoorAmbient = Config.Enviorment.Ambient.Colors[2]
         else
             Lighting.Ambient = Lighting:GetAttribute("DefaultAmbient")
             Lighting.OutdoorAmbient = Lighting:GetAttribute("DefaultOutdoorAmbient")
@@ -5729,14 +5729,14 @@ do
         Config.Enviorment.Ambient.Colors[1] = Color
         if Config.Enviorment.Ambient.Enabled then
             Lighting.Ambient = Config.Enviorment.Ambient.Colors[1]
-            Lighting.OutdoorAmbient = Config.Enviorment.Ambient.Colors[2].Color
+            Lighting.OutdoorAmbient = Config.Enviorment.Ambient.Colors[2]
         end
     end)
-    Menu.ColorPicker("Visuals", "World", "Outdoor Ambient", Config.Enviorment.Ambient.Colors[2].Color, 0, function(Color)
-        Config.Enviorment.Ambient.Colors[2].Color = Color
+    Menu.ColorPicker("Visuals", "World", "Outdoor Ambient", Config.Enviorment.Ambient.Colors[2], 0, function(Color)
+        Config.Enviorment.Ambient.Colors[2] = Color
         if Config.Enviorment.Ambient.Enabled then
             Lighting.Ambient = Config.Enviorment.Ambient.Colors[1]
-            Lighting.OutdoorAmbient = Config.Enviorment.Ambient.Colors[2].Color
+            Lighting.OutdoorAmbient = Config.Enviorment.Ambient.Colors[2]
         end
     end)
     Menu.CheckBox("Visuals", "World", "World Time Changer", Config.Enviorment.Time.Enabled, function(Bool)
