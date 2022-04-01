@@ -3969,8 +3969,6 @@ end
 
 function OnDeath()
     OnPlayerDeath(Player)
-    Player:SetAttribute("IsAlive", false)
-    Player:SetAttribute("KnockedOut", false)
     Dragging = false
     DeathPosition = CFrame.new(Root.Position, Root.Position + Root.CFrame.LookVector * Vector3.new(1, 0, 1))
 end
@@ -4300,16 +4298,11 @@ function OnPlayerAdded(Player)
             HumanoidDiedEvent = Humanoid.Died:Connect(function()
                 HumanoidDiedEvent:Disconnect()
                 OnPlayerDeath(Player)
-                Player:SetAttribute("IsAlive", false)
-                Player:SetAttribute("KnockedOut", false)
             end)
 
             Character.AncestryChanged:Connect(function(Parent)
-                if not Parent then
-                    OnPlayerDeath(Player)
-                    Player:SetAttribute("IsAlive", false)
-                    Player:SetAttribute("KnockedOut", false)
-                end
+                if Parent then return end
+                OnPlayerDeath(Player)
             end)
 
             local Animator = Humanoid:FindFirstChild("Animator")
@@ -4445,6 +4438,8 @@ end
 
 
 function OnPlayerDeath(Victim:player, Attacker:player)
+    Player:SetAttribute("IsAlive", false)
+    Player:SetAttribute("KnockedOut", false)
 
     local Color = string.format("<font color = '#%s'>", Config.EventLogs.Colors.Death:ToHex())
     Client.OnEvent({
@@ -4452,6 +4447,7 @@ function OnPlayerDeath(Victim:player, Attacker:player)
         GetVictim = function() return Victim end,
         GetAttacker = function() return Attacker end -- nil
     })
+
     LogEvent("Death", Color .. tostring(Victim) .. " died" .. "</font>", tick())
 end
 
