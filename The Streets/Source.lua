@@ -968,6 +968,15 @@ function LoadConfig(Name)
     end
 
 
+    if Config.Enviorment.Ambient.Enabled then
+        Lighting.Ambient = Config.Enviorment.Ambient[1].Color
+        Lighting.OutdoorAmbient = Config.Enviorment.Ambient[2].Color
+    else
+        Lighting.Ambient = Lighting:GetAttribute("DefaultAmbient")
+        Lighting.OutdoorAmbient = Lighting:GetAttribute("DefaultOutdoorAmbient")
+    end
+
+
     Console.ForegroundColor = Config.Console.Accent
     Mouse.Icon = Crosshair
     UpdateAntiAim()
