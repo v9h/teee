@@ -4052,7 +4052,7 @@ function OnCharacterDescendantAdded(self)
         OnPlayerKnockedOut(Player, true)
     elseif Name == "creator" and self:IsA("ObjectValue") then
         OnCreatorValueAdded(self)
-    elseif Name == "Bullet" and self.Parent == Humanoid then
+    elseif Name == "Bullet" and self.Parent == Humanoid then -- if it's the bullet instance not the value
         OnBulletAdded(self)
     elseif self:IsA("Tool") then
         Tool = self
@@ -4229,7 +4229,7 @@ function OnPlayerAdded(Player)
 
                 if Name == "creator" and self:IsA("ObjectValue") then
                     OnCreatorValueAdded(self)
-                elseif Name == "Bullet" then
+                elseif Name == "Bullet" and self.Parent == Humanoid then -- if it's the bullet instance not the value
                     delay(0, function()
                         self.Parent = Camera
                         wait(15)
