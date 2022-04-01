@@ -586,8 +586,8 @@ local Config = {
         Ambient = {
             Enabled = false,
             Colors = {
-                Color3.new(1, 1, 1),
-                Color3.new(1, 1, 1)
+                Ambient = Color3.new(1, 1, 1),
+                OutdoorAmbient = Color3.new(1, 1, 1)
             }
         },
         Skybox = {
@@ -967,8 +967,8 @@ function LoadConfig(Name)
 
 
     if Config.Enviorment.Ambient.Enabled then
-        Lighting.Ambient = Config.Enviorment.Ambient.Colors[1]
-        Lighting.OutdoorAmbient = Config.Enviorment.Ambient.Colors[2]
+        Lighting.Ambient = Config.Enviorment.Ambient.Colors.Ambient
+        Lighting.OutdoorAmbient = Config.Enviorment.Ambient.Colors.OutdoorAmbient
     else
         Lighting.Ambient = Lighting:GetAttribute("DefaultAmbient")
         Lighting.OutdoorAmbient = Lighting:GetAttribute("DefaultOutdoorAmbient")
@@ -1067,8 +1067,8 @@ function RefreshMenu()
     Menu:FindItem("Visuals", "Hit markers", "CheckBox", "Hit sound"):SetValue(Config.HitMarkers.Sound)
 
     Menu:FindItem("Visuals", "World", "CheckBox", "Ambient Changer"):SetValue(Config.Enviorment.Ambient.Enabled)
-    Menu:FindItem("Visuals", "World", "ColorPicker", "Ambient"):SetValue(Config.Enviorment.Ambient.Colors[1], 0)
-    Menu:FindItem("Visuals", "World", "ColorPicker", "Outdoor Ambient"):SetValue(Config.Enviorment.Ambient.Colors[2], 0)
+    Menu:FindItem("Visuals", "World", "ColorPicker", "Ambient"):SetValue(Config.Enviorment.Ambient.Colors.Ambient, 0)
+    Menu:FindItem("Visuals", "World", "ColorPicker", "Outdoor Ambient"):SetValue(Config.Enviorment.Ambient.Colors.OutdoorAmbient, 0)
     Menu:FindItem("Visuals", "World", "CheckBox", "World Time Changer"):SetValue(Config.Enviorment.Time.Enabled)
     Menu:FindItem("Visuals", "World", "Slider", "World Time"):SetValue(Config.Enviorment.Time.Value)
     Menu:FindItem("Visuals", "World", "CheckBox", "Saturation Changer"):SetValue(Config.Enviorment.Saturation.Enabled)
@@ -1312,7 +1312,7 @@ function GetTarget()
                 local Distance = 0
                 if Config.Aimbot.TargetSelection == "Near Mouse" then
                     Distance = (Mouse.Hit.Position - Root.Position).Magnitude
-                    if Distance > (Config.Aimbot.Radius / 100) then continue end
+                    if Distance > (Config.Aimbot.Radius / 10) then continue end
                 elseif Config.Aimbot.TargetSelection == "Near Player" then
                     if _Player:GetAttribute("KnockedOut") or not _Player:GetAttribute("IsAlive") then continue end
                     Distance = Player:DistanceFromCharacter(Root.Position)
@@ -4459,10 +4459,10 @@ function OnLightingChanged(Property)
     end
     if Config.Enviorment.Ambient.Enabled then
         if Property == "Ambient" then
-            Lighting.Ambient = Config.Enviorment.Ambient.Colors[1]
+            Lighting.Ambient = Config.Enviorment.Ambient.Colors.Ambient
         end
         if Property == "OutdoorAmbient" then
-            Lighting.OutdoorAmbient = Config.Enviorment.Ambient.Colors[2]
+            Lighting.OutdoorAmbient = Config.Enviorment.Ambient.Colors.OutdoorAmbient
         end
     end
 end
@@ -5718,25 +5718,25 @@ do
     Menu.CheckBox("Visuals", "World", "Ambient Changer", Config.Enviorment.Ambient.Enabled, function(Bool)
         Config.Enviorment.Ambient.Enabled = Bool
         if Config.Enviorment.Ambient.Enabled then
-            Lighting.Ambient = Config.Enviorment.Ambient.Colors[1]
-            Lighting.OutdoorAmbient = Config.Enviorment.Ambient.Colors[2]
+            Lighting.Ambient = Config.Enviorment.Ambient.Colors.Ambient
+            Lighting.OutdoorAmbient = Config.Enviorment.Ambient.Colors.OutdoorAmbient
         else
             Lighting.Ambient = Lighting:GetAttribute("DefaultAmbient")
             Lighting.OutdoorAmbient = Lighting:GetAttribute("DefaultOutdoorAmbient")
         end
     end)
-    Menu.ColorPicker("Visuals", "World", "Ambient", Config.Enviorment.Ambient.Colors[1], 0, function(Color)
-        Config.Enviorment.Ambient.Colors[1] = Color
+    Menu.ColorPicker("Visuals", "World", "Ambient", Config.Enviorment.Ambient.Colors.Ambient, 0, function(Color)
+        Config.Enviorment.Ambient.Colors.Ambient = Color
         if Config.Enviorment.Ambient.Enabled then
-            Lighting.Ambient = Config.Enviorment.Ambient.Colors[1]
-            Lighting.OutdoorAmbient = Config.Enviorment.Ambient.Colors[2]
+            Lighting.Ambient = Config.Enviorment.Ambient.Colors.Ambient
+            Lighting.OutdoorAmbient = Config.Enviorment.Ambient.Colors.OutdoorAmbient
         end
     end)
-    Menu.ColorPicker("Visuals", "World", "Outdoor Ambient", Config.Enviorment.Ambient.Colors[2], 0, function(Color)
-        Config.Enviorment.Ambient.Colors[2] = Color
+    Menu.ColorPicker("Visuals", "World", "Outdoor Ambient", Config.Enviorment.Ambient.Colors.OutdoorAmbient, 0, function(Color)
+        Config.Enviorment.Ambient.Colors.OutdoorAmbient = Color
         if Config.Enviorment.Ambient.Enabled then
-            Lighting.Ambient = Config.Enviorment.Ambient.Colors[1]
-            Lighting.OutdoorAmbient = Config.Enviorment.Ambient.Colors[2]
+            Lighting.Ambient = Config.Enviorment.Ambient.Colors.Ambient
+            Lighting.OutdoorAmbient = Config.Enviorment.Ambient.Colors.OutdoorAmbient
         end
     end)
     Menu.CheckBox("Visuals", "World", "World Time Changer", Config.Enviorment.Time.Enabled, function(Bool)
