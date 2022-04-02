@@ -1312,7 +1312,7 @@ function GetTarget()
                 local Distance = 0
                 if Config.Aimbot.TargetSelection == "Near Mouse" then
                     Distance = (Mouse.Hit.Position - Root.Position).Magnitude
-                    if Distance > (Config.Aimbot.Radius / 10) then continue end
+                    if Distance > (Config.Aimbot.Radius) then continue end
                 elseif Config.Aimbot.TargetSelection == "Near Player" then
                     if _Player:GetAttribute("KnockedOut") or not _Player:GetAttribute("IsAlive") then continue end
                     Distance = Player:DistanceFromCharacter(Root.Position)
