@@ -6800,6 +6800,8 @@ $$$$$$\\$$$$$$$ |\$$$$$$$\ $$ |  $$ | \$$$$  |$$ |$$ |      $$ |\$$$$$$$\\$$$$$$
                     ClanTagBlinking = not ClanTagBlinking
                 elseif Type == "Boombox" then
                     local Boombox = Character and (Character:FindFirstChild("BoxModel") or Character:FindFirstChild("BoomBox"))
+                    if not Boombox then Type = "Static" end
+                    
                     local Sound = Boombox and Boombox:FindFirstChild("SoundX", true)
                     if Sound then
                         local Id = string.gsub(Sound.SoundId, "%D", "")
