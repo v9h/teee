@@ -1,12 +1,15 @@
 --[[ TO DO:
+How hard is it for somepony else to contribute :|
 Performance Tests
+
+Make MultiSelect be on click order
 
 fix set bar points on esp bars
 
-esp fix; breaks idk
+esp fix; breaks idk; fixed?
 
-SetVisibles for refreshmenus ???
-fix animations and animations refresh menu :|
+SetVisibles for refreshmenus
+fix animations
 
 indicator frame size off?
 
@@ -18,14 +21,12 @@ fix clan tag  animations (Forward, Normal, Reverse)
 Auto Attack
 Auto Fire Raycast hitpoints fix
 Compare (Bullet_EndPosition - Shot(CFrame.Position)).Magnitude
-Menu fix on ???? WHAT AM I TALKING ABOUT WHAT DOES THIS MEAN
 
 bar fade broken?
 fix hidesprays
 
 small spray & small boombox(maybe no need cuz we log audios already) library ui to find ids easily?
 
-players list; fixed?
 fix whitelist; owner only work on rejoin
 GetCars?
 
@@ -46,8 +47,6 @@ desync visualization is not happening since it's different for every client (I t
 Flipped Mode :|
 
 Brick Trajectory prediction LOL?
-menu accent on ["on"] for keybinds while they are on
-Replace gun animation ids with New ones
 Remake bind system?
 ADD TARGET INDICATORS local TargetInfo = Menu.Indicators() :|
 Audio Play List, plays a new song when u die || when the song finishes || Maybe audio search func like the audio library
@@ -1160,14 +1159,19 @@ function RefreshMenu()
     Menu:FindItem("Misc", "Main", "CheckBox", "Door Menu"):SetValue(Config.DoorMenu.Enabled)
 
     Menu:FindItem("Misc", "Animations", "CheckBox", "Run"):SetValue(Config.Animations.Run.Enabled)
+    Menu:FindItem("Misc", "Animations", "ComboBox", "Run Animation"):SetVisible(Config.Animations.Run.Enabled)
     Menu:FindItem("Misc", "Animations", "ComboBox", "Run Animation"):SetValue(Config.Animations.Run.Style)
     Menu:FindItem("Misc", "Animations", "CheckBox", "Glock"):SetValue(Config.Animations.Glock.Enabled)
+    Menu:FindItem("Misc", "Animations", "ComboBox", "Glock Animation"):SetVisible(Config.Animations.Glock.Enabled)
     Menu:FindItem("Misc", "Animations", "ComboBox", "Glock Animation"):SetValue(Config.Animations.Glock.Style)
     Menu:FindItem("Misc", "Animations", "CheckBox", "Uzi"):SetValue(Config.Animations.Uzi.Enabled)
+    Menu:FindItem("Misc", "Animations", "ComboBox", "Uzi Animation"):SetVisible(Config.Animations.Uzi.Enabled)
     Menu:FindItem("Misc", "Animations", "ComboBox", "Uzi Animation"):SetValue(Config.Animations.Uzi.Style)
     Menu:FindItem("Misc", "Animations", "CheckBox", "Shotty"):SetValue(Config.Animations.Shotty.Enabled)
+    Menu:FindItem("Misc", "Animations", "ComboBox", "Shotty Animation"):SetVisible(Config.Animations.Shotty.Enabled)
     Menu:FindItem("Misc", "Animations", "ComboBox", "Shotty Animation"):SetValue(Config.Animations.Shotty.Style)
     Menu:FindItem("Misc", "Animations", "CheckBox", "Sawed Off"):SetValue(Config.Animations["Sawed Off"].Enabled)
+    Menu:FindItem("Misc", "Animations", "ComboBox", "Sawed Off Animation"):SetVisible(Config.Animations["Sawed Off"].Enabled)
     Menu:FindItem("Misc", "Animations", "ComboBox", "Sawed Off Animation"):SetValue(Config.Animations["Sawed Off"].Style)
     
     Menu:FindItem("Misc", "Exploits", "CheckBox", "Infinite Stamina"):SetValue(Config.InfiniteStamina.Enabled)
@@ -1521,9 +1525,7 @@ function GetToolInfo(self, Property) -- Maybe use attributes to log ammo;
                 elseif Tool_Name == "Sawed Off" then
                     AmmoPerClip = 2
                     if not Original then -- prison is retarded
-                        if Clips.Value == 4 then
-                            AmmoPerClip = 4
-                        end
+                        AmmoPerClip = 4
                     end
                 end
 
@@ -1587,6 +1589,7 @@ do
             RunService.Stepped:Wait()
         end
 
+        print("Test?: Can remove this section")
         Start = os.clock()
     end)
 
@@ -1659,7 +1662,6 @@ function GetBrickTrajectoryPoints(Brick)
     if not Handle then return end
 
     local Points = {}
-    local MaxPoints = 100
 
     local Origin = Handle.Position
     local End = Mouse.Hit.Position
@@ -1675,19 +1677,21 @@ function GetBrickTrajectoryPoints(Brick)
 
     local Speed = Brick.Speed.Value
     local Gravity = Brick.Gravity.Value
-
-    local VelocityAmplifier:Vector3 = Player:GetAttribute("ServerVelocity") -- i think this is just a multiplier for the speed value?
-
     local Time = Distance / Speed
-    local TimeStep = Time / MaxPoints
 
-    local TimeSteps = {}
-    for i = 1, MaxPoints do
-        TimeSteps[i] = TimeStep * i
-    end
+    local TimeStep = 0.1
+    local TimeSteps = math.ceil(Time / TimeStep)
 
-    for _, Time in ipairs(TimeSteps) do
-        table.insert(Points, Origin + Direction * Speed * Time + Vector3.new(0, -Gravity * Time * Time / 2, 0))
+    for i = 1, TimeSteps do
+        local Time = TimeStep * i
+        local Position = Origin + Direction * Speed * Time + Vector3.new(0, Gravity * Time * Time / 2, 0)
+
+        if (End - Position).Magnitude < (End - Origin).Magnitude then
+            Position = End
+            break
+        end
+
+        table.insert(Points, Position)
     end
 
     return Points
@@ -3196,6 +3200,39 @@ function Drag()
 end
 
 
+-- Server Side Presumption
+--[[
+    local LocalRoot
+    local Dragging = false
+
+    Drag.OnServerEvent:Connect(function(Player, IsDrag)
+        Dragging = false
+
+        if not IsDrag then return end
+        Dragging = true
+        for _, v in ipairs(Players:GetPlayers()) do
+            if v == Player then continue end
+            local Character = v.Character
+            -- no humanoid indexes
+            if Character and Character:FindFirstChild("KO") then
+                spawn(function()
+                    while true do
+                        if not Dragging then continue end
+                        if not Character:FindFirstChild("KO") then break end -- if there is no KO value then break the loop
+                        pcall(function()
+                            local Root = Character.HumanoidRootPart -- Yes he does it like this
+                            Root.CFrame = LocalRoot.CFrame + LocalRoot.CFrame.lookVector * 0.5
+                            wait() -- wait is here because the server yields when the code errors
+                        end)
+                        --wait() -- retarded snake should've added the wait here
+                    end
+                end)
+            end
+        end
+    end)
+]]
+
+
 function CanPlayerAttackVictim(Player, Victim, Range)
     if Player:GetAttribute("IsAlive") and Victim:GetAttribute("IsAlive") then
         local Root = GetRoot(Player)
@@ -3534,50 +3571,43 @@ function Heartbeat(Step) -- after phys :: after heartbeat comes network stepped
         for _, Track in ipairs(Humanoid:GetPlayingAnimationTracks()) do
             local AnimationId = string.gsub(Track.Animation.AnimationId, "%D", "")
 
-            if Config.Animations.Glock.Enabled and Config.Animations.Glock.Style ~= "Default" then
-                if AnimationId == "503285264" then Track:Stop() end
-            elseif Config.Animations.Uzi.Enabled and Config.Animations.Uzi.Style ~= "Default" then
-                if AnimationId == "503285264" then Track:Stop() end
-            elseif Config.Animations.Shotty.Enabled and Config.Animations.Shotty.Style ~= "Default" then
-                if AnimationId == "889390949" then Track:Stop() end
-            elseif Config.Animations["Sawed Off"].Enabled and Config.Animations["Sawed Off"].Style ~= "Default" then
-                if AnimationId == "889390949" then Track:Stop() end
-            end
-
             if (not Tool or not Tool:GetAttribute("Gun")) then
                 if AnimationId == "889968874" or AnimationId == "229339207" or AnimationId == "503285264" or AnimationId == "889390949" then
                     Track:Stop()
                 end
             end
 
+            Animations.Gun.self:Stop()
+            Animations.Gun2.self:Stop()
+            Animations.Gun3.self:Stop()
+
             if Tool then
                 local Tool_Name = tostring(Tool)
-                if Tool_Name == "Glock" or Tool_Name == "Uzi" then
+
+                if (Tool_Name == "Glock" and Config.Animations.Glock.Enabled and Config.Animations.Glock.Style ~= "Default") or (Tool_Name == "Uzi" and Config.Animations.Uzi.Enabled and Config.Animations.Uzi.Style ~= "Default") then
+                    if AnimationId == "503285264" then Track:Stop() end
+                elseif (Tool_Name == "Shotty" and Config.Animations.Shotty.Enabled and Config.Animations.Shotty.Style ~= "Default") or (Tool_Name == "Sawed Off" and Config.Animations["Sawed Off"].Enabled and Config.Animations["Sawed Off"].Style ~= "Default") then
+                    if AnimationId == "889390949" then Track:Stop() end
+                end
+
+                if (Tool_Name == "Glock" or Tool_Name == "Uzi") then
                     if Config.Animations[Tool_Name].Enabled then
                         local Style = Config.Animations[Tool_Name].Style
                         if Style == "Style-2" then
                             Animations.Gun.self:Play()
-                            Animations.Gun2.self:Stop()
-                            Animations.Gun3.self:Stop()
                         elseif Style == "Style-3" then
-                            Animations.Gun.self:Stop()
-                            Animations.Gun2.self:Stop()
                             Animations.Gun3.self:Play()
                         end
                     end
-                elseif Tool_Name == "Shotty" or Tool_Name == "Sawed Off" then
+                elseif (Tool_Name == "Shotty" or Tool_Name == "Sawed Off") then
                     if Config.Animations[Tool_Name].Enabled then
                         local Style = Config.Animations[Tool_Name].Style
                         if Style == "Style-2" then
                             Animations.Gun.self:Play()
-                            Animations.Gun2.self:Stop()
-                            Animations.Gun3.self:Stop() --?
                         elseif Style == "Style-3" then
-                            Animations.Gun.self:Stop()
-                            Animations.Gun3.self:Stop()
                             Animations.Gun2.self:Play()
-                            Animations.Gun2.self.TimePosition = 0.2
                             Animations.Gun2.self:AdjustSpeed(0)
+                            Animations.Gun2.self.TimePosition = 0.2
                         end
                     end
                 end
@@ -4013,10 +4043,14 @@ function OnBackpackChildAdded(self)
                 delay(0.1, function()
                     SetToolChams(self)
                     if tostring(self) == "Glock" or tostring(self) == "Uzi" then
-                        self.Handle.CanCollide = false
-                        self.Barrel.CanCollide = false
+                        local Handle = self:FindFirstChild("Handle")
+                        local Barrel = self:FindFirstChild("Barrel")
+
+                        if Handle then Handle.CanCollide = false end
+                        if Barrel then Barrel.CanCollide = false end
                     end
                 end)
+
                 self:SetAttribute("Gun", true)
             end
         elseif Name == "BoomBox" then
@@ -4106,6 +4140,7 @@ function OnCharacterAdded(_Character)
     end
 
     CustomCharacter.Parent = Character
+    Player:SetAttribute("AnimeGamePass", UserOwnsAsset(Player, 1082540, "GamePass") and true or false) -- just don't buy the gamepass in mid game :|
     Player:SetAttribute("Vest", UserOwnsAsset(Player, 6967243, "GamePass"))
     Player:SetAttribute("KnockOut", 0)
     Player:SetAttribute("Position", Root.Position)
@@ -4157,7 +4192,8 @@ function OnCharacterAdded(_Character)
         end
         --Character:WaitForChild(Original and "Used" or "Right Leg"):Destroy()
     else
-        Character:WaitForChild(Original and "GetMouse" or "Gun")
+        
+        --Character:WaitForChild(Original and "GetMouse" or "Gun", 10)
     end
 
     for _, Animation in pairs(Animations) do
@@ -4175,7 +4211,7 @@ function OnCharacterAdded(_Character)
                 local Boombox = Backpack:WaitForChild("BoomBox")
                 local Remote = Boombox:WaitForChild("RemoteEvent")
                 if Remote then
-                    Boombox.Parent = Character
+                    Boombox.Parent = Character 
                     Remote:FireServer("play", LastAudio)
                     pcall(function() Boombox.BoomBoxu.Entry.TextBox.Text = Id end)
                     delay(1, function() Boombox.Parent = Backpack end)
@@ -4494,7 +4530,7 @@ function OnBulletAdded(Bullet)
         local Direction = (End - Origin).Unit
         local Distance = 150
 
-        table.insert(BulletLogs, {
+        table.insert(BulletLogs, { -- technically we are not using this table at all so it shouldn't be a memleak?
             Origin = Origin,
             End = End,
             TargetOrigin = Target and Target:GetAttribute("Position"),
@@ -4942,6 +4978,11 @@ function OnNameCall(self, ...)
                 end
             end
         end
+
+        if Method == "PlayerOwnsAsset" and Arguments[2] == 457667510 then
+            return Player.GetAttribute(Player, "AnimeGamePass")
+        end
+
         if Method == "Destroy" then
             if self == Character then return end
             if string.find(self.ClassName, "Body") then return end
