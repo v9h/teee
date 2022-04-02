@@ -2965,7 +2965,7 @@ end
 
 
 -- Thanks to f6oor
-local function DrawStrawHat(Player)
+function DrawStrawHat(Player)
     local Head = Player and Player.Character and Player.Character:FindFirstChild("Head")
     if not Head then return end
     
