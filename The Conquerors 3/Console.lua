@@ -10,14 +10,14 @@ local Colors = {
     ["Cyan"] = syn and "@@CYAN@@" or "cyan",
     ["Red"]	= syn and "@@RED@@" or "red",
     ["Magenta"] = syn and "@@MAGENTA@@" or "magenta",
-    ["Brown"] = "@@BROWN@@",
-    ["Light Gray"] = "@@LIGHT_GRAY@@",
-    ["Dark Gray"] = "@@DARK_GRAY@@",
-    ["Light Blue"] = "@@LIGHT_BLUE@@",
-    ["Light Green"] = "@@LIGHT_GREEN@@",
-    ["Light Cyan"] = "@@LIGHT_CYAN@@",
-    ["Light Red"] = "@@LIGHT_RED@@",
-    ["Light Magenta"] = "@@LIGHT_MAGENTA@@",
+    ["Brown"] = syn and "@@BROWN@@",
+    ["Light Gray"] = syn and "@@LIGHT_GRAY@@",
+    ["Dark Gray"] = syn and "@@DARK_GRAY@@",
+    ["Light Blue"] = syn and "@@LIGHT_BLUE@@",
+    ["Light Green"] = syn and "@@LIGHT_GREEN@@",
+    ["Light Cyan"] = syn and "@@LIGHT_CYAN@@",
+    ["Light Red"] = syn and "@@LIGHT_RED@@",
+    ["Light Magenta"] = syn and "@@LIGHT_MAGENTA@@",
     ["Yellow"] = syn and "@@YELLOW@@" or "yellow",
     ["White"] = syn and "@@WHITE@@" or "white"
 }
@@ -74,9 +74,5 @@ end
 function Console:Error(Message)
     Console:Write(Message, "Red")
 end
-
-
-getgenv().Console = Console
-
 
 return Console
