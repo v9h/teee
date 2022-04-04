@@ -3,17 +3,18 @@ How hard is it for somepony else to contribute :|
 Performance Tests
 
 Make MultiSelect be on click order
+Make A check that the selected frame is not offscreen when scrolling
+Make Containers look nicer
+ListBox children should NOT be offseted from the frame
+Make Damage Event Logger log the health lost and clamp it from 0 to 100
+indicator frame size off?
+SetVisibles for refreshmenu
 
-fix set bar points on esp bars
+MAKE DESYNC GUYS:|
 
+Right / Bottom bar position are broken
 esp fix; breaks idk; fixed?
 
-SetVisibles for refreshmenus
-fix animations
-
-indicator frame size off?
-
-Right / Bottom bar position might be broken
 
 add \n support for Clan Tag Tag
 fix clan tag  animations (Forward, Normal, Reverse)
@@ -22,13 +23,13 @@ Auto Attack
 Auto Fire Raycast hitpoints fix
 Compare (Bullet_EndPosition - Shot(CFrame.Position)).Magnitude
 
-bar fade broken?
 fix hidesprays
-
-small spray & small boombox(maybe no need cuz we log audios already) library ui to find ids easily?
-
 fix whitelist; owner only work on rejoin
+
+
+-- work on these after the first section
 GetCars?
+small spray & small boombox(maybe no need cuz we log audios already) library ui to find ids easily?
 
 custom models; umm maybe not Lo.
 local chams overlay; lazy
@@ -41,7 +42,6 @@ Aimbot Auto Adjust Vector Velocity ????
 Wireframe chams?
 Gun outline chams
 
-AntiAim:Desync (checkbox); Velocity (checkbox); remove only 1 type at a time
 Resync Desynced antiaim
 desync visualization is not happening since it's different for every client (I think)
 Flipped Mode :|
@@ -77,13 +77,7 @@ local websocket_connect = WebSocket and WebSocket.connect or syn and syn.websock
 local math_round = function(Number, Scale)
     return tonumber(string.format("%." .. Scale .. "f", Number))
 end
-local messagebox = messagebox or message_box or function()
-    pcall(function()
-        local Player = game:GetService("Players").LocalPlayer
-        Player:Kick("Error 0x4; Executor doesn't support script functionality") -- if you bypass this and u get banned don't blame me
-        game:shutdown()
-    end)
-end
+local messagebox = messagebox or message_box or function() while 1 do end end -- would rather crash than get u banned
 local get_script_version = function()
     return "1.0.0"
 end
@@ -122,6 +116,7 @@ pcall(function()
     })
 end)
 ]]
+
 
 if not Import then return messagebox("Error 0x5; Something went wrong with initializing the script (couldn't load modules)", "Identification.cc", 0) end
 
@@ -193,6 +188,10 @@ local Config = {
     },
     AutoFire = {
         Enabled = false,
+        VelocityCheck = {
+            Enabled = false,
+            MaxVelocity = 0
+        }
         Range = 50,
         Priority = "Head",
         Key = nil
@@ -302,7 +301,6 @@ local Config = {
     AutoHeal = {Enabled = false},
     ClickOpen = {Enabled = false},
     ClickSpam = {Enabled = false},
-    NoGunDelay = {Enabled = false},
     DoorAura = {Enabled = false},
     DoorMenu = {Enabled = false},
     EventLogs = {
@@ -633,7 +631,7 @@ local Config = {
         },
         FieldOfViewCircle = {
             Enabled = false,
-            Filled = false,
+            Filled = true,
             NumSides = 8,
             Color = Color3.new(),
             Transparency = 0.8,
@@ -662,14 +660,9 @@ local Events = {FirstPerson = {}, Reset = nil}
 local UserTable = {
     Admin = {
         [1892264393] = {
-            Tag = "Elden", -- AverageID:Elden (regularid)
+            Tag = "Elden",
             Color = Color3.fromRGB(115, 65, 190)
         },
-        [3139503587] = {
-            Tag = "Elden", -- irregularlife (regularid)
-            Color = Color3.fromRGB(115, 65, 190)
-        },
-      
         [156878502] = {
             Tag = "f6oor",
             Color = Color3.fromRGB(40, 80, 180)
@@ -678,16 +671,10 @@ local UserTable = {
             Tag = "nixon",
             Color = Color3.fromRGB(40, 40, 40)
         },
-    
-        [481234921] = { 
-            Tag = "reestart", -- reestart:DramaAlert
+        [481234921] = {
+            Tag = "reestart",
             Color = Color3.fromRGB(105, 200, 40)
         },
-        [880466877] = {
-            Tag = "reestart", -- MasabiI:Frank (reestart)
-            Color = Color3.fromRGB(105, 200, 40)
-        },
-        
         [1395537172] = {
             Tag = "xaxa",
             Color = Color3.fromRGB(210, 60, 75)
@@ -2241,13 +2228,13 @@ function AddPlayerESP(_Player)
     
     if not Humanoid or not Head or not Torso then return end
 
-    local Player_ESP
+    local PlayerESP
     
     local function Destroy_ESP()
         if not Drawn[Player] then return end
 
-        if typeof(Player_ESP) == "table" then
-            for k, v in pairs(Player_ESP) do
+        if typeof(PlayerESP) == "table" then
+            for k, v in pairs(PlayerESP) do
                 if typeof(v) == "table" then
                     v:Remove()
                 end
@@ -2258,7 +2245,7 @@ function AddPlayerESP(_Player)
     end
 
 
-    Player_ESP = {
+    PlayerESP = {
         self = Player,
         Character = Character,
         Type = "Player",
@@ -2299,17 +2286,17 @@ function AddPlayerESP(_Player)
         Destroy_ESP()
     end)
 
-    Drawn[Player] = Player_ESP
-    return Player_ESP
+    Drawn[Player] = PlayerESP
+    return PlayerESP
 end
 
 
 function AddItemESP(Item)
-    local Item_ESP
+    local ItemESP
 
     local function Destroy_ESP()
-        if typeof(Item_ESP) == "table" then
-            for k, v in pairs(Item_ESP) do
+        if typeof(ItemESP) == "table" then
+            for k, v in pairs(ItemESP) do
                 if typeof(v) == "table" then
                     v:Remove()
                 end
@@ -2319,7 +2306,7 @@ function AddItemESP(Item)
         end
     end
 
-    Item_ESP = {
+    ItemESP = {
         self = Item,
         Type = "Item",
         Destroy = Destroy_ESP,
@@ -2329,8 +2316,8 @@ function AddItemESP(Item)
         Snapline = ESP.Snapline(Item)
     }
 
-    Drawn[Item] = Item_ESP
-    return Item_ESP
+    Drawn[Item] = ItemESP
+    return ItemESP
 end
 
 
@@ -3493,13 +3480,23 @@ function Heartbeat(Step) -- after phys :: after heartbeat comes network stepped
                 if Tool and Tool:GetAttribute("Gun") then
                     if Target:GetAttribute("IsAlive") and Target:GetAttribute("Health") > 0 then
                         if Target:GetAttribute("KnockOut") < (Ping / 1000) and not Target.Character:FindFirstChild("ForceField") then
-                            local Barrel = Tool:FindFirstChild("Barrel")
-                            local Ammo, Clips = GetToolInfo(Tool, "Ammo")
-                            if Barrel and (Ammo > 0 or Clips > 0) then
-                                if (Target:DistanceFromCharacter(Barrel.Position) < Config.AutoFire.Range) then
-                                    local HitPoints = GetHitPoints(Target)
-                                    if #HitPoints > 0 then
-                                        Attack(CFrame.new(HitPoints[1]))
+                            local CanShoot = true
+                            if Config.AutoFire.VelocityCheck.Enabled then
+                                local Velocity = Target:GetAttribute("Velocity")
+                                if Velocity.Magnitude > Config.AutoFire.VelocityCheck.MaxVelocity then
+                                    CanShoot = false
+                                end
+                            end
+
+                            if CanShoot then
+                                local Barrel = Tool:FindFirstChild("Barrel")
+                                local Ammo, Clips = GetToolInfo(Tool, "Ammo")
+                                if Barrel and (Ammo > 0 or Clips > 0) then
+                                    if (Target:DistanceFromCharacter(Barrel.Position) < Config.AutoFire.Range) then
+                                        local HitPoints = GetHitPoints(Target)
+                                        if #HitPoints > 0 then
+                                            Attack(CFrame.new(HitPoints[1]))
+                                        end
                                     end
                                 end
                             end
@@ -4207,11 +4204,8 @@ function OnCharacterAdded(_Character)
         --Character:WaitForChild(Original and "GetMouse" or "Gun", 10)
     end
 
-    -- https://devforum.roblox.com/t/error-cannot-load-the-animationclipprovider-service/1639315/7
-    if Character and Humanoid and Character.Parent and Humanoid.Parent == Character then
-        for _, Animation in pairs(Animations) do
-	    Animation.self = Humanoid:LoadAnimation(Animation.Animation) -- This has to be done after god mode
-        end
+    for _, Animation in pairs(Animations) do
+        Animation.self = Humanoid:LoadAnimation(Animation.Animation) -- This has to be done after god mode
     end
 
     if Config.FirstPerson.Enabled then
@@ -4313,7 +4307,7 @@ function OnPlayerAdded(Player)
                 if Player.UserId == 1552377192 then
                     DrawStrawHat(Player)
                 end
-                local Player_ESP = AddPlayerESP(Player)
+                local PlayerESP = AddPlayerESP(Player)
 
                 do
                     local Ignore = {}
@@ -4468,11 +4462,11 @@ function OnPlayerDamaged(Victim:player, Attacker:player, Damage:number, Time:tic
         end
 
         local Color = string.format("<font color = '#%s'>", Config.EventLogs.Colors.Hit:ToHex())
-        local Health = Victim:GetAttribute("Health") - Damage
+        local Health = Victim:GetAttribute("Health")
         MessageLog = string.format("Damaged %s for %s (%s health remanining)", Color .. tostring(Victim) .. "</font>", Color .. Damage .. "</font>", Color .. Health .. "</font>")
     elseif Victim == Player then
         local Color = string.format("<font color = '#%s'>", Config.EventLogs.Colors.Miss:ToHex())
-        local Health = Player:GetAttribute("Health") - Damage
+        local Health = Player:GetAttribute("Health")
 
         MessageLog = string.format("%s damaged you for %s (%s health remanining)", Color .. tostring(Attacker) .. "</font>", Color .. Damage .. "</font>", Color .. Health .. "</font>")
     end
@@ -4520,12 +4514,17 @@ end
 
 function OnCreatorValueAdded(self)
     spawn(function()
-        local Victim = Players:GetPlayerFromCharacter(self.Parent.Parent) -- Parented in humanoid
+        local Victim = Players:GetPlayerFromCharacter(self.Parent.Parent)
         local Attacker = Players:GetPlayerFromCharacter(self.Value)
         local Info = self:WaitForChild("Info", 10)
         local Damage = Info:FindFirstChild("Damage")
+
+        local Health = Victim:GetAttribute("Health")
         if Damage then
-            OnPlayerDamaged(Victim, Attacker, Damage.Value, tick())
+            wait(0.1)
+            if Victim:GetAttribute("Health") < Health then
+                OnPlayerDamaged(Victim, Attacker, Damage.Value, tick())
+            end
         end
     end)
 end
@@ -4812,16 +4811,6 @@ if Original then
         return OldHas(self, ...)
     end)
     --]]
-else
-
-    local wait_hook = nil 
-    wait_hook = hookfunction(getrenv()["wait"], function(constant) -- (note from xaxa) for info on why im writing getrenv()["wait"], please refer to line 69 in the source (literally not a coincidence, BLAME ELDEN)
-        if not checkcaller() and Config.NoGunDelay.Enabled and (constant == 0.5 or constant == 0.25 or constant == 0.33) then 
-            constant = 0
-        end
-        
-        return wait_hook(constant)
-    end)
 end
 
 
@@ -5877,7 +5866,7 @@ do
     Menu.CheckBox("Visuals", "Interface", "Field Of View Circle Filled", Config.Interface.FieldOfViewCircle.Filled, function(Bool)
         Config.Interface.FieldOfViewCircle.Filled = Bool
     end)
-    Menu.Slider("Visuals", "Interface", "Field Of View Circle Sides", 0, 50, Config.Interface.FieldOfViewCircle.NumSides, nil, 0, function(Value)
+    Menu.Slider("Visuals", "Interface", "Field Of View Circle Sides", 0, 16, Config.Interface.FieldOfViewCircle.NumSides, nil, 0, function(Value)
         Config.Interface.FieldOfViewCircle.NumSides = Value
     end)
     Menu.ColorPicker("Visuals", "Interface", "Field Of View Circle Color", Config.Interface.FieldOfViewCircle.Color, 1 - Config.Interface.FieldOfViewCircle.Transparency, function(Color, Transparency)
@@ -6147,9 +6136,6 @@ do
     Menu.GetItem(Menu, Menu.CheckBox("Misc", "Exploits", "Click Spam", Config.ClickSpam.Enabled, function(Bool) -- Can't namecall synapse compiler retarded
         Config.ClickSpam.Enabled = not Original and Bool
         if Bool then coroutine.resume(Threads.ClickSpam) end
-    end)):SetVisible(not Original)
-    Menu.GetItem(Menu, Menu.CheckBox("Misc", "Exploits", "No Gun Delay", Config.NoGunDelay.Enabled, function(Bool)
-        Config.NoGunDelay.Enabled = Bool 
     end)):SetVisible(not Original)
     Menu.CheckBox("Misc", "Exploits", "Lag On Dragged", Config.LagOnDragged.Enabled, function(Bool)
         Config.LagOnDragged.Enabled = Bool
@@ -6827,8 +6813,6 @@ $$$$$$\\$$$$$$$ |\$$$$$$$\ $$ |  $$ | \$$$$  |$$ |$$ |      $$ |\$$$$$$$\\$$$$$$
                     ClanTagBlinking = not ClanTagBlinking
                 elseif Type == "Boombox" then
                     local Boombox = Character and (Character:FindFirstChild("BoxModel") or Character:FindFirstChild("BoomBox"))
-                    if not Boombox then Type = "Static" end
-                    
                     local Sound = Boombox and Boombox:FindFirstChild("SoundX", true)
                     if Sound then
                         local Id = string.gsub(Sound.SoundId, "%D", "")
