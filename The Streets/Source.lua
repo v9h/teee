@@ -191,7 +191,7 @@ local Config = {
         VelocityCheck = {
             Enabled = false,
             MaxVelocity = 0
-        }
+        },
         Range = 50,
         Priority = "Head",
         Key = nil
