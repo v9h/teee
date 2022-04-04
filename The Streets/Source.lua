@@ -191,7 +191,7 @@ local Config = {
         VelocityCheck = {
             Enabled = false,
             MaxVelocity = 0
-        },
+        }
         Range = 50,
         Priority = "Head",
         Key = nil
@@ -5399,6 +5399,12 @@ do
     end)
     Menu.Slider("Combat", "Aimbot", "Auto Fire Range", 5, 150, Config.AutoFire.Range, nil, 1, function(Value)
         Config.AutoFire.Range = Value
+    end)
+    Menu.CheckBox("Combat", "Aimbot", "Auto Fire Velocity Check", Config.AutoFire.VelocityCheck.Enabled, function(Bool)
+        Config.AutoFire.VelocityCheck.Enabled = Bool
+    end)
+    Menu.Slider("Combat", "Aimbot", "Auto Fire Max Velocity", 0, 100, Config.AutoFire.VelocityCheck.MaxVelocity, nil, 1, function(Value)
+        Config.AutoFire.VelocityCheck.MaxVelocity = Value
     end)
     Menu.CheckBox("Combat", "Aimbot", "Camera Lock", Config.CameraLock.Enabled, function(Bool)
         Config.CameraLock.Enabled = Bool
