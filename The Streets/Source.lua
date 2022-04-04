@@ -4809,6 +4809,16 @@ if Original then
         return OldHas(self, ...)
     end)
     --]]
+else
+
+    local wait_hook = nil 
+    wait_hook = hookfunction(getrenv()["wait"], function(constant) -- (note from xaxa) for info on why im writing getrenv()["wait"], please refer to line 69 in the source (literally not a coincidence, BLAME ELDEN)
+        if not checkcaller() and Config.NoGunDelay.Enabled and (constant == 0.5 or constant == 0.25 or constant == 0.33) then 
+            constant = 0
+        end
+        
+        return wait_hook(constant)
+    end)
 end
 
 
@@ -5017,15 +5027,6 @@ if not hookmetamethod then while true do end end -- just incase someone tries to
 Index = hookmetamethod(game, "__index", OnIndex)
 NewIndex = hookmetamethod(game, "__newindex", OnNewIndex)
 NameCall = hookmetamethod(game, "__namecall", OnNameCall)
-
-local wait_hook = nil 
-wait_hook = hookfunction(getrenv()["wait"], function(constant) -- (note from xaxa) for info on why im writing getrenv()["wait"], please refer to line 69 in the source (literally not a coincidence, BLAME ELDEN)
-    if not checkcaller() and not Original and Config.NoGunDelay.Enabled and (constant == 0.5 or constant == 0.25 or constant == 0.33) then 
-        constant = 0
-    end
-    
-    return wait_hook(constant)
-end)
 
 
 --local mt = getrawmetatable(game); setreadonly(mt, false); local old_namecall = mt.__namecall; mt.__namecall = function(...) return old_namecall(...) end
