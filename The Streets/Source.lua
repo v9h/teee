@@ -123,7 +123,6 @@ pcall(function()
 end)
 ]]
 
-
 if not Import then return messagebox("Error 0x5; Something went wrong with initializing the script (couldn't load modules)", "Identification.cc", 0) end
 
 local ESP
@@ -303,6 +302,7 @@ local Config = {
     AutoHeal = {Enabled = false},
     ClickOpen = {Enabled = false},
     ClickSpam = {Enabled = false},
+    NoGunDelay = {Enabled = false},
     DoorAura = {Enabled = false},
     DoorMenu = {Enabled = false},
     EventLogs = {
@@ -633,7 +633,7 @@ local Config = {
         },
         FieldOfViewCircle = {
             Enabled = false,
-            Filled = true,
+            Filled = false,
             NumSides = 8,
             Color = Color3.new(),
             Transparency = 0.8,
@@ -662,9 +662,14 @@ local Events = {FirstPerson = {}, Reset = nil}
 local UserTable = {
     Admin = {
         [1892264393] = {
-            Tag = "Elden",
+            Tag = "Elden", -- RegularID
             Color = Color3.fromRGB(115, 65, 190)
         },
+        [3139503587] = {
+            Tag = "Elden", -- irregularlife
+            Color = Color3.fromRGB(115, 65, 190)
+        },
+      
         [156878502] = {
             Tag = "f6oor",
             Color = Color3.fromRGB(40, 80, 180)
@@ -673,10 +678,16 @@ local UserTable = {
             Tag = "nixon",
             Color = Color3.fromRGB(40, 40, 40)
         },
-        [481234921] = {
-            Tag = "reestart",
+    
+        [481234921] = { 
+            Tag = "reestart", -- reestart:DramaAlert
             Color = Color3.fromRGB(105, 200, 40)
         },
+        [880466877] = {
+            Tag = "reestart", -- MasabiI:Frank
+            Color = Color3.fromRGB(105, 200, 40)
+        },
+        
         [1395537172] = {
             Tag = "xaxa",
             Color = Color3.fromRGB(210, 60, 75)
@@ -5007,6 +5018,15 @@ Index = hookmetamethod(game, "__index", OnIndex)
 NewIndex = hookmetamethod(game, "__newindex", OnNewIndex)
 NameCall = hookmetamethod(game, "__namecall", OnNameCall)
 
+local wait_hook = nil 
+wait_hook = hookfunction(getrenv()["wait"], function(constant) -- (note from xaxa) for info on why im writing getrenv()["wait"], please refer to line 69 in the source (literally not a coincidence, BLAME ELDEN)
+    if not checkcaller() and not Original and Config.NoGunDelay.Enabled and (constant == 0.5 or constant == 0.25 or constant == 0.33) then 
+        constant = 0
+    end
+    
+    return wait_hook(constant)
+end)
+
 
 --local mt = getrawmetatable(game); setreadonly(mt, false); local old_namecall = mt.__namecall; mt.__namecall = function(...) return old_namecall(...) end
 
@@ -5853,7 +5873,7 @@ do
     Menu.CheckBox("Visuals", "Interface", "Field Of View Circle Filled", Config.Interface.FieldOfViewCircle.Filled, function(Bool)
         Config.Interface.FieldOfViewCircle.Filled = Bool
     end)
-    Menu.Slider("Visuals", "Interface", "Field Of View Circle Sides", 0, 16, Config.Interface.FieldOfViewCircle.NumSides, nil, 0, function(Value)
+    Menu.Slider("Visuals", "Interface", "Field Of View Circle Sides", 0, 50, Config.Interface.FieldOfViewCircle.NumSides, nil, 0, function(Value)
         Config.Interface.FieldOfViewCircle.NumSides = Value
     end)
     Menu.ColorPicker("Visuals", "Interface", "Field Of View Circle Color", Config.Interface.FieldOfViewCircle.Color, 1 - Config.Interface.FieldOfViewCircle.Transparency, function(Color, Transparency)
@@ -6123,6 +6143,9 @@ do
     Menu.GetItem(Menu, Menu.CheckBox("Misc", "Exploits", "Click Spam", Config.ClickSpam.Enabled, function(Bool) -- Can't namecall synapse compiler retarded
         Config.ClickSpam.Enabled = not Original and Bool
         if Bool then coroutine.resume(Threads.ClickSpam) end
+    end)):SetVisible(not Original)
+    Menu.GetItem(Menu, Menu.CheckBox("Misc", "Exploits", "No Gun Delay", Config.NoGunDelay.Enabled, function(Bool)
+        Config.NoGunDelay.Enabled = Bool 
     end)):SetVisible(not Original)
     Menu.CheckBox("Misc", "Exploits", "Lag On Dragged", Config.LagOnDragged.Enabled, function(Bool)
         Config.LagOnDragged.Enabled = Bool
