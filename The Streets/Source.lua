@@ -4207,8 +4207,11 @@ function OnCharacterAdded(_Character)
         --Character:WaitForChild(Original and "GetMouse" or "Gun", 10)
     end
 
-    for _, Animation in pairs(Animations) do
-        Animation.self = Humanoid:LoadAnimation(Animation.Animation) -- This has to be done after god mode
+    -- https://devforum.roblox.com/t/error-cannot-load-the-animationclipprovider-service/1639315/7
+    if Character and Humanoid and Character.Parent and Humanoid.Parent == Character then
+        for _, Animation in pairs(Animations) do
+	    Animation.self = Humanoid:LoadAnimation(Animation.Animation) -- This has to be done after god mode
+        end
     end
 
     if Config.FirstPerson.Enabled then
