@@ -662,11 +662,11 @@ local Events = {FirstPerson = {}, Reset = nil}
 local UserTable = {
     Admin = {
         [1892264393] = {
-            Tag = "Elden", -- RegularID
+            Tag = "Elden", -- AverageID:Elden (regularid)
             Color = Color3.fromRGB(115, 65, 190)
         },
         [3139503587] = {
-            Tag = "Elden", -- irregularlife
+            Tag = "Elden", -- irregularlife (regularid)
             Color = Color3.fromRGB(115, 65, 190)
         },
       
@@ -684,7 +684,7 @@ local UserTable = {
             Color = Color3.fromRGB(105, 200, 40)
         },
         [880466877] = {
-            Tag = "reestart", -- MasabiI:Frank
+            Tag = "reestart", -- MasabiI:Frank (reestart)
             Color = Color3.fromRGB(105, 200, 40)
         },
         
