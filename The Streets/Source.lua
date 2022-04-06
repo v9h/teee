@@ -825,20 +825,8 @@ function SaveConfig(Name)
         end
     end
 
-    local function DeepCopy(Original)
-    	local Copy = {}
-    	for k, v in pairs(Original) do
-    		if typeof(v) == "table" then
-    			v = DeepCopy(v)
-    		end
-    		Copy[k] = v
-    	end
-    	return Copy
-    end
-
-
     local ConfigFile = "Identification/Games/The Streets/Configs/" .. Name .. ".cfg"
-    local config_clone = DeepCopy(Config)
+    local config_clone = table.clone(Config)
     Iterate(config_clone)
     writefile(ConfigFile, HttpService:JSONEncode(config_clone))
     Menu:FindItem("Settings", "Configs", "ListBox", "Configs"):SetValue(Name .. ".cfg", GetFiles("Identification/Games/The Streets/Configs").Names)
@@ -1073,8 +1061,8 @@ function RefreshMenu()
     Menu:FindItem("Visuals", "Item ESP", "ColorPicker", "Snapline Color"):SetValue(Config.ESP.Item.Snaplines.Color, 1 - Config.ESP.Item.Snaplines.Transparency)
     Menu:FindItem("Visuals", "Item ESP", "CheckBox", "Icons"):SetValue(Config.ESP.Item.Flags.Icon.Enabled)
     Menu:FindItem("Visuals", "Item ESP", "ComboBox", "Font"):SetValue(Config.ESP.Item.Font.Font)
-    Menu:FindItem("Visuals", "Item ESP", "ColorPicker", "Font Color"):SetValue(Config.ESP.Item.Font.Color, 1 - Config.ESP.Item.Font.Transparency)
-    Menu:FindItem("Visuals", "Item ESP", "Slider", "Font Size"):SetValue(Config.ESP.Item.Font.Size)
+    Menu:FindItem("Visuals", "Item ESP", "ColorPicker", "Font color"):SetValue(Config.ESP.Item.Font.Color, 1 - Config.ESP.Item.Font.Transparency)
+    Menu:FindItem("Visuals", "Item ESP", "Slider", "Font size"):SetValue(Config.ESP.Item.Font.Size)
 
     Menu:FindItem("Visuals", "Hit markers", "CheckBox", "Hit markers"):SetValue(Config.HitMarkers.Enabled)
     Menu:FindItem("Visuals", "Hit markers", "ComboBox", "Hit markers type"):SetValue(Config.HitMarkers.Type)
@@ -1082,23 +1070,23 @@ function RefreshMenu()
     Menu:FindItem("Visuals", "Hit markers", "Slider", "Hit markers size"):SetValue(Config.HitMarkers.Size)
     Menu:FindItem("Visuals", "Hit markers", "CheckBox", "Hit sound"):SetValue(Config.HitMarkers.Sound)
 
-    Menu:FindItem("Visuals", "World", "CheckBox", "Ambient Changer"):SetValue(Config.Enviorment.Ambient.Enabled)
+    Menu:FindItem("Visuals", "World", "CheckBox", "Ambient changer"):SetValue(Config.Enviorment.Ambient.Enabled)
     Menu:FindItem("Visuals", "World", "ColorPicker", "Ambient"):SetValue(Config.Enviorment.Ambient.Colors.Ambient, 0)
-    Menu:FindItem("Visuals", "World", "ColorPicker", "Outdoor Ambient"):SetValue(Config.Enviorment.Ambient.Colors.OutdoorAmbient, 0)
-    Menu:FindItem("Visuals", "World", "CheckBox", "World Time Changer"):SetValue(Config.Enviorment.Time.Enabled)
-    Menu:FindItem("Visuals", "World", "Slider", "World Time"):SetValue(Config.Enviorment.Time.Value)
-    Menu:FindItem("Visuals", "World", "CheckBox", "Saturation Changer"):SetValue(Config.Enviorment.Saturation.Enabled)
+    Menu:FindItem("Visuals", "World", "ColorPicker", "Outdoor ambient"):SetValue(Config.Enviorment.Ambient.Colors.OutdoorAmbient, 0)
+    Menu:FindItem("Visuals", "World", "CheckBox", "World time changer"):SetValue(Config.Enviorment.Time.Enabled)
+    Menu:FindItem("Visuals", "World", "Slider", "World time"):SetValue(Config.Enviorment.Time.Value)
+    Menu:FindItem("Visuals", "World", "CheckBox", "Saturation changer"):SetValue(Config.Enviorment.Saturation.Enabled)
     Menu:FindItem("Visuals", "World", "Slider", "Saturation"):SetValue(Config.Enviorment.Saturation.Value)
     Menu:FindItem("Visuals", "World", "CheckBox", "Bullet impacts"):SetValue(Config.BulletImpact.Enabled)
     Menu:FindItem("Visuals", "World", "ColorPicker", "Bullet impacts color"):SetValue(Config.BulletImpact.Color, 1 - Config.BulletImpact.Transparency)
-    Menu:FindItem("Visuals", "World", "CheckBox", "Bullet Tracers"):SetValue(Config.BulletTracers.Enabled)
-    Menu:FindItem("Visuals", "World", "ColorPicker", "Bullet Tracers Color"):SetValue(Config.BulletTracers.Color)
-    Menu:FindItem("Visuals", "World", "Slider", "Bullet Tracers Lifetime"):SetValue(Config.BulletTracers.Lifetime)
-    Menu:FindItem("Visuals", "World", "CheckBox", "Disable Bullet Trails"):SetValue(Config.BulletTracers.DisableTrails)
+    Menu:FindItem("Visuals", "World", "CheckBox", "Bullet tracers"):SetValue(Config.BulletTracers.Enabled)
+    Menu:FindItem("Visuals", "World", "ColorPicker", "Bullet tracers color"):SetValue(Config.BulletTracers.Color)
+    Menu:FindItem("Visuals", "World", "Slider", "Bullet tracers lifetime"):SetValue(Config.BulletTracers.Lifetime)
+    Menu:FindItem("Visuals", "World", "CheckBox", "Disable bullet trails"):SetValue(Config.BulletTracers.DisableTrails)
     Menu:FindItem("Visuals", "World", "ComboBox", "Skybox"):SetValue(Config.Enviorment.Skybox.Value)
 
-    Menu:FindItem("Visuals", "Other", "CheckBox", "Max Zoom Changer"):SetValue(Config.Zoom.Enabled)
-    Menu:FindItem("Visuals", "Other", "Slider", "Max Zoom"):SetValue(Config.Zoom.Value)
+    Menu:FindItem("Visuals", "Other", "CheckBox", "Max zoom changer"):SetValue(Config.Zoom.Enabled)
+    Menu:FindItem("Visuals", "Other", "Slider", "Max zoom"):SetValue(Config.Zoom.Value)
     Menu:FindItem("Visuals", "Other", "CheckBox", "Field Of View Changer"):SetValue(Config.FieldOfView.Enabled)
     Menu:FindItem("Visuals", "Other", "Slider", "Field Of View"):SetValue(Config.FieldOfView.Value)
     Menu:FindItem("Visuals", "Other", "CheckBox", "First Person"):SetValue(Config.FirstPerson.Enabled)
@@ -1703,8 +1691,10 @@ function GetBrickTrajectoryPoints(Brick)
         local Time = TimeStep * i
         local Position = Origin + Direction * Speed * Time + Vector3.new(0, Gravity * Time * Time / 2, 0)
 
-        if (End - Position).Magnitude < (End - Origin).Magnitude then
-            Position = End
+        local LookVector = Handle.CFrame.LookVector * 3
+
+        if Position + LookVector > End then
+            table.insert(Points, Position + LookVector)
             break
         end
 
@@ -2417,28 +2407,28 @@ function UpdateESP()
             end
 
 
-            local TOP_BAR_PUSH = 7
-            local LEFT_BAR_PUSH = 6
-            local RIGHT_BAR_PUSH = 6
-            local BOTTOM_BAR_PUSH = 7
+            local TOP_BAR_PUSH = 6.125
+            local LEFT_BAR_PUSH = 5.125
+            local RIGHT_BAR_PUSH = 5.125
+            local BOTTOM_BAR_PUSH = 6.125
 
             local function SET_BAR_POINTS(Bar, Position)
                 if Position == "Top" then
                     Bar.Axis = "x"
-                    Bar:SetPoints(TOP_BAR_PUSH, -TOP_BAR_PUSH, 6, 6)
-                    TOP_BAR_PUSH -= 1
+                    Bar:SetPoints(TOP_BAR_PUSH, -TOP_BAR_PUSH, 6, 5)
+                    TOP_BAR_PUSH -= 0.125
                 elseif Position == "Left" then
                     Bar.Axis = "y"
                     Bar:SetPoints(6, 7, LEFT_BAR_PUSH, -LEFT_BAR_PUSH)
-                    LEFT_BAR_PUSH += 1
+                    LEFT_BAR_PUSH += 0.125
                 elseif Position == "Right" then
                     Bar.Axis = "y"
                     Bar:SetPoints(6, -7, RIGHT_BAR_PUSH, -RIGHT_BAR_PUSH)
-                    RIGHT_BAR_PUSH += 1
+                    RIGHT_BAR_PUSH += 0.125
                 elseif Position == "Bottom" then
                     Bar.Axis = "x"
-                    Bar:SetPoints(BOTTOM_BAR_PUSH, -BOTTOM_BAR_PUSH, 6, 6)
-                    BOTTOM_BAR_PUSH += 1
+                    Bar:SetPoints(BOTTOM_BAR_PUSH, -BOTTOM_BAR_PUSH, 6, 5)
+                    BOTTOM_BAR_PUSH += 0.125
                 end
             end
 
@@ -3917,7 +3907,7 @@ function RenderStepped(Step)
             local Points = GetBrickTrajectoryPoints(Tool)
             if typeof(Points) == "table" and #Points > 0 then
                 BrickTrajectory = ESP.Trajectory(Points)
-                BrickTrajectory:SetColor(Config.BrickTrajectory.Color, 0.5)
+                BrickTrajectory:SetColor(Config.BrickTrajectory.Color, Config.BrickTrajectory.Transparency)
             end
         end
     end
@@ -4228,8 +4218,12 @@ function OnCharacterAdded(_Character)
 
     -- https://devforum.roblox.com/t/error-cannot-load-the-animationclipprovider-service/1639315/7
     if Character and Humanoid and Character.Parent and Humanoid.Parent == Character then
+        for _, Track in ipairs(Humanoid:GetPlayingAnimationTracks()) do
+            local AnimationId = string.gsub(Track.Animation.AnimationId, "%D", "")
+            if AnimationId == "8587081257" or AnimationId == "376653421" or AnimationId == "458506542" or AnimationId == "1484589375" or AnimationId == "180426354" then Track:Stop() end -- Stopping the run animations
+        end
         for _, Animation in pairs(Animations) do
-	    Animation.self = Humanoid:LoadAnimation(Animation.Animation) -- This has to be done after god mode
+	        Animation.self = Humanoid:LoadAnimation(Animation.Animation) -- This has to be done after god mode
         end
     end
 
@@ -5781,11 +5775,11 @@ do
     Menu.ComboBox("Visuals", "Item ESP", "Font", Config.ESP.Item.Font.Font, {"UI", "System", "Plex", "Monospace"}, function(String)
         Config.ESP.Item.Font.Font = String
     end)
-    Menu.ColorPicker("Visuals", "Item ESP", "Font Color", Config.ESP.Item.Font.Color, 1 - Config.ESP.Item.Font.Transparency, function(Color, Transparency)
+    Menu.ColorPicker("Visuals", "Item ESP", "Font color", Config.ESP.Item.Font.Color, 1 - Config.ESP.Item.Font.Transparency, function(Color, Transparency)
         Config.ESP.Item.Font.Color = Color
         Config.ESP.Item.Font.Transparency = 1 - Transparency
     end)
-    Menu.Slider("Visuals", "Item ESP", "Font Size", 10, 32, Config.ESP.Item.Font.Size, "px", 0, function(Value)
+    Menu.Slider("Visuals", "Item ESP", "Font size", 10, 32, Config.ESP.Item.Font.Size, "px", 0, function(Value)
         Config.ESP.Item.Font.Size = Value
     end)
 
@@ -5806,7 +5800,7 @@ do
         Config.HitSound.Enabled = Bool
     end)
 
-    Menu.CheckBox("Visuals", "World", "Ambient Changer", Config.Enviorment.Ambient.Enabled, function(Bool)
+    Menu.CheckBox("Visuals", "World", "Ambient changer", Config.Enviorment.Ambient.Enabled, function(Bool)
         Config.Enviorment.Ambient.Enabled = Bool
         if Config.Enviorment.Ambient.Enabled then
             Lighting.Ambient = Config.Enviorment.Ambient.Colors.Ambient
@@ -5823,26 +5817,33 @@ do
             Lighting.OutdoorAmbient = Config.Enviorment.Ambient.Colors.OutdoorAmbient
         end
     end)
-    Menu.ColorPicker("Visuals", "World", "Outdoor Ambient", Config.Enviorment.Ambient.Colors.OutdoorAmbient, 0, function(Color)
+    Menu.ColorPicker("Visuals", "World", "Outdoor ambient", Config.Enviorment.Ambient.Colors.OutdoorAmbient, 0, function(Color)
         Config.Enviorment.Ambient.Colors.OutdoorAmbient = Color
         if Config.Enviorment.Ambient.Enabled then
             Lighting.Ambient = Config.Enviorment.Ambient.Colors.Ambient
             Lighting.OutdoorAmbient = Config.Enviorment.Ambient.Colors.OutdoorAmbient
         end
     end)
-    Menu.CheckBox("Visuals", "World", "World Time Changer", Config.Enviorment.Time.Enabled, function(Bool)
+    Menu.CheckBox("Visuals", "World", "World time changer", Config.Enviorment.Time.Enabled, function(Bool)
         Config.Enviorment.Time.Enabled = Bool
     end)
-    Menu.Slider("Visuals", "World", "World Time", 0, 24, Config.Enviorment.Time.Value, "h", 1, function(Value)
+    Menu.Slider("Visuals", "World", "World time", 0, 24, Config.Enviorment.Time.Value, "h", 1, function(Value)
         Config.Enviorment.Time.Value = math.round(Value)
     end)
-    Menu.CheckBox("Visuals", "World", "Saturation Changer", Config.Enviorment.Saturation.Enabled, function(Bool)
+    Menu.CheckBox("Visuals", "World", "Saturation changer", Config.Enviorment.Saturation.Enabled, function(Bool)
         Config.Enviorment.Saturation.Enabled = Bool
         Lighting.ColorCorrection.Saturation = Config.Enviorment.Saturation.Enabled and Config.Enviorment.Saturation.Value or 0
     end)
     Menu.Slider("Visuals", "World", "Saturation", -1, 0, Config.Enviorment.Saturation.Value, nil, 2, function(Value)
         Config.Enviorment.Saturation.Value = Value
         Lighting.ColorCorrection.Saturation = Config.Enviorment.Saturation.Enabled and Config.Enviorment.Saturation.Value or 0
+    end)
+    Menu.CheckBox("Visuals", "World", "Brick trajectory", Config.BrickTrajectory.Enabled, function(Bool)
+        Config.BrickTrajectory.Enabled = Bool
+    end)
+    Menu.ColorPicker("Visuals", "World", "Brick trajectory color", Config.BrickTrajectory.Color, Config.BrickTrajectory.Transparency, function(Color, Transparency)
+        Config.BrickTrajectory.Color = Color
+        Config.BrickTrajectory.Transparency = 1 - Transparency
     end)
     Menu.CheckBox("Visuals", "World", "Bullet impacts", Config.BulletImpact.Enabled, function(Bool)
         Config.BulletImpact.Enabled = Bool
@@ -5851,16 +5852,16 @@ do
         Config.BulletImpact.Color = Color
         Config.BulletImpact.Transparency = 1 - Transparency
     end)
-    Menu.CheckBox("Visuals", "World", "Bullet Tracers", Config.BulletTracers.Enabled, function(Bool)
+    Menu.CheckBox("Visuals", "World", "Bullet tracers", Config.BulletTracers.Enabled, function(Bool)
         Config.BulletTracers.Enabled = Bool
     end)
-    Menu.ColorPicker("Visuals", "World", "Bullet Tracers Color", Config.BulletTracers.Color, 0, function(Color)
+    Menu.ColorPicker("Visuals", "World", "Bullet tracers color", Config.BulletTracers.Color, 0, function(Color)
         Config.BulletTracers.Color = Color
     end)
-    Menu.Slider("Visuals", "World", "Bullet Tracers Lifetime", 0, 6000, Config.BulletTracers.Lifetime, "ms", 1, function(Value)
+    Menu.Slider("Visuals", "World", "Bullet tracers lifetime", 0, 6000, Config.BulletTracers.Lifetime, "ms", 1, function(Value)
         Config.BulletTracers.Lifetime = Value
     end)
-    Menu.CheckBox("Visuals", "World", "Disable Bullet Trails", Config.BulletTracers.DisableTrails, function(Bool)
+    Menu.CheckBox("Visuals", "World", "Disable bullet trails", Config.BulletTracers.DisableTrails, function(Bool)
         Config.BulletTracers.DisableTrails = Bool
     end)
     Menu.ComboBox("Visuals", "World", "Skybox", Config.Enviorment.Skybox.Value, GetSkyboxes().Names, function(String)
@@ -5868,11 +5869,11 @@ do
         UpdateSkybox()
     end)
 
-    Menu.CheckBox("Visuals", "Other", "Max Zoom Changer", Config.Zoom.Enabled, function(Bool)
+    Menu.CheckBox("Visuals", "Other", "Max zoom changer", Config.Zoom.Enabled, function(Bool)
         Config.Zoom.Enabled = Bool
         Player.CameraMaxZoomDistance = Config.Zoom.Enabled and Config.Zoom.Value or 20
     end)
-    Menu.Slider("Visuals", "Other", "Max Zoom", 0, 1000, Config.Zoom.Value, nil, 1, function(Value)
+    Menu.Slider("Visuals", "Other", "Max zoom", 0, 1000, Config.Zoom.Value, nil, 1, function(Value)
         Config.Zoom.Value = Value
         Player.CameraMaxZoomDistance = Config.Zoom.Enabled and Config.Zoom.Value or 20
     end)
@@ -6537,6 +6538,7 @@ function Initialize()
         Gun = 889968874, Gun2 = 229339207, Gun3 = 889390949, Run = 8587081257, Run2 = 458506542, Run3 = 1484589375, Crouch = 8533780211, AntiAim = 215384594, AntiAim2 = 242203091,
         GlockIdle = 503285264, GlockFire = 503287783, GlockReload = 8533765435, ShottyIdle = 889390949, ShottyFire = 889391270, ShottyReload = 8533763280
     }
+    
     for Name, Id in pairs(AnimationIds) do
         SetAnimation(Name, Id)
     end
@@ -6610,11 +6612,6 @@ function Initialize()
     OnCharacterAdded(Character) -- needs to yield
 
     for _, Player in ipairs(Players:GetPlayers()) do OnPlayerAdded(Player) end
-
-    for _, Track in ipairs(Humanoid:GetPlayingAnimationTracks()) do
-        local AnimationId = string.gsub(Track.Animation.AnimationId, "%D", "")
-        if AnimationId == "8587081257" or AnimationId == "376653421" or AnimationId == "458506542" then Track:Stop() end -- Stopping the run animations
-    end
 
     for Name, Pad in pairs(GetBuyPads()) do
         local Part = Pad.Part
@@ -6733,23 +6730,30 @@ $$$$$$\\$$$$$$$ |\$$$$$$$\ $$ |  $$ | \$$$$  |$$ |$$ |      $$ |\$$$$$$$\\$$$$$$
     -- Initialize Threads
     if Original then
         Threads.HatChanger = coroutine.create(function()
-            local Sequence = {{delay = 0.2, color = "#413478"}, {delay = 0.2, color = "#483595"}, {delay = 0.2, color = "#634EB9"}, {delay = 0.2, color = "#9786DE"}, {delay = 0.2, color = "#FFB2B2"}, {delay = 0.2, color = "#F47D7D"}, {delay = 0.2, color = "#FF5555"}, {delay = 0.2, color = "#FF3232"}, {delay = 0.2, color = "#FF0000"}, {delay = 0.2, color = "#000000"}, {delay = 0.2, color = "#512626"}, {delay = 0.2, color = "#FFFFFF"}}
+            local Sequence = {
+                "#bc67f0",
+                "#9851c4",
+                "#9340c7",
+                "#933fc4",
+                "#9f31bd",
+                "#8514bd",
+                "#7500bd"
+            }
             local CurrentStep = 1
 
             while true do
-                wait()
+                RunService.Heartbeat:Wait()
                 if not Config.HatChanger.Enabled then coroutine.yield() end
                 --BrickColor.random().Color
 
                 if Config.HatChanger.Sequence then
                     if CurrentStep >= #Sequence then CurrentStep = 1 end
-                    SetHatColor(Color3.fromHex(Sequence[CurrentStep].color))
-                    wait(Sequence[CurrentStep].delay)
+                    SetHatColor(Color3.fromHex(Sequence[CurrentStep]))
                     CurrentStep += 1
                 else
                     SetHatColor(Config.HatChanger.Color)
-                    wait(Config.HatChanger.Speed)
                 end
+                wait(Config.HatChanger.Speed)
             end
         end)
 
@@ -6801,7 +6805,7 @@ $$$$$$\\$$$$$$$ |\$$$$$$$\ $$ |  $$ | \$$$$  |$$ |$$ |      $$ |\$$$$$$$\\$$$$$$
 
         Threads.ClanTagChanger = coroutine.create(function()
             while true do
-                wait()
+                RunService.Heartbeat:Wait()
                 if not Config.ClanTag.Enabled then
                     coroutine.yield()
                 end
@@ -6902,7 +6906,7 @@ $$$$$$\\$$$$$$$ |\$$$$$$$\ $$ |  $$ | \$$$$  |$$ |$$ |      $$ |\$$$$$$$\\$$$$$$
         Threads.ClickSpam = coroutine.create(function()
             -- Prison Only
             while true do
-                wait()
+                RunService.Heartbeat:Wait()
                 if not Config.ClickSpam.Enabled then coroutine.yield() end
                 if Ping > 500 then continue end
                 for _, Player in ipairs(Players:GetPlayers()) do
@@ -6942,7 +6946,7 @@ $$$$$$\\$$$$$$$ |\$$$$$$$\ $$ |  $$ | \$$$$  |$$ |$$ |      $$ |\$$$$$$$\\$$$$$$
                 end
                 wait((Config.Attach.RefreshRate or 0) / 1000)
             end
-            wait()
+            RunService.Heartbeat:Wait()
         end
     end)
 
@@ -7113,8 +7117,8 @@ Initialize()
 
 -- Connections
 
-RunService.Heartbeat:Connect(Heartbeat) -- laggy loop
-RunService.Stepped:Connect(Stepped) -- laggy loop esp most likely
+RunService.Heartbeat:Connect(Heartbeat)
+RunService.Stepped:Connect(Stepped)
 RunService.RenderStepped:Connect(RenderStepped)
 UserInput.InputBegan:Connect(OnInput)
 UserInput.InputEnded:Connect(OnInputEnded)
