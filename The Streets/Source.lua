@@ -1691,12 +1691,17 @@ function GetBrickTrajectoryPoints(Brick)
         local Time = TimeStep * i
         local Position = Origin + Direction * Speed * Time + Vector3.new(0, Gravity * Time * Time / 2, 0)
 
-        local LookVector = Handle.CFrame.LookVector * 3
-
-        if Position + LookVector > End then
-            table.insert(Points, Position + LookVector)
-            break
+        local LookVector = Handle.CFrame.LookVector * 1
+        
+        local function LimitAxis(Axis)
+            if Position[Axis] + LookVector[Axis] > End[Axis] then
+                Position = Axis == "x" and Vector3.new(Axis, Position.y, Position.z) or Axis == "y" and Vector3.new(Position.x, Axis, Position.z) or Vector3.new(Position.x, Position.y, Axis)
+            end
         end
+
+        LimitAxis("x")
+        LimitAxis("y")
+        LimitAxis("z")
 
         table.insert(Points, Position)
     end
