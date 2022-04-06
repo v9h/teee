@@ -195,6 +195,10 @@ local Config = {
         Enabled = false,
         Range = 50,
         Priority = "Head",
+	VelocityCheck = {
+	    Enabled = false,
+	    MaxVelocity = 0
+	},
         Key = nil
     },
     CameraLock = {
@@ -999,6 +1003,8 @@ function RefreshMenu()
     Menu:FindItem("Combat", "Aimbot", "Hotkey", "Aimbot Key"):SetValue(Config.Aimbot.Key)
     Menu:FindItem("Combat", "Aimbot", "CheckBox", "Auto Fire"):SetValue(Config.AutoFire.Enabled)
     Menu:FindItem("Combat", "Aimbot", "Slider", "Auto Fire Range"):SetValue(Config.AutoFire.Range)
+    Menu:FindItem("Combat", "Aimbot", "CheckBox", "Auto Fire Velocity Check"):SetValue(Config.AutoFire.VelocityCheck.Enabled)
+    Menu:FindItem("Combat", "Aimbot", "Slider", "Auto Fire Max Velocity"):SetValue(Config.AutoFire.VelocityCheck.MaxVelocity)
     Menu:FindItem("Combat", "Aimbot", "CheckBox", "Camera Lock"):SetValue(Config.CameraLock.Enabled)
     Menu:FindItem("Combat", "Aimbot", "Hotkey", "Camera Lock Key"):SetValue(Config.CameraLock.Key)
     Menu:FindItem("Combat", "Aimbot", "Slider", "Velocity Multiplier"):SetValue(Config.Aimbot.VelocityMultiplier)
@@ -3158,6 +3164,8 @@ function Attack(CF)
     if Original then
         -- Tool.CD is disabled for reg
         if TagSystem.has("reloading") then return end
+	--if TagSystem.has("gunslow") then return end
+
         local Arguments = {
             shift = UserInput:IsKeyDown(Enum.KeyCode.LeftShift),
             mousehit = CF,
@@ -3493,16 +3501,7 @@ function Heartbeat(Step) -- after phys :: after heartbeat comes network stepped
                 if Tool and Tool:GetAttribute("Gun") then
                     if Target:GetAttribute("IsAlive") and Target:GetAttribute("Health") > 0 then
                         if Target:GetAttribute("KnockOut") < (Ping / 1000) and not Target.Character:FindFirstChild("ForceField") then
-                            local Barrel = Tool:FindFirstChild("Barrel")
-                            local Ammo, Clips = GetToolInfo(Tool, "Ammo")
-                            if Barrel and (Ammo > 0 or Clips > 0) then
-                                if (Target:DistanceFromCharacter(Barrel.Position) < Config.AutoFire.Range) then
-                                    local HitPoints = GetHitPoints(Target)
-                                    if #HitPoints > 0 then
-                                        Attack(CFrame.new(HitPoints[1]))
-                                    end
-                                end
-                            end
+                            
                         end
                     end
                 end
@@ -5411,6 +5410,13 @@ do
     Menu.Slider("Combat", "Aimbot", "Auto Fire Range", 5, 150, Config.AutoFire.Range, nil, 1, function(Value)
         Config.AutoFire.Range = Value
     end)
+    Menu.CheckBox("Combat", "Aimbot", "Auto Fire Velocity Check", Config.AutoFire.VelocityCheck.Enabled, function(Bool)
+        Config.AutoFire.VelocityCheck.Enabled = Bool
+    end)
+    Menu.Slider("Combat", "Aimbot", "Auto Fire Max Velocity", 0, 100, Config.AutoFire.VelocityCheck.MaxVelocity, nil, 1, function(Value)
+	Config.AutoFire.VelocityCheck.MaxVelocity = Value
+    end)
+
     Menu.CheckBox("Combat", "Aimbot", "Camera Lock", Config.CameraLock.Enabled, function(Bool)
         Config.CameraLock.Enabled = Bool
     end)
