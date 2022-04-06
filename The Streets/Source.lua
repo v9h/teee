@@ -3501,7 +3501,27 @@ function Heartbeat(Step) -- after phys :: after heartbeat comes network stepped
                 if Tool and Tool:GetAttribute("Gun") then
                     if Target:GetAttribute("IsAlive") and Target:GetAttribute("Health") > 0 then
                         if Target:GetAttribute("KnockOut") < (Ping / 1000) and not Target.Character:FindFirstChild("ForceField") then
+                            local CanShoot = true
                             
+                            if Config.AutoFire.VelocityCheck.Enabled then
+                                local Velocity = Target:GetAttribute("Velocity")
+                                if Velocity.Magnitude > Config.AutoFire.VelocityCheck.MaxVelocity then
+                                    CanShoot = false
+                                end
+                            end
+                            
+                            if CanShoot then
+                                local Barrel = Tool:FindFirstChild("Barrel")
+                                local Ammo, Clips = GetToolInfo(Tool, "Ammo")
+                                if Barrel and (Ammo > 0 or Clips > 0) then
+                                    if (Target:DistanceFromCharacter(Barrel.Position) < Config.AutoFire.Range) then
+                                        local HitPoints = GetHitPoints(Target)
+                                        if #HitPoints > 0 then
+                                            Attack(CFrame.new(HitPoints[1]))
+                                        end
+                                    end
+                                end
+                            end
                         end
                     end
                 end
