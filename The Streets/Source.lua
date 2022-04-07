@@ -1666,6 +1666,7 @@ function GetBrickTrajectoryPoints(Brick)
     if not Handle then return end
 
     local Points = {}
+    local MaxPoints = 100
 
     local Origin = Handle.Position
     local End = Mouse.Hit.Position
@@ -1684,25 +1685,42 @@ function GetBrickTrajectoryPoints(Brick)
     local Time = Distance / Speed
 
     local TimeStep = 0.1
-    local TimeSteps = math.ceil(Time / TimeStep)
+    local TimeSteps = math.clamp(math.ceil(Time / TimeStep), 1, MaxPoints)
 
-    for i = 1, TimeSteps do
-        local Time = TimeStep * i
-        local Position = Origin + Direction * Speed * Time + Vector3.new(0, Gravity * Time * Time / 2, 0)
-
-        local LookVector = Handle.CFrame.LookVector * 1
-        
-        local function LimitAxis(Axis)
-            if Position[Axis] + LookVector[Axis] > End[Axis] then
-                Position = Axis == "x" and Vector3.new(Axis, Position.y, Position.z) or Axis == "y" and Vector3.new(Position.x, Axis, Position.z) or Vector3.new(Position.x, Position.y, Axis)
+    local Clamped = {}
+    local function ClampAxis(Position, Position2)
+        if not Clamped.x then
+            if Position.x > Position2.x then
+                Clamped.x = true
+                Position = Vector3.new(End.x, Position.y, Position.z)
             end
         end
 
-        LimitAxis("x")
-        LimitAxis("y")
-        LimitAxis("z")
+        if not Clamped.y then
+            if Position.y > Position2.y then
+                Clamped.y = true
+                Position = Vector3.new(Position.x, End.y, Position.z)
+            end
+        end
 
+        if not Clamped.z then
+            if Position.z > Position2.z then
+                Clamped.z = true
+                Position = Vector3.new(Position.x, Position.y, End.z)
+            end
+        end
+    end
+
+    for i = 1, TimeSteps do
+        local Time = TimeStep * i
+        local Position = Origin + Direction * Speed * Time + Vector3.new(0, -Gravity * Time * Time / 2, 0)
+
+        local LookVector = Handle.CFrame.LookVector * 1 -- why was I raycasting before do I have some kind of mental illness?
+
+        ClampAxis(Position, Position + LookVector)
         table.insert(Points, Position)
+
+        if Clamped.x and Clamped.y and Clamped.z then break end
     end
 
     return Points
