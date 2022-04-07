@@ -129,6 +129,7 @@ local ESP
 local Menu
 local Console
 local Commands
+local CommandsList = ""
 local ToolData
 local DoorData
 
@@ -146,7 +147,6 @@ getgenv().Import = nil  -- won't be used anymore
 
 
 local Original = game.PlaceId == 455366377 and true
-
 
 if not Original and game.PlaceId ~= 4669040 then
     return messagebox("Error 0x1; Place not supported", "Identification.cc", 0) -- why is the 2nd parameter title??
@@ -178,7 +178,6 @@ local TagSystem = Original and require(ReplicatedStorage:WaitForChild("TagSystem
 _G.Identification = true
 
 -- Config
-
 
 local Config = {
     Aimbot = {
@@ -5052,121 +5051,89 @@ NameCall = hookmetamethod(game, "__namecall", OnNameCall)
 
 --local mt = getrawmetatable(game); setreadonly(mt, false); local old_namecall = mt.__namecall; mt.__namecall = function(...) return old_namecall(...) end
 
-
 -- Commands
-
-local CommandsList = [[
-commands - lists all of the commands,
-walkspeed [number] - sets your "walkspeed" to "number",
-jumppower [number] - sets your "jumppower" to "number",
-runspeed [number] - sets your "runspeed" to "number",
-crouchspeed [number] - sets your "crouchspeed" to "number",
-hipheight [number] - sets your "hipheight" to "number",
-gravity [number] - sets the world "gravity" to "number",
-blink - enables "blink mode",
-unblink - disables "blink mode",
-fly - enables "flight",
-unfly - disables "flight",
-float - enables "float",
-unfloat - disables "float",
-noclip - enables "noclip",
-clip - disables "noclip",
-god - enables "god mode",
-ungod - disables "god mode",
-rejoin - attempts to rejoin to the current server,
-swap - teleports either to the streets or the prison,
-goto [player] - teleports to the "player",
-item [name] - if the item is found then it teleports you to the item,
-play [id] - mass plays the selected "id",
-bypass [the prison] - Attempts to give you tool and teleport bypass,
-
--- Console Commands --
-
-clear - clears the output from the console,
-]]
-
-Commands.Add("walkspeed", {"ws"}, "", function(Arguments)
+Commands.Add("walkspeed", {"ws"}, "[number] - sets your walkspeed to 'number'", function(Arguments)
     Config.WalkSpeed.Value = Arguments[1] or 16
     Menu:FindItem("Player", "Movement", "Slider", "Walk Speed"):SetValue(Config.WalkSpeed.Value)
 end)
 
-Commands.Add("jumppower", {"jp"}, "", function(Arguments)
+Commands.Add("jumppower", {"jp"}, "[number] - sets your jumppower to 'number'", function(Arguments)
     Config.JumpPower.Value = Arguments[1] or 37.5
     Menu:FindItem("Player", "Movement", "Slider", "Jump Power"):SetValue(Config.JumpPower.Value)
 end)
 
-Commands.Add("runspeed", {"rs"}, "", function(Arguments)
+Commands.Add("runspeed", {"rs"}, "[number] - sets your runspeed to 'number'", function(Arguments)
     Config.RunSpeed.Value = Arguments[1] or 24.5
     Menu:FindItem("Player", "Movement", "Slider", "Run Speed"):SetValue(Config.RunSpeed.Value)
 end)
 
-Commands.Add("crouchspeed", {"cs"}, "", function(Arguments)
+Commands.Add("crouchspeed", {"cs"}, "[number] - sets your crouchspeed to 'number'", function(Arguments)
     Config.CrouchSpeed.Value = Arguments[1] or 8
     Menu:FindItem("Player", "Movement", "Slider", "Crouch Speed"):SetValue(Config.CrouchSpeed.Value)
 end)
 
-Commands.Add("hipheight", {"hh"}, "", function(Arguments)
+Commands.Add("hipheight", {"hh"}, "[number] - sets your hipheight to 'number'", function(Arguments)
     Humanoid.HipHeight = Arguments[1] or 0
 end)
 
-Commands.Add("gravity", {}, "", function(Arguments)
+Commands.Add("gravity", {}, "[number] - sets your gravity to 'number'", function(Arguments)
     workspace.Gravity = Arguments[1] or 196.05
 end)
 
-Commands.Add("blink", {"cfwalk"}, "", function()
+Commands.Add("blink", {"cfwalk"}, "- enables 'blink mode'", function()
     Config.Blink.Enabled = true
     Menu:FindItem("Player", "Movement", "CheckBox", "Blink"):SetValue(Config.Blink.Enabled)
 end)
 
-Commands.Add("unblink", {"uncfwalk"}, "", function()
+Commands.Add("unblink", {"uncfwalk"}, "- disables 'blink mode'", function()
     Config.Blink.Enabled = false
     Menu:FindItem("Player", "Movement", "CheckBox", "Blink"):SetValue(Config.Blink.Enabled)
 end)
 
-Commands.Add("fly", {"flight"}, "", function()
+Commands.Add("fly", {"flight"}, "- enables 'flight'", function()
     FlyToggle()
 end)
 
-Commands.Add("unfly", {"noflight"}, "", function()
+Commands.Add("unfly", {"noflight"}, "- disables 'flight'", function()
     Config.Flight.Enabled = false
     Menu:FindItem("Player", "Movement", "CheckBox", "Flight"):SetValue(Config.Flight.Enabled)
 end)
 
-Commands.Add("float", {"airwalk"}, "", function()
+Commands.Add("float", {"airwalk"}, "- enables 'float'", function()
     Config.Float.Enabled = not Config.Float.Enabled
     FloatPart.CanCollide = Config.Float.Enabled
     Menu:FindItem("Player", "Movement", "CheckBox", "Float"):SetValue(Config.Float.Enabled)
 end)
 
-Commands.Add("unfloat", {"unairwalk"}, "", function()
+Commands.Add("unfloat", {"unairwalk"}, "- disables 'float'", function()
     Config.Float.Enabled = false
     FloatPart.CanCollide = false
     Menu:FindItem("Player", "Movement", "CheckBox", "Float"):SetValue(Config.Float.Enabled)
 end)
 
-Commands.Add("noclip", {}, "", function()
+Commands.Add("noclip", {}, "- enables 'noclip'", function()
     Config.Noclip.Enabled = true
     Menu:FindItem("Player", "Movement", "CheckBox", "Noclip"):SetValue(Config.Noclip.Enabled)
 end)
 
-Commands.Add("clip", {}, "", function()
+Commands.Add("clip", {}, "- disables 'noclip'", function()
     Config.Noclip.Enabled = false
     Menu:FindItem("Player", "Movement", "CheckBox", "Noclip"):SetValue(Config.Noclip.Enabled)
 end)
 
-Commands.Add("god", {}, "", function()
+Commands.Add("god", {}, "- enables 'god mode'", function()
     Config.God.Enabled = true
     Menu:FindItem("Misc", "Exploits", "CheckBox", "God"):SetValue(Config.God.Enabled)
 end)
 
-Commands.Add("ungod", {}, "", function()
+Commands.Add("ungod", {}, "- disables 'god mode'", function()
     Config.God.Enabled = false
     Menu:FindItem("Misc", "Exploits", "CheckBox", "God"):SetValue(Config.God.Enabled)
 end)
 
-Commands.Add("reset", {"re"}, "", RefreshCharacter)
+Commands.Add("reset", {"re"}, "- resets your character", RefreshCharacter)
 
-Commands.Add("car", {"bringcar"}, "", function()
+Commands.Add("car", {"bringcar"}, "[streets only] - brings a car to you", function()
     local Jeep = workspace:FindFirstChild("Jeep")
     if Jeep then
         local Seat = Jeep:FindFirstChild("DriveSeat", true)
@@ -5182,15 +5149,15 @@ Commands.Add("car", {"bringcar"}, "", function()
     end
 end)
 
-Commands.Add("rejoin", {"rj"}, "", function()
+Commands.Add("rejoin", {"rj"}, "- attempts to rejoin to the current server", function()
     TeleportToPlace(game.PlaceId, game.JobId)
 end)
 
-Commands.Add("swap", {}, "", function()
+Commands.Add("swap", {}, "- teleports either to the streets or the prison", function()
     TeleportToPlace(Original and 4669040 or 455366377)
 end)
 
-Commands.Add("goto", {"to"}, "", function(Arguments)
+Commands.Add("goto", {"to"}, "[player] - teleports to the 'player'", function(Arguments)
     if not Arguments[1] then return end
     local Target = GetPlayer(Arguments[1])
     for _, Target in ipairs(Target) do
@@ -5202,7 +5169,7 @@ Commands.Add("goto", {"to"}, "", function(Arguments)
     end
 end)
 
-Commands.Add("item", {"get"}, "", function(Arguments)
+Commands.Add("item", {"get"}, "[name] - if the item is found then it teleports you to the item", function(Arguments)
     local Found, Part, Price
     local Item_Name = string.lower(table.concat(Arguments, " "))
     for _, Item in pairs(Items) do
@@ -5215,7 +5182,7 @@ Commands.Add("item", {"get"}, "", function(Arguments)
     if Original and not Found then BuyItem(Item_Name) end
 end)
 
-Commands.Add("play", {}, "", function(Arguments)
+Commands.Add("play", {}, "[id] - mass plays the selected 'id'", function(Arguments)
     local Audio = Arguments[1]
     local Remotes = {}
     for _, Tool in ipairs(GetTools()) do
@@ -5235,7 +5202,7 @@ Commands.Add("play", {}, "", function(Arguments)
     end)
 end)
 
-Commands.Add("bypass", {}, "", function()
+Commands.Add("bypass", {}, "[prison only] - Attempts to give you tool and teleport bypass", function()
     if not Original then
         queue_on_teleport([[
             if not game:IsLoaded() then game.Loaded:Wait() end -- Synapse is shit
@@ -5255,7 +5222,7 @@ end)
     end)
 ]]
 
-Commands.Add("key", {"bind"}, "", function(Arguments)
+Commands.Add("key", {"bind"}, "- [regularid please do this one]", function(Arguments)
     local Name, Key, Command = table.remove(Arguments, 1), table.remove(Arguments, 1), table.remove(Arguments, 1)
     if Name and Key and Command then
         Name = string.lower(Name)
@@ -5275,16 +5242,17 @@ Commands.Add("key", {"bind"}, "", function(Arguments)
     end
 end)
 
-Commands.Add("unkey", {"unbind"}, "", function(Arguments)
+Commands.Add("unkey", {"unbind"}, "[keybind name] - unbinds 'keybind name'", function(Arguments)
     local Name = Arguments[1]
     if Name then BindKey(string.lower(Name), "Remove") end
 end)
 
-Commands.Add("commands", {"cmds"}, "", function()
+Commands.Add("commands", {"cmds"}, "- prints all the commands in the rconsole", function()
+    Console:Write("\n")
     Console:Write(CommandsList)
 end)
 
-Commands.Add("clear", {"cls"}, "", function()
+Commands.Add("clear", {"cls"}, "- clears the rconsole of all text", function()
     Console:Clear()
     Console:Write([[
 $$$$$$\      $$\                      $$\     $$\  $$$$$$\  $$\                     $$\     $$\                     
@@ -5299,7 +5267,7 @@ $$$$$$\\$$$$$$$ |\$$$$$$$\ $$ |  $$ | \$$$$  |$$ |$$ |      $$ |\$$$$$$$\\$$$$$$
     Console:Write("\nType 'cmds' to see the commands!")
 end)
 
-Commands.Add("steal", {"st", "log"}, "steal ([audio]/[decal]) from [player]", function(Arguments)
+Commands.Add("steal", {"st", "log"}, "([audio]/[decal]) [player] - steals the selected audio or decal from 'player'", function(Arguments)
     local asset_type = string.lower(tostring(Arguments[1]))
     local player_name = Arguments[2]
 
@@ -5341,6 +5309,18 @@ Commands.Add("steal", {"st", "log"}, "steal ([audio]/[decal]) from [player]", fu
     end
 end)
 
+-- Command auto-printization thingy (note from xaxa - sorry if this looks bad elden)
+table.foreach(Commands, function(Index, Value)
+    local Name, Aliases, Description = "", {}, "";
+    
+    if type(Value) == "table" and (Value.Name and Value.Aliases and Value.Description) then 
+        Name = ((type(Value.Name) == "string" and Value.Name) or "");
+        Aliases = ((type(Value.Aliases) == "table" and Value.Aliases) or {});
+        Description = ((type(Value.Description) == "string" and Value.Description) or "");
+        
+        CommandsList = CommandsList .. string.format("%s%s%s %s", Name, (#Aliases > 0 and "/" or ""), ((#Aliases > 0 and table.concat(Aliases, "/")) or ""), Description) .. "\n";
+    end
+end)
 
 -- User Interface
 
@@ -6392,6 +6372,7 @@ do
     end)
     Menu.Hotkey("Settings", "Menu", "Prefix", Config.Prefix, function(KeyCode)
         Config.Prefix = KeyCode
+        Menu.CommandBar.PlaceholderText = "Command bar [" .. string.char(Config.Prefix.Value) .. "]"
         ContextAction:BindAction("commandBarToggle", CommandBarToggle, false, KeyCode)
     end)
     Menu.ColorPicker("Settings", "Menu", "Menu Accent", Config.Menu.Accent, 0, function(Color)
@@ -6690,6 +6671,8 @@ $$$$$$\      $$\                      $$\     $$\  $$$$$$\  $$\                 
 $$$$$$\\$$$$$$$ |\$$$$$$$\ $$ |  $$ | \$$$$  |$$ |$$ |      $$ |\$$$$$$$\\$$$$$$$ | \$$$$  |$$ |\$$$$$$  |$$ |  $$ |
 \______|\_______| \_______|\__|  \__|  \____/ \__|\__|      \__| \_______|\_______|  \____/ \__| \______/ \__|  \__|                                                                                                                                                                                                                                                                                                   
 ]])
+            Console:Write("\nBy RegularID, xaxa, f6oor")
+            Console:Write(string.format("Script Version: %s", get_script_version()))
             Console:Write("\nType 'cmds' to see the commands!")
 
             function GetInput()
