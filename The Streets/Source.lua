@@ -6671,7 +6671,7 @@ $$$$$$\      $$\                      $$\     $$\  $$$$$$\  $$\                 
 $$$$$$\\$$$$$$$ |\$$$$$$$\ $$ |  $$ | \$$$$  |$$ |$$ |      $$ |\$$$$$$$\\$$$$$$$ | \$$$$  |$$ |\$$$$$$  |$$ |  $$ |
 \______|\_______| \_______|\__|  \__|  \____/ \__|\__|      \__| \_______|\_______|  \____/ \__| \______/ \__|  \__|                                                                                                                                                                                                                                                                                                   
 ]])
-            Console:Write("\nBy RegularID, xaxa, f6oor")
+            Console:Write("\nBy RegularID, xaxa, f6oor, and nixon")
             Console:Write(string.format("Script Version: %s", get_script_version()))
             Console:Write("\nType 'cmds' to see the commands!")
 
