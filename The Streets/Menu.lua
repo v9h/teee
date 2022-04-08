@@ -534,7 +534,7 @@ function Menu.Tab(Tab_Name)
     Button.Parent = TabIndex_Frame
     AddEventListener(Button, function()
         if Button.TextColor3 == Color3.fromRGB(205, 205, 205) then
-            Button.TextColor3 = Menu.ItemColor
+            Button.BackgroundColor3 = Menu.ItemColor
         end
         Button.BackgroundColor3 = Menu.ItemColor
         Button.BorderColor3 = Menu.BorderColor
