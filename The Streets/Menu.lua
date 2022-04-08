@@ -25,6 +25,7 @@ local Selected = {
     Offset = UDim2.new(),
     Follow = false
 }
+local SelectedTabLines = {}
 
 
 local wait = task.wait
@@ -108,16 +109,18 @@ function CreateStroke(Parent, Color, Thickness, Transparency)
 end 
 
 
-function CreateLine(Parent, Size, Position)
+function CreateLine(Parent, Size, Position, Color)
     local Line = Instance.new("Frame")
     Line.Name = "Line"
-    Line.BackgroundColor3 = Menu.Accent
+    Line.BackgroundColor3 = typeof(Color) == "Color3" and Color or Menu.Accent
     Line.BorderSizePixel = 0
     Line.Size = Size or UDim2.new(1, 0, 0, 1)
     Line.Position = Position or UDim2.new()
     Line.Parent = Parent
 
-    AddEventListener(Line, function() Line.BackgroundColor3 = Menu.Accent end)
+    if Line.BackgroundColor3 == Menu.Accent then
+        AddEventListener(Line, function() Line.BackgroundColor3 = Menu.Accent end)
+    end
     return Line
 end
 
@@ -189,7 +192,6 @@ local MenuScaler_Button = Instance.new("TextButton")
 local Title_Label = Instance.new("TextLabel")
 local TabHandler_Frame = Instance.new("Frame")
 local TabIndex_Frame = Instance.new("Frame")
-local TabIndex_GridLayout = Instance.new("UIGridLayout")
 local Tabs_Frame = Instance.new("Frame")
 
 local Notifications_Frame = Instance.new("Frame")
@@ -271,12 +273,6 @@ TabIndex_Frame.Position = UDim2.new(0, 1, 0, 1)
 TabIndex_Frame.Size = UDim2.new(1, -2, 0, 20)
 TabIndex_Frame.Parent = TabHandler_Frame
 
-TabIndex_GridLayout.CellPadding = UDim2.new(0, 4, 0, 0)
-TabIndex_GridLayout.CellSize = UDim2.new()
-TabIndex_GridLayout.FillDirection = Enum.FillDirection.Horizontal
-TabIndex_GridLayout.SortOrder = Enum.SortOrder.LayoutOrder
-TabIndex_GridLayout.Parent = TabIndex_Frame
-
 Tabs_Frame.Name = "Tabs"
 Tabs_Frame.BackgroundTransparency = 1
 Tabs_Frame.Position = UDim2.new(0, 1, 0, 26)
@@ -313,28 +309,61 @@ Modal.Text = ""
 Modal.Parent = Menu_Frame
 
 
+--SelectedTabLines.Top = CreateLine(nil, UDim2.new(1, 0, 0, 1), UDim2.new())
+SelectedTabLines.Left = CreateLine(nil, UDim2.new(0, 1, 1, 0), UDim2.new(), Color3.new())
+SelectedTabLines.Right = CreateLine(nil, UDim2.new(0, 1, 1, 0), UDim2.new(1, -1, 0, 0), Color3.new())
+SelectedTabLines.Bottom = CreateLine(TabIndex_Frame, UDim2.new(), UDim2.new(0, 0, 1, 0), Color3.new())
+SelectedTabLines.Bottom2 = CreateLine(TabIndex_Frame, UDim2.new(), UDim2.new(), Color3.new())
+
+
+
 function ChangeTab(Tab_Name)
+    assert(Tabs[Tab_Name], "Tab \"" .. tostring(Tab_Name) .. "\" does not exist!")
     for _, Tab in pairs(Tabs) do
         Tab.self.Visible = false
-        Tab.Button.TextColor3 = Color3.new(0.9, 0.9, 0.9)
+        Tab.Button.BackgroundColor3 = Menu.ItemColor
+        Tab.Button.TextColor3 = Color3.fromRGB(205, 205, 205)
     end
     local Tab = GetTab(Tab_Name)
     Tab.self.Visible = true
+    Tab.Button.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
     Tab.Button.TextColor3 = Color3.new(1, 1, 1)
+
+    if (Tab.Button.AbsolutePosition.X > Tab.self.AbsolutePosition.X) then
+        SelectedTabLines.Left.Visible = true
+    else
+        SelectedTabLines.Left.Visible = false
+    end
+
+    if (Tab.Button.AbsolutePosition.X + Tab.Button.AbsoluteSize.X < Tab.self.AbsolutePosition.X + Tab.self.AbsoluteSize.X) then
+        SelectedTabLines.Right.Visible = true
+    else
+        SelectedTabLines.Right.Visible = false
+    end
+
+    --SelectedTabLines.Top.Parent = Tab.Button
+    SelectedTabLines.Left.Parent = Tab.Button
+    SelectedTabLines.Right.Parent = Tab.Button
+
+    local FRAME_POSITION = Tab.self.AbsolutePosition
+    local BUTTON_POSITION = Tab.Button.AbsolutePosition
+    local BUTTON_SIZE = Tab.Button.AbsoluteSize
+    local LENGTH = BUTTON_POSITION.X - FRAME_POSITION.X
+    local OFFSET = (BUTTON_POSITION.X + BUTTON_SIZE.X) - FRAME_POSITION.X
+
+    SelectedTabLines.Bottom.Size = UDim2.new(0, LENGTH, 0, 1)
+    SelectedTabLines.Bottom2.Size = UDim2.new(1, -OFFSET, 0, 1)
+    SelectedTabLines.Bottom2.Position = UDim2.new(0, OFFSET, 1, 0)
+
     UpdateSelected()
 end
 
 
 function UpdateTabs()
-    for k, Tab in pairs(Tabs) do
-
+    for _, Tab in pairs(Tabs) do
+        Tab.Button.Size = UDim2.new(1 / GetDictionaryLength(Tabs), 0, 1, 0)
+        Tab.Button.Position = UDim2.new((1 / GetDictionaryLength(Tabs)) * (Tab.Index - 1), 0, 0, 0)
     end
-
-    local TAB_LENGTH = GetDictionaryLength(Tabs)
-    local PADDING_OFFSET = ((TAB_LENGTH - 2) * (TabIndex_GridLayout.CellPadding.X.Offset))
-    local FRAME_LENGTH = TabIndex_Frame.AbsoluteSize.X - 4
-    local SizeX = (FRAME_LENGTH - PADDING_OFFSET) / TAB_LENGTH
-    TabIndex_GridLayout.CellSize = UDim2.new(0, SizeX, 1, 0)
 end
 
 
@@ -467,6 +496,7 @@ function Menu.Tab(Tab_Name)
 
     local Tab = {self = Frame, Button = Button}
     Tab.Class = "Tab"
+    Tab.Index = GetDictionaryLength(Tabs) + 1
 
 
     local function CreateSide(Side)
@@ -496,15 +526,16 @@ function Menu.Tab(Tab_Name)
 
     Button.Name = "Button"
     Button.BackgroundColor3 = Menu.ItemColor
-    Button.BorderColor3 = Menu.BorderColor
-    Button.BorderMode = Enum.BorderMode.Inset
+    Button.BorderSizePixel = 0
     Button.Font = Enum.Font.SourceSans
     Button.Text = Tab_Name
-    Button.TextColor3 = Color3.new(1, 1, 1)
+    Button.TextColor3 = Color3.fromRGB(205, 205, 205)
     Button.TextSize = 14
     Button.Parent = TabIndex_Frame
-    CreateStroke(Button, Color3.new(), 1)
     AddEventListener(Button, function()
+        if Button.TextColor3 == Color3.fromRGB(205, 205, 205) then
+            Button.TextColor3 = Menu.ItemColor
+        end
         Button.BackgroundColor3 = Menu.ItemColor
         Button.BorderColor3 = Menu.BorderColor
     end)
@@ -524,11 +555,8 @@ function Menu.Tab(Tab_Name)
 
     Tabs[Tab_Name] = Tab
 
-    local TAB_LENGTH = GetDictionaryLength(Tabs)
-    local PADDING_OFFSET = ((TAB_LENGTH - 2) * (TabIndex_GridLayout.CellPadding.X.Offset))
-    local FRAME_LENGTH = TabIndex_Frame.AbsoluteSize.X - 4
-    local SizeX = (FRAME_LENGTH - PADDING_OFFSET) / TAB_LENGTH
-    TabIndex_GridLayout.CellSize = UDim2.new(0, SizeX, 1, 0)
+    ChangeTab(Tab_Name)
+    UpdateTabs()
     return Tab
 end
 
@@ -542,7 +570,6 @@ function Menu.Container(Tab_Name, Container_Name, Side)
     local Frame = Instance.new("Frame")
     local Label = CreateLabel(Frame, "Title", Container_Name, UDim2.fromOffset(206, 15),  UDim2.fromOffset(5, 0))
     local Line = CreateLine(Frame, UDim2.new(1, -10, 0, 1), UDim2.fromOffset(5, 15))
-    local Stroke = CreateStroke(Frame, Color3.new(), 2)
 
     local Container = {self = Frame, Height = 0}
     Container.Class = "Container"
@@ -593,13 +620,10 @@ function Menu.Container(Tab_Name, Container_Name, Side)
 
     Frame.Name = "Container"
     Frame.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
-    Frame.BorderColor3 = Menu.BorderColor
+    Frame.BorderColor3 = Color3.new()
     Frame.BorderMode = Enum.BorderMode.Inset
     Frame.Size = UDim2.new(1, 0, 0, 0)
     Frame.Parent = Tab.self[Side]
-    AddEventListener(Frame, function()
-        Frame.BorderColor3 = Menu.BorderColor
-    end)
 
     Container:UpdateSize(25)
     Tab.self[Side].CanvasSize += UDim2.fromOffset(0, 10)
@@ -1013,7 +1037,7 @@ function Menu.Slider(Tab_Name, Container_Name, Name, Min, Max, Value, Unit, Scal
     Slider.Tab = Tab_Name
     Slider.Container = Container_Name
     Slider.Index = #Items + 1
-    Slider.Min = typeof(Min) == "number" and Min or 0
+    Slider.Min = typeof(Min) == "number" and math.clamp(Min, Min, Max) or 0
     Slider.Max = typeof(Max) == "number" and Max or 100
     Slider.Value = typeof(Value) == "number" and Value or 100
     Slider.Unit = typeof(Unit) == "string" and Unit or ""
