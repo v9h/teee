@@ -5432,7 +5432,7 @@ do
     
 
     Menu.Screen.Name = "Identification"
-    Menu.SetTitle(Menu, GetRichTextColor("Identification.%scc", Config.Menu.Accent:ToHex())) -- Can't namecall since synapse is shit
+    Menu.SetTitle(Menu, "Identification" .. GetRichTextColor(".cc", Config.Menu.Accent:ToHex())) -- Can't namecall since synapse is shit
 
     Menu.Tab("Combat")
     Menu.Tab("Visuals")
@@ -7173,7 +7173,7 @@ function Initialize()
 
     RefreshMenu()
     Menu:SetVisible(true)
-    Menu.Notify(string.format("Identification.cc took %s seconds to load in", "<font color = '#" .. Config.Menu.Accent:ToHex() .. "'>" .. (math_round((os.clock() - Time), 2)) .. "</font>"), 10)
+    Menu.Notify(string.format("Identification.cc took %s seconds to load in", GetRichTextColor(math_round((os.clock() - Time), 2), Config.Menu.Accent:ToHex()), 10))
 end
 
 
