@@ -826,9 +826,22 @@ function SaveConfig(Name)
             end
         end
     end
+    
+    local function table_clone(Original)
+        local Clone = {}
+        
+        for k, v in pairs(Original) do
+            if typeof(v) == "table" then
+                v = table_clone(v)
+            end
+            Clone[k] = v
+        end
+        
+        return Clone
+    end
 
     local ConfigFile = "Identification/Games/The Streets/Configs/" .. Name .. ".cfg"
-    local config_clone = table.clone(Config)
+    local config_clone = table_clone(Config)
     Iterate(config_clone)
     writefile(ConfigFile, HttpService:JSONEncode(config_clone))
     Menu:FindItem("Settings", "Configs", "ListBox", "Configs"):SetValue(Name .. ".cfg", GetFiles("Identification/Games/The Streets/Configs").Names)
@@ -1611,7 +1624,6 @@ do
             RunService.Stepped:Wait()
         end
 
-        print("Test?: Can remove this section")
         Start = os.clock()
     end)
 
@@ -5317,6 +5329,8 @@ $$$$$$\      $$\                      $$\     $$\  $$$$$$\  $$\                 
 $$$$$$\\$$$$$$$ |\$$$$$$$\ $$ |  $$ | \$$$$  |$$ |$$ |      $$ |\$$$$$$$\\$$$$$$$ | \$$$$  |$$ |\$$$$$$  |$$ |  $$ |
 \______|\_______| \_______|\__|  \__|  \____/ \__|\__|      \__| \_______|\_______|  \____/ \__| \______/ \__|  \__|                                                                                                                                                                                                                                                                                                   
 ]])
+    Console:Write("\nBy RegularID, xaxa, f6oor, and nixon")
+    Console:Write(string.format("Script Version: %s", get_script_version()))
     Console:Write("\nType 'cmds' to see the commands!")
 end)
 
