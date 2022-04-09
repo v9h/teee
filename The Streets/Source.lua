@@ -6455,7 +6455,7 @@ do
     Menu.ColorPicker("Settings", "Menu", "Menu Accent", Config.Menu.Accent, 0, function(Color)
         Menu.Accent = Color
         Config.Menu.Accent = Color
-        Menu:SetTitle(GetRichTextColor("Identification.%scc", Color:ToHex()))
+	Menu:SetTitle("Identification" .. GetRichTextColor(".cc", Color:ToHex()))
     end)
     Menu.ComboBox("Settings", "Menu", "Console Font Color", Config.Console.Accent, {"Cyan"}, function(String)
         Config.Console.Accent = String
