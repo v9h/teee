@@ -612,7 +612,7 @@ local Config = {
         RemoveUIElements = {Enabled = false},
         Chat = {
             Enabled = false,
-            CustomPosition = 0,
+            Position = 0,
         },
         Watermark = {
             Enabled = false,
@@ -901,7 +901,7 @@ function LoadConfig(Name)
 
     pcall(function()
         ChatFrame = PlayerGui.Chat.Frame.ChatChannelParentFrame
-        ChatFrame.Position = UDim2(0, 0, 1, Config.Interface.Chat.CustomPosition)
+        ChatFrame.Position = UDim2(0, 0, 1, Config.Interface.Chat.Position)
         ChatFrame.Visible = Config.Interface.Chat.Enabled
     end)
 
@@ -1101,7 +1101,8 @@ function RefreshMenu()
     Menu:FindItem("Visuals", "Interface", "ColorPicker", "Field Of View Circle Color"):SetValue(Config.Interface.FieldOfViewCircle.Color, 1 - Config.Interface.FieldOfViewCircle.Transparency)
     Menu:FindItem("Visuals", "Interface", "CheckBox", "Watermark"):SetValue(Config.Interface.Watermark.Enabled)
     Menu:FindItem("Visuals", "Interface", "CheckBox", "Chat"):SetValue(Config.Interface.Chat.Enabled)
-    Menu:FindItem("Visuals", "Interface", "Slider", "Custom chat position"):SetValue(Config.Interface.Chat.CustomPosition)
+    Menu:FindItem("Visuals", "Interface", "Slider", "Custom chat position"):SetValue(Config.Interface.Chat.Position)
+    Menu:FindItem("Visuals", "Interface", "Slider", "Custom chat position"):SetVisible(Config.Interface.Chat.Enabled)
     Menu:FindItem("Visuals", "Interface", "CheckBox", "Indicators"):SetValue(Config.Interface.Indicators.Enabled)
     Menu:FindItem("Visuals", "Interface", "CheckBox", "Keybinds"):SetValue(Config.Interface.Keybinds.Enabled)
     Menu:FindItem("Visuals", "Interface", "CheckBox", "Show Ammo"):SetValue(Config.Interface.ShowAmmo.Enabled)
@@ -1304,6 +1305,18 @@ function GetSkyboxes()
     local Directory = "Identification/Games/The Streets/bin/skyboxes/"
     local Files = GetFiles(Directory)
     return {Skyboxes = Files.Files, Names = Files.Names}
+end
+
+
+function GetRichTextColor(Text, Color)
+    if typeof(Color) == "string" then
+        return string.format("<font color = '#%s'>", Color) .. Text .. "</font>"
+    end
+    
+    if typeof(Color) == "Color3" then
+        local R, G, B = math_round(Color.R * 255, 2), math_round(Color.G * 255, 2), math_round(Color.B * 255, 2)
+        return string.format("<font color = 'rgb(%s)'>", R .. G .. B) .. Text .. "</font>"
+    end
 end
 
 
@@ -2212,8 +2225,9 @@ function AddItem(Spawn)
                     Event:Disconnect()
 
                     local Distance = math_round(_Player:DistanceFromCharacter(Part.Position), 2) -- DISTANCE FROM LOCAL PLAYER
-                    local Color = string.format("<font color = '#%s'>", Config.EventLogs.Colors["Picked up"]:ToHex())
-                    local Message = string.format("%s picked up a %s from %s", Color .. tostring(Player) .. " </font>", Color .. Name .. "</font>", Color .. Distance .. "</font> studs away")
+                    local Color = Config.EventLogs.Colors["Picked up"]:ToHex()
+                    local Message = string.format("%s picked up a %s from %s", GetRichTextColor(tostring(Player), Color), GetRichTextColor(Name, Color),
+                        GetRichTextColor(Distance, Color) .. " studs away")
                     Client.OnEvent({
                         GetName = function() return "picked_up" end,
                         GetValue = function() return Spawn end,
@@ -2837,10 +2851,12 @@ function BuyItem(Item_Name:string)
                 end
             end
             if not Part then
-                return Menu.Notify(string.format("<font color = '#%s'>Item '" .. Item_Name .. "' was not found </font>", Config.EventLogs.Colors.Error:ToHex()))
+                local Color = Config.EventLogs.Colors.Error:ToHex()
+                return Menu.Notify(GetRichTextColor("Item '" .. Item_Name .. "' was not found", Color))
             end
             if Price > GetCash() then
-                return Menu.Notify(string.format("<font color = '#%s'>Not enough cash..</font>", Config.EventLogs.Colors.Error:ToHex()))
+                local Color = Config.EventLogs.Colors.Error:ToHex()
+                return Menu.Notify(GetRichTextColor("Not enough cash...", Color))
             end
             if Part then
                 Buying = true
@@ -4463,17 +4479,16 @@ function OnPlayerDamaged(Victim:player, Attacker:player, Damage:number, Time:tic
     if not Victim:IsA("Player") or not Attacker:IsA("Player") then return end -- if it's the DUMMY or a GHOST? or a buypad?
     if Victim ~= Player and Attacker ~= Player then return end -- if it's not connected to localplayer then ignore
 
-    -- damage
-    local MessageLog
+    -- shotty and sawed off check
     for _, Log in ipairs(DamageLogs) do
-        if (Log.Time - Time) < 0.1 then
+        if (Log.Time - Time) < 0.05 then
             if Log.Victim == Victim and Log.Attacker == Attacker then
+                Log.Damage += Damage
                 return
             end
         end
     end
 
-    local Index = #DamageLogs + 1
     table.insert(DamageLogs, {
         Victim = Victim,
         Attacker = Attacker,
@@ -4506,30 +4521,40 @@ function OnPlayerDamaged(Victim:player, Attacker:player, Damage:number, Time:tic
                 end
             end)
         end
-
-        local Color = string.format("<font color = '#%s'>", Config.EventLogs.Colors.Hit:ToHex())
-        local Health = Victim:GetAttribute("Health") - Damage 
-        
-        if Health > 0 then -- (note from xaxa) this is a lazy fix but it works, to fix: shotgun will display "3" as the number before the ( because thats how damage each pellet does 
-            MessageLog = string.format("Damaged %s for %s (%s health remanining)", Color .. tostring(Victim) .. "</font>", Color .. Damage .. "</font>", Color .. Health .. "</font>")
-        end
-    elseif Victim == Player then
-        local Color = string.format("<font color = '#%s'>", Config.EventLogs.Colors.Miss:ToHex())
-        local Health = Player:GetAttribute("Health") - Damage
-        
-        if Health > 0 then -- same thing i said above happens when you are damaged by a shotgun too
-            MessageLog = string.format("%s damaged you for %s (%s health remanining)", Color .. tostring(Attacker) .. "</font>", Color .. Damage .. "</font>", Color .. Health .. "</font>")
-        end
     end
-
-    delay(0.2, table.remove, DamageLogs, Index)
-
-    Client.OnEvent({
-        GetName = function() return "player_damage" end,
-        GetVictim = function() return Victim end,
-        GetAttacker = function() return Attacker end
-    })
-    LogEvent("Damage", MessageLog, Time)
+    
+    spawn(function()
+        local Log = DamageLogs[1]
+        local Attacker = Log.Attacker
+        local Victim = Log.Victim
+        
+        local HealthChangedEvent
+        delay(0.2, function()
+            HealthChangedEvent:Disconnect()
+            table.remove(DamageLogs, 1)
+        end)
+        HealthChangedEvent = Victim:GetAttributeChangedSignal("Health"):Connect(function()
+            local Health = math.clamp(math_round(Victim:GetAttribute("Health"), 2), 0, 100)
+            local Damage = Log.Damage
+            
+            
+            if Attacker == Player then
+                local Color = Config.EventLogs.Colors.Hit:ToHex()
+            
+                LogEvent("Damage", string.format("Damaged %s for %s (%s health remaining)", GetRichTextColor(tostring(Victim), Color),
+                    GetRichTextColor(Damage, Color), GetRichTextColor(Health, Color)
+                ))
+            elseif Victim == Player then
+                local Color = Config.EventLogs.Colors.Miss:ToHex()
+                
+                LogEvent("Damage", string.format("%s damaged you for %s (%s health remaining)", GetRichTextColor(tostring(Attacker), Color),
+                    GetRichTextColor(Damage, Color), GetRichTextColor(Health, Color)
+                ))
+            end
+            
+            table.remove(DamageLogs, 1)
+        end)
+    end)
 end
 
 
@@ -4537,14 +4562,14 @@ function OnPlayerDeath(Victim:player, Attacker:player)
     Victim:SetAttribute("IsAlive", false)
     Victim:SetAttribute("KnockedOut", false)
 
-    local Color = string.format("<font color = '#%s'>", Config.EventLogs.Colors.Death:ToHex())
+    local Color = Config.EventLogs.Colors.Death:ToHex()
     Client.OnEvent({
         GetName = function() return "player_death" end,
         GetVictim = function() return Victim end,
         GetAttacker = function() return Attacker end -- nil
     })
 
-    LogEvent("Death", Color .. tostring(Victim) .. " died" .. "</font>", tick())
+    LogEvent("Death", GetRichTextColor(tostring(Victim) .. " died", Color), tick())
 end
 
 
@@ -5301,7 +5326,8 @@ Commands.Add("steal", {"st", "log"}, "([audio]/[decal]) [player] - steals the se
 
     local Target = GetPlayer(player_name)[1]
     if not Target then
-        return Menu.Notify(string.format("<font color = '#%s'>player_name for argument[2] expected</font>", Config.EventLogs.Colors.Error:ToHex()))
+        local Color = Config.EventLogs.Colors.Error:ToHex()
+        return Menu.Notify(GetRichTextColor("player_name for argument[2] expeceted", Color))
     end
 
     if asset_type == "audio" or asset_type == "sound" or asset_type == "radio" or asset_type == "boombox" then
@@ -5313,12 +5339,14 @@ Commands.Add("steal", {"st", "log"}, "([audio]/[decal]) [player] - steals the se
                     local sound_id = sound and sound.SoundId
                     if sound_id then
                         setclipboard(sound_id)
-                        return Menu.Notify(string.format("<font color = '#%s'>set audio_id rbxassetid://'%s' to your clipboard</font>", Config.EventLogs.Colors.Success:ToHex(), sound_id))
+                        local Color = Config.EventLogs.Colors.Success:ToHex()
+                        return Menu.Notify(GetRichTextColor("set audio_id rbxassetid://'" .. sound_id .. "' to your clipboard", Color))
                     end
                 end
             end
 
-            return Menu.Notify(string.format("<font color = '#%s'>no audio from player '%s' found</font>", Config.EventLogs.Colors:ToHex(), tostring(Target)))
+            local Color = Config.EventLogs.Colors.Error:ToHex()
+            return Menu.Notify(GetRichTextColor("no audio from player '" .. tostring(Target) .. "' found", Color))
         end
     elseif asset_type == "decal" or asset_type == "spray" then
         local spray_part = workspace:FindFirstChild(tostring(Target) .. "Spray")
@@ -5327,13 +5355,16 @@ Commands.Add("steal", {"st", "log"}, "([audio]/[decal]) [player] - steals the se
             local decal_id = string.match(decal.Texture, "%d+")
             if not Original then decal_id += 1 end
             setclipboard(decal_id)
-            return Menu.Notify(string.format("<font color = '#%s'>set decal_id rbxassetid://'%s' to your clipboard</font>", Config.EventLogs.Colors.Success:ToHex(), decal_id))
+            local Color = Config.EventLogs.Colors.Success:ToHex()
+            return Menu.Notify(GetRichTextColor("set decal_id rbxassetid://'" .. decal_id .. "' to your clipboard", Color))
         else
-            return Menu.Notify(string.format("<font color = '#%s'>no decal from player '%s' found</font>", Config.EventLogs.Colors.Error:ToHex(), tostring(Target)))
+            local Color = Config.EventLogs.Colors.Error:ToHex()
+            return Menu.Notify(GetRichTextColor("no decal from player '" .. tostring(Target) .. "' found", Color))
         end
         -- sign check?
     else
-        return Menu.Notify(string.format("<font color = '#%s'>asset-type for argument[1] expected</font>", Config.EventLogs.Colors.Error:ToHex()))
+        local Color = Config.EventLogs.Colors.Error:ToHex()
+        return Menu.Notify(GetRichTextColor("asset-type for argument[1] expected", Color))
     end
 end)
 
@@ -5385,7 +5416,7 @@ do
     
 
     Menu.Screen.Name = "Identification"
-    Menu.SetTitle(Menu, string.format("Identification.%scc%s", "<font color = '#" .. Config.Menu.Accent:ToHex() .. "'>", "</font>")) -- Can't namecall since synapse is shit
+    Menu.SetTitle(Menu, GetRichTextColor("Identification.%scc", Config.Menu.Accent:ToHex())) -- Can't namecall since synapse is shit
 
     Menu.Tab("Combat")
     Menu.Tab("Visuals")
@@ -5933,9 +5964,9 @@ do
         
         Menu:FindItem("Visuals", "Interface", "Slider", "Custom chat position"):SetVisible(Bool)
     end)
-    Menu.GetItem(Menu, Menu.Slider("Visuals", "Interface", "Custom chat position", 0, 500, Config.Interface.Chat.CustomPosition, "", 0, function(Value)
-        Config.Interface.Chat.CustomPosition = Value 
-        ChatFrame.Position = UDim2.new(0, 0, 1, Config.Interface.Chat.CustomPosition)
+    Menu.GetItem(Menu, Menu.Slider("Visuals", "Interface", "Custom chat position", 0, 500, Config.Interface.Chat.Position, "", 0, function(Value)
+        Config.Interface.Chat.Position = Value 
+        ChatFrame.Position = UDim2.new(0, 0, 1, Config.Interface.Chat.Position)
     end)):SetVisible(false) -- "attempt to index number with SetVisible" thats if I dont do the Menu.GetItem thing ???
     Menu.CheckBox("Visuals", "Interface", "Indicators", Config.Interface.Indicators.Enabled, function(Bool)
         Config.Interface.Indicators.Enabled = Bool
@@ -6408,7 +6439,7 @@ do
     Menu.ColorPicker("Settings", "Menu", "Menu Accent", Config.Menu.Accent, 0, function(Color)
         Menu.Accent = Color
         Config.Menu.Accent = Color
-        Menu:SetTitle(string.format("Identification.%scc%s", "<font color = '#" .. Color:ToHex() .. "'>", "</font>"))
+        Menu:SetTitle(GetRichTextColor("Identification.%scc", Color:ToHex()))
     end)
     Menu.ComboBox("Settings", "Menu", "Console Font Color", Config.Console.Accent, {"Cyan"}, function(String)
         Config.Console.Accent = String
@@ -6531,7 +6562,7 @@ end
 function Initialize()
     pcall(function()
         ChatFrame = PlayerGui.Chat.Frame.ChatChannelParentFrame
-        ChatFrame.Position = UDim2(0, 0, 1, Config.Interface.Chat.CustomPosition)
+        ChatFrame.Position = UDim2(0, 0, 1, Config.Interface.Chat.Position)
         ChatFrame.Visible = Config.Interface.Chat.Enabled
     end)
 
@@ -6642,8 +6673,8 @@ function Initialize()
             if Debounce or not Player then return end
             Debounce = true
 
-            local Color = string.format("<font color = '#%s'>", Config.EventLogs.Colors.Buy:ToHex())
-            local Message = string.format("%s bought a %s for %s", Color .. tostring(Player) .. " </font>", Color .. Name .. "</font>", Color .. "$" .. Price .. "</font>")
+            local Color = Config.EventLogs.Colors.Buy:ToHex()
+            local Message = string.format("%s bought a %s for %s", GetRichTextColor(tostring(Player), Color), GetRichTextColor(Name, Color), GetRichTextColor("$", Color) .. Price)
             Client.OnEvent({
                 GetName = function() return "item_buy" end,
                 GetPlayer = function() return Player end,
