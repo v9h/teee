@@ -170,7 +170,7 @@ local Head = Character:WaitForChild("Head")
 local Torso = Character:WaitForChild("Torso")
 local Root = Humanoid.RootPart
 local Tool = Character:FindFirstChildOfClass("Tool")
-local PlayerGui = Player:WaitForChild("PlayerGui")
+local PlayerGui, ChatFrame = Player:WaitForChild("PlayerGui"), nil
 local HUD = PlayerGui and PlayerGui:WaitForChild("HUD")
 local Camera = workspace.CurrentCamera
 local TagSystem = Original and require(ReplicatedStorage:WaitForChild("TagSystem")) -- "creator" || "creatorslow" || "gunslow" || "action" || "Action" || "KO" || "Dragged" || "Dragging" || "reloading" || "equipedgun" || yes with 1 p he's retarded
@@ -610,7 +610,10 @@ local Config = {
     Interface = {
         BarFade = {Enabled = false},
         RemoveUIElements = {Enabled = false},
-        Chat = {Enabled = false},
+        Chat = {
+            Enabled = false,
+            CustomPosition = 0,
+        },
         Watermark = {
             Enabled = false,
             Position = Vector2.new()
@@ -897,7 +900,8 @@ function LoadConfig(Name)
 
 
     pcall(function()
-        local ChatFrame = PlayerGui.Chat.Frame.ChatChannelParentFrame
+        ChatFrame = PlayerGui.Chat.Frame.ChatChannelParentFrame
+        ChatFrame.Position = UDim2(0, 0, 1, Config.Interface.Chat.CustomPosition)
         ChatFrame.Visible = Config.Interface.Chat.Enabled
     end)
 
@@ -1097,6 +1101,7 @@ function RefreshMenu()
     Menu:FindItem("Visuals", "Interface", "ColorPicker", "Field Of View Circle Color"):SetValue(Config.Interface.FieldOfViewCircle.Color, 1 - Config.Interface.FieldOfViewCircle.Transparency)
     Menu:FindItem("Visuals", "Interface", "CheckBox", "Watermark"):SetValue(Config.Interface.Watermark.Enabled)
     Menu:FindItem("Visuals", "Interface", "CheckBox", "Chat"):SetValue(Config.Interface.Chat.Enabled)
+    Menu:FindItem("Visuals", "Interface", "Slider", "Custom chat position"):SetValue(Config.Interface.Chat.CustomPosition)
     Menu:FindItem("Visuals", "Interface", "CheckBox", "Indicators"):SetValue(Config.Interface.Indicators.Enabled)
     Menu:FindItem("Visuals", "Interface", "CheckBox", "Keybinds"):SetValue(Config.Interface.Keybinds.Enabled)
     Menu:FindItem("Visuals", "Interface", "CheckBox", "Show Ammo"):SetValue(Config.Interface.ShowAmmo.Enabled)
@@ -4503,13 +4508,18 @@ function OnPlayerDamaged(Victim:player, Attacker:player, Damage:number, Time:tic
         end
 
         local Color = string.format("<font color = '#%s'>", Config.EventLogs.Colors.Hit:ToHex())
-        local Health = Victim:GetAttribute("Health") - Damage
-        MessageLog = string.format("Damaged %s for %s (%s health remanining)", Color .. tostring(Victim) .. "</font>", Color .. Damage .. "</font>", Color .. Health .. "</font>")
+        local Health = Victim:GetAttribute("Health") - Damage 
+        
+        if Health > 0 then -- (note from xaxa) this is a lazy fix but it works, to fix: shotgun will display "3" as the number before the ( because thats how damage each pellet does 
+            MessageLog = string.format("Damaged %s for %s (%s health remanining)", Color .. tostring(Victim) .. "</font>", Color .. Damage .. "</font>", Color .. Health .. "</font>")
+        end
     elseif Victim == Player then
         local Color = string.format("<font color = '#%s'>", Config.EventLogs.Colors.Miss:ToHex())
         local Health = Player:GetAttribute("Health") - Damage
-
-        MessageLog = string.format("%s damaged you for %s (%s health remanining)", Color .. tostring(Attacker) .. "</font>", Color .. Damage .. "</font>", Color .. Health .. "</font>")
+        
+        if Health > 0 then -- same thing i said above happens when you are damaged by a shotgun too
+            MessageLog = string.format("%s damaged you for %s (%s health remanining)", Color .. tostring(Attacker) .. "</font>", Color .. Damage .. "</font>", Color .. Health .. "</font>")
+        end
     end
 
     delay(0.2, table.remove, DamageLogs, Index)
@@ -5785,7 +5795,6 @@ do
     Menu.Slider("Visuals", "Item ESP", "Font size", 10, 32, Config.ESP.Item.Font.Size, "px", 0, function(Value)
         Config.ESP.Item.Font.Size = Value
     end)
-
     Menu.CheckBox("Visuals", "Hit markers", "Hit markers", Config.HitMarkers.Enabled, function(Bool)
         Config.HitMarkers.Enabled = Bool
     end)
@@ -5920,11 +5929,14 @@ do
     end)
     Menu.CheckBox("Visuals", "Interface", "Chat", Config.Interface.Chat.Enabled, function(Bool)
         Config.Interface.Chat.Enabled = Bool
-        pcall(function()
-            local ChatFrame = PlayerGui.Chat.Frame.ChatChannelParentFrame
-            ChatFrame.Visible = Config.Interface.Chat.Enabled
-        end)
+        ChatFrame.Visible = Config.Interface.Chat.Enabled
+        
+        Menu:FindItem("Visuals", "Interface", "Slider", "Custom chat position"):SetVisible(Bool)
     end)
+    Menu.GetItem(Menu, Menu.Slider("Visuals", "Interface", "Custom chat position", 0, 500, Config.Interface.Chat.CustomPosition, "", 0, function(Value)
+        Config.Interface.Chat.CustomPosition = Value 
+        ChatFrame.Position = UDim2.new(0, 0, 1, Config.Interface.Chat.CustomPosition)
+    end)):SetVisible(false) -- "attempt to index number with SetVisible" thats if I dont do the Menu.GetItem thing ???
     Menu.CheckBox("Visuals", "Interface", "Indicators", Config.Interface.Indicators.Enabled, function(Bool)
         Config.Interface.Indicators.Enabled = Bool
         Menu.Indicators:SetVisible(Bool)
@@ -6413,7 +6425,7 @@ do
     end)
     Menu.Button("Settings", "Configs", "Save", function()
         local cfg_name = Menu:FindItem("Settings", "Configs", "ListBox", "Configs"):GetValue()
-        Menu.Prompt("Are you sure you want to overwrite save  of'" .. cfg_name .. "' ?", function()
+        Menu.Prompt("Are you sure you want to overwrite save  of  '" .. cfg_name .. "' ?", function() -- 2 spaces since the font makes it look like no spaces
             SaveConfig(string.gsub(cfg_name, ".cfg", ""))
         end)
     end)
@@ -6518,11 +6530,9 @@ end
 
 function Initialize()
     pcall(function()
-        local ChatFrame = PlayerGui.Chat.Frame.ChatChannelParentFrame
-        ChatFrame.Position += UDim2.new(0, 0, 0, 420)
-        if Config.Interface.Chat.Enabled then
-            ChatFrame.Visible = true
-        end
+        ChatFrame = PlayerGui.Chat.Frame.ChatChannelParentFrame
+        ChatFrame.Position = UDim2(0, 0, 1, Config.Interface.Chat.CustomPosition)
+        ChatFrame.Visible = Config.Interface.Chat.Enabled
     end)
 
     --[[
