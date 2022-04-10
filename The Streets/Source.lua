@@ -3105,6 +3105,7 @@ function TeleportBypass()
             local RootPart = GetRoot(Player)
             if tostring(RootPart) == "HumanoidRootPart" then
                 Torso.Anchored = true
+		Player:SetAttribute("RootPoint", RootPart.Position)
                 RootPart:Destroy()
                 Torso.Anchored = false
                 Root = Torso
@@ -4222,6 +4223,7 @@ function OnCharacterAdded(_Character)
     Player:SetAttribute("Health", math_round(Humanoid.Health, 2))
     Player:SetAttribute("IsAlive", true)
     Player:SetAttribute("Stamina", math_round(GetStamina(), 2))
+    Player:SetAttribute("RootPoint", Root and Root.Position)
 
     get_running_function(Character)
     TeleportBypass()
