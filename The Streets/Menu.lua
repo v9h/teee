@@ -1,11 +1,6 @@
 -- // Fix notification tweening
 -- // Tool Tips?
--- // ColorPicker better transparency indicator?
--- // Container Strokes Weird?
--- // Menu Scaler?
--- // make Menu:SetSize better
 -- // Menu Effects (OnHover, OnClick)
--- // Don't forget to add Event Listeners to all menu objects && Double check code before initial launch
 
 
 local Menu = {}
@@ -622,7 +617,7 @@ function Menu.Container(Tab_Name, Container_Name, Side)
     Frame.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
     Frame.BorderColor3 = Color3.new()
     Frame.BorderMode = Enum.BorderMode.Inset
-    Frame.Size = UDim2.new(1, 0, 0, 0)
+    Frame.Size = UDim2.new(1, -6, 0, 0)
     Frame.Parent = Tab.self[Side]
 
     Container:UpdateSize(25)
