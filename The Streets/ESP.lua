@@ -16,20 +16,22 @@ local DrawnObjects = {}
 local RunService = game:GetService("RunService")
 
 local Camera = workspace.CurrentCamera
-local render_object_exists = function(self) -- should probably just store Drawn instances in a table AS a table with like {self = self, is_alive = true}
-    if typeof(self) == "table" then
-        return self.__OBJECT_EXISTS
-    elseif typeof(self) == "userdata" then
-        return syn and self.__OBJECT_EXISTS or isrenderobj and isrenderobj(self)
-    end
+local render_object_exists = function(self)
+    return DrawnObjects[self] or false
 end
 
 local RenderLoop
 
 
+function AddDrawn(self)
+    DrawnObjects[self] = true
+end
+
+
 function RemoveDrawn(self, Item)
     if self then
         pcall(function()
+            DrawnObjects[self] = nil
             self:Remove()
         end)
     end
@@ -53,7 +55,7 @@ function DrawLine(Color, Transparency, From, To)
     Line.To = To or Vector2.new()
     Line.Visible = false
     Line.ZIndex = 1
-
+    
     return Line
 end
 
@@ -88,8 +90,6 @@ function ESP:Clear()
     for _, v in pairs(Drawn) do
         v:Remove()
     end
-    Drawn = nil
-    ESP = nil
 end
 
 
@@ -106,6 +106,7 @@ function ESP.Arrow(self)
     Arrow.self.Thickness = 1
     Arrow.self.Color = Color3.new(1, 1, 1)
     Arrow.self.Visible = false
+    AddDrawn(Arrow.self)
 
     function Arrow:SetColor(Color, Transparency)
         if render_object_exists(Arrow.self) then
@@ -151,11 +152,13 @@ function ESP.Bar(self)
     Bar.self.Thickness = 1
     Bar.self.ZIndex = 2
     Bar.self.Visible = false
+    AddDrawn(Bar.self)
 
     Bar.Outline = Drawing.new("Quad")
     Bar.Outline.Color = Color3.new()
     Bar.Outline.Thickness = 1
     Bar.Outline.Visible = false
+    AddDrawn(Bar.Outline)
 
     function Bar:SetPoints(a, b, c, d)
         Bar.Points = {typeof(a) == "number" and a or 0, typeof(b) == "number" and b or 0, typeof(c) == "number" and c or 0, typeof(d) == "number" and d or 0}
@@ -214,11 +217,13 @@ function ESP.Box(self)
     Box.self.Thickness = 1
     Box.self.ZIndex = 2
     Box.self.Visible = false
+    AddDrawn(Box.self)
 
     Box.Outline = Drawing.new("Quad")
     Box.Outline.Color = Color3.new()
     Box.Outline.Thickness = 1
     Box.Outline.Visible = false
+    AddDrawn(Box.Outline)
 
     function Box:SetPoints(a, b, c, d)
         Box.Points = {typeof(a) == "number" and a or 0, typeof(b) == "number" and b or 0, typeof(c) == "number" and c or 0, typeof(d) == "number" and d or 0}
@@ -324,7 +329,6 @@ end
 function ESP.Skeleton(Points)
     local Skeleton = {}
     Skeleton.Type = "Skeleton"
-    Skeleton.__OBJECT_EXISTS = true
     Skeleton.self = Skeleton
     Skeleton.Lines = {} -- head neck, torso, arms up, arm middles, arm hands, leg up, leg middles, leg feet
     Skeleton.Points = {}
@@ -348,6 +352,7 @@ function ESP.Skeleton(Points)
         local Color = typeof(Color) == "Color3" and Color or Color3.new(1, 1, 1)
         local Transparency = typeof(Transparency) == "number" and Transparency or 1
 
+        if not render_object_exists(Skeleton) then return end
         for _, Line in ipairs(Skeleton.Lines) do
             Line.Color = Color
             Line.Transparency = Transparency
@@ -358,6 +363,7 @@ function ESP.Skeleton(Points)
     function Skeleton:SetVisible(Visible)
         local Visible = typeof(Visible) == "boolean" and Visible or false
 
+        if not render_object_exists(Skeleton) then return end
         for _, Line in ipairs(Skeleton.Lines) do
             Line.Visible = Visible
         end
@@ -366,9 +372,8 @@ function ESP.Skeleton(Points)
 
     function Skeleton.Remove()
         Drawn[Skeleton] = nil
-        if not Skeleton.__OBJECT_EXISTS then return end
-        Skeleton.__OBJECT_EXISTS = false
 
+        if not render_object_exists(Skeleton) then return end
         for _, Line in ipairs(Skeleton.Lines) do
             Line:Remove()
         end
@@ -376,6 +381,7 @@ function ESP.Skeleton(Points)
 
 
     Skeleton:SetColor(Color3.new(1, 1, 1), 1)
+    AddDrawn(Skeleton)
     Drawn[Skeleton] = Skeleton
     return Skeleton
 end
@@ -392,6 +398,7 @@ function ESP.Text(self)
     Text.self = Drawing.new("Text")
     Text.self.Center = true
     Text.self.Visible = false
+    AddDrawn(Text.self)
 
     function Text:SetText(String, Font, FontSize, Color, Transparency, Outline)
         if render_object_exists(Text.self) then
@@ -431,6 +438,7 @@ function ESP.Image(self)
     local Image = {}
     Image.self = Drawing.new("Image")
     Image.self.Visible = false
+    AddDrawn(Image.self)
     Image.Type = "Image"
     Image.Visible = false
     Image.Root = self
@@ -486,6 +494,7 @@ function ESP.Snapline(self) -- I liked tracer more but whateva
     Snapline.self.Color = Color3.new(1, 1, 1)
     Snapline.self.From = Vector2.new(Camera.ViewportSize.x / 2, Camera.ViewportSize.y / 2)
     Snapline.self.Visible = false
+    AddDrawn(Snapline.self)
 
     function Snapline:SetColor(Color, Transparency)
         if render_object_exists(Snapline.self) then
@@ -517,7 +526,6 @@ end
 function ESP.Trajectory(Points)
     local Trajectory = {}
     Trajectory.Type = "Trajectory"
-    Trajectory.__OBJECT_EXISTS = true
     Trajectory.self = Trajectory
     Trajectory.Visible = true
     Trajectory.Points = Points
@@ -536,6 +544,7 @@ function ESP.Trajectory(Points)
         local Color = typeof(Color) == "Color3" and Color or Color3.new(1, 1, 1)
         local Transparency = typeof(Transparency) == "number" and Transparency or 1
 
+        if not render_object_exists(Trajectory) then return end
         for _, Line in ipairs(Trajectory.Lines) do
             Line.Color = Color
             Line.Transparency = Transparency
@@ -545,7 +554,8 @@ function ESP.Trajectory(Points)
 
     function Trajectory:SetVisible(Visible)
         local Visible = typeof(Visible) == "boolean" and Visible or false
-
+        
+        if not render_object_exists(Trajectory) then return end
         for _, Line in ipairs(Trajectory.Lines) do
             Line.Visible = Visible
         end
@@ -553,17 +563,16 @@ function ESP.Trajectory(Points)
 
 
     function Trajectory.Remove()
-        Trajectory.__OBJECT_EXISTS = false
         for _, Line in ipairs(Trajectory.Lines) do
             Line:Remove()
         end
         Drawn[Trajectory] = nil
-        Trajectory = nil
     end
 
 
     Trajectory:SetColor(Color3.new(1, 1, 1), 1)
     
+    AddDrawn(Trajectory)
     Drawn[Trajectory] = Trajectory
     return Trajectory
 end
