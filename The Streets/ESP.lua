@@ -2,22 +2,26 @@
 -- Image and Text Offset;
 -- Fix Boxes, Bars, Arrows
 -- Corner 2D BOX
--- Chams
 -- Outline Color Text
 -- Gradient lines
 -- Fix offscreen esp
--- Self health bar
+
 
 if ESP and ESP.__CHECK and ESP.Clear then ESP:Clear() end
 
 local ESP = {__CHECK = true}
 local Drawn = {}
+local DrawnObjects = {}
 
 local RunService = game:GetService("RunService")
 
 local Camera = workspace.CurrentCamera
-local render_object_exists = function(self)
-    return syn and self.__OBJECT_EXISTS or isrenderobj and isrenderobj(self) or false
+local render_object_exists = function(self) -- should probably just store Drawn instances in a table AS a table with like {self = self, is_alive = true}
+    if typeof(self) == "table" then
+        return self.__OBJECT_EXISTS
+    elseif typeof(self) == "userdata" then
+        return syn and self.__OBJECT_EXISTS or isrenderobj and isrenderobj(self)
+    end
 end
 
 local RenderLoop
@@ -49,6 +53,7 @@ function DrawLine(Color, Transparency, From, To)
     Line.To = To or Vector2.new()
     Line.Visible = false
     Line.ZIndex = 1
+
     return Line
 end
 
@@ -100,6 +105,7 @@ function ESP.Arrow(self)
     Arrow.self = Drawing.new("Triangle")
     Arrow.self.Thickness = 1
     Arrow.self.Color = Color3.new(1, 1, 1)
+    Arrow.self.Visible = false
 
     function Arrow:SetColor(Color, Transparency)
         if render_object_exists(Arrow.self) then
@@ -144,10 +150,12 @@ function ESP.Bar(self)
     Bar.self.Color = Color3.new(1, 1, 1)
     Bar.self.Thickness = 1
     Bar.self.ZIndex = 2
+    Bar.self.Visible = false
 
     Bar.Outline = Drawing.new("Quad")
     Bar.Outline.Color = Color3.new()
     Bar.Outline.Thickness = 1
+    Bar.Outline.Visible = false
 
     function Bar:SetPoints(a, b, c, d)
         Bar.Points = {typeof(a) == "number" and a or 0, typeof(b) == "number" and b or 0, typeof(c) == "number" and c or 0, typeof(d) == "number" and d or 0}
@@ -205,10 +213,12 @@ function ESP.Box(self)
     Box.self.Color = Color3.new(1, 1, 1)
     Box.self.Thickness = 1
     Box.self.ZIndex = 2
+    Box.self.Visible = false
 
     Box.Outline = Drawing.new("Quad")
     Box.Outline.Color = Color3.new()
     Box.Outline.Thickness = 1
+    Box.Outline.Visible = false
 
     function Box:SetPoints(a, b, c, d)
         Box.Points = {typeof(a) == "number" and a or 0, typeof(b) == "number" and b or 0, typeof(c) == "number" and c or 0, typeof(d) == "number" and d or 0}
@@ -319,7 +329,9 @@ function ESP.Skeleton(Points)
     Skeleton.Lines = {} -- head neck, torso, arms up, arm middles, arm hands, leg up, leg middles, leg feet
     Skeleton.Points = {}
     for _ = 1, 15 do
-        table.insert(Skeleton.Lines, Drawing.new("Line"))
+        local Line = Drawing.new("Line")
+        Line.Visible = false
+        table.insert(Skeleton.Lines, Line)
     end
 
 
@@ -379,6 +391,7 @@ function ESP.Text(self)
     
     Text.self = Drawing.new("Text")
     Text.self.Center = true
+    Text.self.Visible = false
 
     function Text:SetText(String, Font, FontSize, Color, Transparency, Outline)
         if render_object_exists(Text.self) then
@@ -417,6 +430,7 @@ function ESP.Image(self)
     assert(self and self:IsA("BasePart"), "missing root or root is not a basepart")
     local Image = {}
     Image.self = Drawing.new("Image")
+    Image.self.Visible = false
     Image.Type = "Image"
     Image.Visible = false
     Image.Root = self
@@ -471,6 +485,7 @@ function ESP.Snapline(self) -- I liked tracer more but whateva
     Snapline.self.Transparency = 1
     Snapline.self.Color = Color3.new(1, 1, 1)
     Snapline.self.From = Vector2.new(Camera.ViewportSize.x / 2, Camera.ViewportSize.y / 2)
+    Snapline.self.Visible = false
 
     function Snapline:SetColor(Color, Transparency)
         if render_object_exists(Snapline.self) then
@@ -510,7 +525,9 @@ function ESP.Trajectory(Points)
 
     if typeof(Points) == "table" then
         for _ = 1, #Points do
-            table.insert(Trajectory.Lines, Drawing.new("Line"))
+            local Line = Drawing.new("Line")
+            Line.Visible = false
+            table.insert(Trajectory.Lines, Line)
         end
     end
 
