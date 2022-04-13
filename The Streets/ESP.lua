@@ -371,12 +371,13 @@ function ESP.Skeleton(Points)
 
 
     function Skeleton.Remove()
-        Drawn[Skeleton] = nil
-
         if not render_object_exists(Skeleton) then return end
         for _, Line in ipairs(Skeleton.Lines) do
             Line:Remove()
         end
+
+        Drawn[Skeleton] = nil
+        RemoveDrawn(Skeleton.self, Skeleton)
     end
 
 
@@ -563,9 +564,12 @@ function ESP.Trajectory(Points)
 
 
     function Trajectory.Remove()
+        if not render_object_exists(Trajectory) then return end
         for _, Line in ipairs(Trajectory.Lines) do
             Line:Remove()
         end
+
+        RemoveDrawn(Trajectory.self, Trajectory)
         Drawn[Trajectory] = nil
     end
 
