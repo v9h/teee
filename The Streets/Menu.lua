@@ -20,6 +20,7 @@ local Selected = {
     Offset = UDim2.new(),
     Follow = false
 }
+local SelectedTab
 local SelectedTabLines = {}
 
 
@@ -169,7 +170,7 @@ function SetDraggable(self)
             local OffsetX = math.clamp(GuiOrigin.X.Offset + Delta.X + ScaleX,   0, ScreenSize.X - self.AbsoluteSize.X)
             local OffsetY = math.clamp(GuiOrigin.Y.Offset + Delta.Y + ScaleY, -36, ScreenSize.Y - self.AbsoluteSize.Y)
             
-            local Position = UDim2.fromOffset(OffsetX, OffsetY) -- Yeah we don't keep Scale but if some math god hits me up I will fix it
+            local Position = UDim2.fromOffset(OffsetX, OffsetY)
 			self.Position = Position
         end
     end)
@@ -311,7 +312,6 @@ SelectedTabLines.Bottom = CreateLine(TabIndex_Frame, UDim2.new(), UDim2.new(0, 0
 SelectedTabLines.Bottom2 = CreateLine(TabIndex_Frame, UDim2.new(), UDim2.new(), Color3.new())
 
 
-
 function ChangeTab(Tab_Name)
     assert(Tabs[Tab_Name], "Tab \"" .. tostring(Tab_Name) .. "\" does not exist!")
     for _, Tab in pairs(Tabs) do
@@ -323,6 +323,48 @@ function ChangeTab(Tab_Name)
     Tab.self.Visible = true
     Tab.Button.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
     Tab.Button.TextColor3 = Color3.new(1, 1, 1)
+
+    SelectedTab = Tab
+    UpdateSelected()
+    UpdateSelectedTabLines(Tab)
+end
+
+
+function UpdateTabs()
+    for _, Tab in pairs(Tabs) do
+        Tab.Button.Size = UDim2.new(1 / GetDictionaryLength(Tabs), 0, 1, 0)
+        Tab.Button.Position = UDim2.new((1 / GetDictionaryLength(Tabs)) * (Tab.Index - 1), 0, 0, 0)
+    end
+    UpdateSelectedTabLines(SelectedTab)
+end
+
+
+function UpdateSelected(Frame, Item, Offset)
+    local Selected_Frame = Selected.Frame
+    if Selected_Frame then
+        Selected_Frame.Visible = false
+        Selected_Frame.Parent = nil
+    end
+
+    Selected = {}
+
+    if Frame then
+        if Selected_Frame == Frame then return end
+        Selected = {
+            Frame = Frame,
+            Item = Item,
+            Offset = Offset
+        }
+
+        Frame.ZIndex = 3
+        Frame.Visible = true
+        Frame.Parent = Menu.Screen
+    end
+end
+
+
+function UpdateSelectedTabLines(Tab)
+    if not Tab then return end
 
     if (Tab.Button.AbsolutePosition.X > Tab.self.AbsolutePosition.X) then
         SelectedTabLines.Left.Visible = true
@@ -346,42 +388,9 @@ function ChangeTab(Tab_Name)
     local LENGTH = BUTTON_POSITION.X - FRAME_POSITION.X
     local OFFSET = (BUTTON_POSITION.X + BUTTON_SIZE.X) - FRAME_POSITION.X
 
-    SelectedTabLines.Bottom.Size = UDim2.new(0, LENGTH, 0, 1)
+    SelectedTabLines.Bottom.Size = UDim2.new(0, LENGTH + 1, 0, 1)
     SelectedTabLines.Bottom2.Size = UDim2.new(1, -OFFSET, 0, 1)
     SelectedTabLines.Bottom2.Position = UDim2.new(0, OFFSET, 1, 0)
-
-    UpdateSelected()
-end
-
-
-function UpdateTabs()
-    for _, Tab in pairs(Tabs) do
-        Tab.Button.Size = UDim2.new(1 / GetDictionaryLength(Tabs), 0, 1, 0)
-        Tab.Button.Position = UDim2.new((1 / GetDictionaryLength(Tabs)) * (Tab.Index - 1), 0, 0, 0)
-    end
-end
-
-
-function UpdateSelected(Frame, Item, Offset)
-    local Selected_Frame = Selected.Frame
-    if Selected_Frame then
-        Selected_Frame.Visible = false
-        Selected_Frame.Parent = nil
-    end
-
-    Selected = {}
-
-    if Frame then
-        if Selected_Frame == Frame then return end
-        Selected = {
-            Frame = Frame,
-            Item = Item,
-            Offset = Offset
-        }
-        Frame.ZIndex = 3
-        Frame.Visible = true
-        Frame.Parent = Menu.Screen
-    end
 end
 
 
@@ -511,6 +520,7 @@ function Menu.Tab(Tab_Name)
         AddEventListener(Frame, function()
             Frame.ScrollBarImageColor3 = Menu.Accent
         end)
+        Frame:GetPropertyChangedSignal("CanvasPosition"):Connect(UpdateSelected)
 
         ListLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center
         ListLayout.SortOrder = Enum.SortOrder.LayoutOrder
@@ -1998,10 +2008,6 @@ function Menu.Notify(Content, Delay)
     Text.ZIndex = 4
     Text.Parent = Notifications_Frame
 
-    function Notification:Update()
-        --Text.Font = Menu.Font
-    end
-
     local function CustomTweenOffset(Offset)
         spawn(function()
             local Steps = 33
@@ -2010,6 +2016,10 @@ function Menu.Notify(Content, Delay)
                 RunService.RenderStepped:Wait()
             end
         end)
+    end
+
+    function Notification:Update()
+        
     end
 
     function Notification:Destroy()
