@@ -928,7 +928,7 @@ function LoadConfig(Name)
 
 
     if Original and Config.ClanTag.Enabled then
-        Threads.ClanTagChanger.Continue()
+        Threads.ClanTag.Continue()
     end
 
     if Config.KnockDoors.Enabled then
@@ -1228,19 +1228,18 @@ function GetFiles(Directory)
     local Files = {}
     local Names = {}
 
-    for _, v in ipairs(listfiles(Directory)) do
-        local File
-        if isfile(v) then
-            File = v
-        elseif isfolder(v) then
-            for _, v2 in ipairs(listfiles(v)) do File = v2 end
+    local function Recurse(Directory)
+        for _, File in ipairs(listfiles(Directory)) do
+            if isfile(File) then
+                table.insert(Files, File)
+                table.insert(Names, string.match(File, "[^/\\]+$"))
+            elseif isfolder(File) then
+                Recurse(File)
+            end
         end
-        File = string.gsub(File, Directory .. "\\", "")
-        table.insert(Files, File)
-        local Name = string.gsub(File, Directory, "")
-        table.insert(Names, Name)
     end
 
+    Recurse(Directory)
     return {Files = Files, Names = Names}
 end
 
@@ -4752,7 +4751,7 @@ end
 function AutoFireToggle(Action_Name, State, Input)
     if not State or State == Enum.UserInputState.Begin then
         Config.AutoFire.Enabled = not Config.AutoFire.Enabled
-        Menu:FindItem("Combat", "Aimbot", "CheckBox", "Auto Fire"):SetValue(Config.AutoFire.Enabled)
+        Menu:FindItem("Combat", "Aimbot", "CheckBox", "Auto fire"):SetValue(Config.AutoFire.Enabled)
     end
 end
 
@@ -4760,7 +4759,7 @@ end
 function CameraLockToggle(Action_Name, State, Input)
     if not State or State == Enum.UserInputState.Begin then
         Config.CameraLock.Enabled = not Config.CameraLock.Enabled
-        Menu:FindItem("Combat", "Aimbot", "CheckBox", "Camera Lock"):SetValue(Config.CameraLock.Enabled)
+        Menu:FindItem("Combat", "Aimbot", "CheckBox", "Camera lock"):SetValue(Config.CameraLock.Enabled)
         Menu.Keybinds.List["Camera Lock"]:Update(Config.CameraLock.Enabled and "on" or "off")
         Menu.Keybinds.List["Camera Lock"]:SetVisible(Config.CameraLock.Enabled)
     end
@@ -5086,22 +5085,22 @@ NameCall = hookmetamethod(game, "__namecall", OnNameCall)
 -- Commands
 Commands.Add("walkspeed", {"ws"}, "[number] - sets your walkspeed to 'number'", function(Arguments)
     Config.WalkSpeed.Value = Arguments[1] or 16
-    Menu:FindItem("Player", "Movement", "Slider", "Walk Speed"):SetValue(Config.WalkSpeed.Value)
+    Menu:FindItem("Player", "Movement", "Slider", "Walk speed"):SetValue(Config.WalkSpeed.Value)
 end)
 
 Commands.Add("jumppower", {"jp"}, "[number] - sets your jumppower to 'number'", function(Arguments)
     Config.JumpPower.Value = Arguments[1] or 37.5
-    Menu:FindItem("Player", "Movement", "Slider", "Jump Power"):SetValue(Config.JumpPower.Value)
+    Menu:FindItem("Player", "Movement", "Slider", "Jump power"):SetValue(Config.JumpPower.Value)
 end)
 
 Commands.Add("runspeed", {"rs"}, "[number] - sets your runspeed to 'number'", function(Arguments)
     Config.RunSpeed.Value = Arguments[1] or 24.5
-    Menu:FindItem("Player", "Movement", "Slider", "Run Speed"):SetValue(Config.RunSpeed.Value)
+    Menu:FindItem("Player", "Movement", "Slider", "Run rpeed"):SetValue(Config.RunSpeed.Value)
 end)
 
 Commands.Add("crouchspeed", {"cs"}, "[number] - sets your crouchspeed to 'number'", function(Arguments)
     Config.CrouchSpeed.Value = Arguments[1] or 8
-    Menu:FindItem("Player", "Movement", "Slider", "Crouch Speed"):SetValue(Config.CrouchSpeed.Value)
+    Menu:FindItem("Player", "Movement", "Slider", "Crouch speed"):SetValue(Config.CrouchSpeed.Value)
 end)
 
 Commands.Add("hipheight", {"hh"}, "[number] - sets your hipheight to 'number'", function(Arguments)
@@ -6781,7 +6780,7 @@ function Initialize()
         local ClanTagBlinking = false
         local ClanTagIteration = 0
 
-        CreateThread("ClanTagChanger", function()
+        CreateThread("ClanTag", function()
             while true do
                 RunService.Heartbeat:Wait()
                 if not Config.ClanTag.Enabled then
