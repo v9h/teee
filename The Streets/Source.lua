@@ -5095,7 +5095,7 @@ end)
 
 Commands.Add("runspeed", {"rs"}, "[number] - sets your runspeed to 'number'", function(Arguments)
     Config.RunSpeed.Value = Arguments[1] or 24.5
-    Menu:FindItem("Player", "Movement", "Slider", "Run rpeed"):SetValue(Config.RunSpeed.Value)
+    Menu:FindItem("Player", "Movement", "Slider", "Run speed"):SetValue(Config.RunSpeed.Value)
 end)
 
 Commands.Add("crouchspeed", {"cs"}, "[number] - sets your crouchspeed to 'number'", function(Arguments)
