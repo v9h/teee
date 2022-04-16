@@ -187,7 +187,7 @@ local Config = {
         Enabled = false,
         CollisionCheck = true, -- turn off if player is no-clipping?
         Visualize = false,
-        TargetSelection = "Near Mouse",
+        TargetSelection = "Near mouse",
         HitBox = "Torso",
         Radius = 100,
         VelocityMultiplier = 1,
@@ -1040,7 +1040,7 @@ function RefreshMenu()
         Vest = Config.ESP.Flags.Vest.Enabled,
         Health = Config.ESP.Flags.Health.Enabled,
         Stamina = Config.ESP.Flags.Stamina.Enabled,
-        ["Knocked Out"] = Config.ESP.Flags.KnockedOut.Enabled,
+        ["Knocked out"] = Config.ESP.Flags.KnockedOut.Enabled,
         Distance = Config.ESP.Flags.Distance.Enabled,
         Velocity = Config.ESP.Flags.Velocity.Enabled
     })
@@ -1318,10 +1318,10 @@ function GetTarget()
             local Root = GetRoot(_Player) -- Target root
             if Root then
                 local Distance = 0
-                if Config.Aimbot.TargetSelection == "Near Mouse" then
+                if Config.Aimbot.TargetSelection == "Near mouse" then
                     Distance = (Mouse.Hit.Position - Root.Position).Magnitude
                     if Distance > (Config.Aimbot.Radius) then continue end
-                elseif Config.Aimbot.TargetSelection == "Near Player" then
+                elseif Config.Aimbot.TargetSelection == "Near player" then
                     if _Player:GetAttribute("KnockedOut") or not _Player:GetAttribute("IsAlive") then continue end
                     Distance = Player:DistanceFromCharacter(Root.Position)
                 end
@@ -3736,7 +3736,7 @@ function Stepped(_, Step) -- before phys
                     Root.CFrame = Config.Flight.Rotation and CFrame.new(Root.Position, Root.Position + LookVector) or CFrame.new(Root.Position, Root.Position + LookVector * Vector3.new(1, 0, 1))
                     
                     local Velocity = Player:GetAttribute("Velocity")
-                    fire_running_function(Velocity.Magnitude)
+                    firesignal(Humanoid.Running, Velocity.Magnitude / 10)
 
                     if not UserInput:GetFocusedTextBox() then
                         if UserInput:IsKeyDown(Enum.KeyCode.W) then
@@ -4203,7 +4203,6 @@ function OnCharacterAdded(_Character)
     Player:SetAttribute("Stamina", math_round(GetStamina(), 2))
     Player:SetAttribute("RootPoint", Root and Root.Position)
 
-    get_running_function(Character)
     TeleportBypass()
     EnableInfiniteStamina()
     CreateJoints(Player)
@@ -4493,7 +4492,7 @@ function OnPlayerDamaged(Victim:player, Attacker:player, Damage:number, Time:tic
             PlaySound(HitSound, 0.8)
         end
 
-        if Config.HitMarkers.Enabled and (Config.HitMarkers.Type == "Crosshair" or Config.HitMarkers.Type == "Crosshair + Model") then
+        if Config.HitMarkers.Enabled and (Config.HitMarkers.Type == "Crosshair" or Config.HitMarkers.Type == "Crosshair + model") then
             local Cross = DrawCross(Config.HitMarkers.Size, 4)
             Cross:SetColor(Config.HitMarkers.Color, 1 - Config.HitMarkers.Transparency)
             Cross:SetVisible(true)
@@ -4634,7 +4633,7 @@ function OnBulletAdded(Bullet)
             end
         end
     
-        if Config.HitMarkers.Enabled and (Config.HitMarkers.Type == "Model" or Config.HitMarkers.Type == "Crosshair + Model") then
+        if Config.HitMarkers.Enabled and (Config.HitMarkers.Type == "Model" or Config.HitMarkers.Type == "Crosshair + model") then
             local Cross = DrawCross(Config.HitMarkers.Size, 4)
             Cross:SetColor(Config.HitMarkers.Color, 1 - Config.HitMarkers.Transparency)
             if Config.HitMarkers.Fade then
@@ -4870,27 +4869,6 @@ else
         
         return wait_hook(constant)
     end)
-end
-
-
-function get_running_function(Character)
-    local Script = Character:WaitForChild("Animate")
-    local Function
-
-    for k, v in pairs(getreg()) do
-        if typeof(v) == "function" and getfenv(v).script == Script then
-            if getconstant(v, 1) == 0.01 then
-                Function = v
-                break
-            end
-        end
-    end
-
-    function fire_running_function(Amount) -- will overwrite
-        if Function then
-            Function(Amount / 10)
-        end
-    end
 end
 
 
@@ -5473,7 +5451,7 @@ do
     Menu.ComboBox("Combat", "Aimbot", "Target hitbox", Config.Aimbot.HitBox, {"Head", "Torso", "Root"}, function(String)
         Config.Aimbot.HitBox = String
     end)
-    Menu.ComboBox("Combat", "Aimbot", "Target selection", Config.Aimbot.TargetSelection, {"Near Player", "Near Mouse"}, function(String)
+    Menu.ComboBox("Combat", "Aimbot", "Target selection", Config.Aimbot.TargetSelection, {"Near player", "Near mouse"}, function(String)
         Config.Aimbot.TargetSelection = String
     end)
     Menu.CheckBox("Combat", "Other", "Always ground hit", Config.AlwaysGroundHit.Enabled, function(Bool)
@@ -5693,7 +5671,7 @@ do
         Vest = Config.ESP.Flags.Vest.Enabled,
         Health = Config.ESP.Flags.Health.Enabled,
         Stamina = Config.ESP.Flags.Stamina.Enabled,
-        ["Knocked Out"] = Config.ESP.Flags.KnockedOut.Enabled,
+        ["Knocked out"] = Config.ESP.Flags.KnockedOut.Enabled,
         Distance = Config.ESP.Flags.Distance.Enabled,
         Velocity = Config.ESP.Flags.Velocity.Enabled
     }, function(Value)
@@ -5703,7 +5681,7 @@ do
         Config.ESP.Flags.Vest.Enabled = Value["Vest"]
         Config.ESP.Flags.Health.Enabled = Value["Health"]
         Config.ESP.Flags.Stamina.Enabled = Value["Stamina"]
-        Config.ESP.Flags.KnockedOut.Enabled = Value["Knocked Out"]
+        Config.ESP.Flags.KnockedOut.Enabled = Value["Knocked out"]
         Config.ESP.Flags.Distance.Enabled = Value["Distance"]
         Config.ESP.Flags.Velocity.Enabled = Value["Velocity"]
     end)
@@ -5798,7 +5776,7 @@ do
     Menu.Slider("Visuals", "Hit markers", "Hit markers size", 5, 20, Config.HitMarkers.Size, nil, 0, function(Value)
         Config.HitMarkers.Size = Value
     end)
-    Menu.ComboBox("Visuals", "Hit markers", "Hit markers type", Config.HitMarkers.Type, {"Crosshair", "Model", "Crosshair + Model"}, function(String)
+    Menu.ComboBox("Visuals", "Hit markers", "Hit markers type", Config.HitMarkers.Type, {"Crosshair", "Model", "Crosshair + model"}, function(String)
         Config.HitMarkers.Type = String
     end)
     Menu.CheckBox("Visuals", "Hit markers", "Hit sound", Config.HitSound.Enabled, function(Bool)
