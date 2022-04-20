@@ -1989,14 +1989,12 @@ function Menu.Notify(Content, Delay)
     local Text = Instance.new("TextLabel")
     local Notification = {
         self = Text,
-        Class = "Notification",
-        Index = #Notifications + 1,
-        Status = 0
+        Class = "Notification"
     }
 
     Text.Name = "Notification"
     Text.BackgroundTransparency = 1
-    Text.Position = UDim2.new(0.5, -100, 1, -150 - (Notification.Index * 15))
+    Text.Position = UDim2.new(0.5, -100, 1, -150 - (GetDictionaryLength(Notifications) * 15))
     Text.Size = UDim2.new(0, 0, 0, 15)
     Text.Text = Content
     Text.Font = Enum.Font.SourceSans
@@ -2023,20 +2021,18 @@ function Menu.Notify(Content, Delay)
     end
 
     function Notification:Destroy()
-        table.remove(Notifications, 1)
+        Notifications[Notification] = nil
         Text:Destroy()
 
         local Index = 1
-        for _, v in ipairs(Notifications) do
+        for _, v in pairs(Notifications) do
             local self = v.self
-            local Parent = self.Parent
-            if not Parent then return end
             self.Position += UDim2.fromOffset(0, 15)
             Index += 1
         end
     end
 
-    table.insert(Notifications, Notification)
+    Notifications[Notification] = Notification
     
     local TweenIn  = TweenService:Create(Text, TweenInfo.new(0.3, Enum.EasingStyle.Linear, Enum.EasingDirection.Out, 0, false, 0), {TextTransparency = 0})
     local TweenOut = TweenService:Create(Text, TweenInfo.new(0.2, Enum.EasingStyle.Linear, Enum.EasingDirection.Out, 0, false, 0), {TextTransparency = 1})
