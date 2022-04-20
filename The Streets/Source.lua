@@ -1,10 +1,5 @@
-
 --[[ TO DO:
-How hard is it for somepony else to contribute :|
-Performance Tests
-
 hide sprays fix
-add console colors
 
 Make MultiSelect be on click order
 
@@ -977,6 +972,7 @@ function LoadConfig(Name)
 
     Console.ForegroundColor = Config.Console.Accent
     Mouse.Icon = Crosshair
+    EnableInfiniteStamina()
     UpdateAntiAim()
     UpdateSkybox()
 end
@@ -1224,6 +1220,24 @@ function RefreshMenu()
 end
 
 
+function GetFolders(Directory)
+    local Folders = {}
+    local Names = {}
+
+    local function Recurse(Directory)
+        for _, File in ipairs(listfiles(Directory)) do
+            if isfolder(File) then
+                table.insert(Folders, File)
+                table.insert(Names, string.match(File, "[^/\\]+$"))
+            end
+        end
+    end
+
+    Recurse(Directory)
+    return {Folders = Folders, Names = Names}
+end
+
+
 function GetFiles(Directory)
     local Files = {}
     local Names = {}
@@ -1234,6 +1248,7 @@ function GetFiles(Directory)
                 table.insert(Files, File)
                 table.insert(Names, string.match(File, "[^/\\]+$"))
             elseif isfolder(File) then
+                Parent = File
                 Recurse(File)
             end
         end
@@ -1280,13 +1295,6 @@ function set_clipboard(text)
     text_box:ReleaseFocus()
 
     text_box:Destroy()
-end
-
-
-function GetSkyboxes()
-    local Directory = "Identification/Games/The Streets/bin/skyboxes/"
-    local Files = GetFiles(Directory)
-    return {Skyboxes = Files.Files, Names = Files.Names}
 end
 
 
@@ -2013,6 +2021,9 @@ end
 
 
 function SetModelProperties(Model, Color, Material, Reflectance, Transparency, UsePartColor)
+    if Material == "Force field" then
+	Material = "ForceField"
+    end
     for _, Part in ipairs(GetModelParts(Model)) do
         if Part:GetAttribute("DefaultTransparency") == 1 then continue end
         if Part:GetAttribute("DefaultColor") then
@@ -2729,7 +2740,7 @@ end
 
 function UpdateSkybox()
     local Skybox = Config.Enviorment.Skybox.Value
-    local Skyboxes = GetSkyboxes().Skyboxes
+    local Skyboxes = GetFolders("Identification/Games/The Streets/bin/skyboxes/").Folders
     for k, v in pairs(Skyboxes) do
         if k == Skybox then
             local Success, Result = pcall(function()
@@ -2867,7 +2878,7 @@ function CreateBulletImpact(Position, Color, Material)
     Impact.CanCollide = false
     Impact.Name = "BulletImpact"
     Impact.Color = Color or Color3.new(1, 1, 1)
-    Impact.Material = Material or "Force field"
+    Impact.Material = Material or "ForceField"
     Impact.Position = Position
     Impact.Size = Vector3.new(0.2, 0.2, 0.2)
     Impact.Parent = Camera
@@ -3289,7 +3300,7 @@ end
 
 
 function streets_raycast(Start, End, Distance, Ignore)
-	return workspace:FindPartOnRay(Ray.new(Start, CFrame.new(Start, End).LookVector * Distance), Ignore)
+    return workspace:FindPartOnRay(Ray.new(Start, CFrame.new(Start, End).LookVector * Distance), Ignore)
 end
 
 
@@ -4958,8 +4969,10 @@ function OnNameCall(self, ...)
         end
         if Name == "Input" then
             local Key = Arguments[1]
+
             if Key == "bv" or Key == "hb" or Key == "ws" or Key == "strafe" then return end
             if Key == "ml" or Key == "moff1" then
+		if not Caller and Menu.IsVisible then return end
                 if not Arguments[2] then Arguments[2] = {} end
                 -- MouseHit only thing required for attacking/unattacking
                 -- Server indexes mousehit.p so we can also do {p = Vector3.new()}
@@ -4975,6 +4988,7 @@ function OnNameCall(self, ...)
             end
         end
         if Name == "Fire" then
+	    if not Caller and Menu.IsVisible then return end
             Arguments[1] = Mouse.Hit or CFrame.new()
             if Target and Config.Aimbot.Enabled and ((not Caller) or Arguments[2]) then -- Arguments[2] =  (AutShoot)
                 Arguments[1] = GetAimbotCFrame(true) or Mouse.Hit
@@ -5847,7 +5861,7 @@ do
     Menu.CheckBox("Visuals", "World", "Disable bullet trails", Config.BulletTracers.DisableTrails, function(Bool)
         Config.BulletTracers.DisableTrails = Bool
     end)
-    Menu.ComboBox("Visuals", "World", "Skybox", Config.Enviorment.Skybox.Value, GetSkyboxes().Names, function(String)
+    Menu.ComboBox("Visuals", "World", "Skybox", Config.Enviorment.Skybox.Value, GetFolders("Identification/Games/The Streets/bin/skyboxes/").Names, function(String)
         Config.Enviorment.Skybox.Value = String
         UpdateSkybox()
     end)
@@ -6310,7 +6324,7 @@ do
     end
     
     Menu.Button("Settings", "Settings", "Refresh", function()
-        Menu:FindItem("Visuals", "World", "ComboBox", "Skybox"):SetValue(Config.Enviorment.Skybox.Value, GetSkyboxes().Names)
+        Menu:FindItem("Visuals", "World", "ComboBox", "Skybox"):SetValue(Config.Enviorment.Skybox.Value, GetFolders("Identification/Games/The Streets/bin/skyboxes/").Names)
         HitSound = get_custom_asset("Identification/Games/The Streets/bin/sounds/hitsound.mp3") -- huh seems to automatically when file changes?
         Crosshair = get_custom_asset("Identification/Games/The Streets/bin/crosshairs/crosshair.png")
         Mouse.Icon = Crosshair
