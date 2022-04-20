@@ -1248,7 +1248,6 @@ function GetFiles(Directory)
                 table.insert(Files, File)
                 table.insert(Names, string.match(File, "[^/\\]+$"))
             elseif isfolder(File) then
-                Parent = File
                 Recurse(File)
             end
         end
