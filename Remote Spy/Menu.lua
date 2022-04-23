@@ -287,10 +287,15 @@ function Menu:AddRemote(Remote)
     end
 
     local function Callback()
+        local self = Remote.self
+        local Name = tostring(self)
+        local ClassName = self.ClassName
+        local Calls = tostring(Remote.Calls)
+        
         SelectedRemote = Remote
         RemoteInfo:SetTab("Info")
         RemoteInfo:SetVisible(true)
-        RemoteInfo:SetTitle("Remote Info [" .. tostring(self) .. "]")
+        RemoteInfo:SetTitle("Remote Info [" .. Name .. "]")
         RemoteInfoName:SetLabel("Name: " .. Name)
         RemoteInfoClassName:SetLabel("Class Name: " .. ClassName)
         RemoteInfoCalls:SetLabel("Calls: " .. Calls)
