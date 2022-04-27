@@ -6971,7 +6971,7 @@ function Initialize()
                 local Limit = Config.FakeLag.Limit + Randomization
                 local Current = math_round(os.clock() - Tick, 2)
 
-                Menu.\Fake Lag"]:Update(math.clamp(Current, 0, Limit), 0, Limit)
+                Menu.Indicators.List["Fake Lag"]:Update(math.clamp(Current, 0, Limit), 0, Limit)
                 if Current >= Limit then -- if it's more than the limit then lets get our new last position
                     LastCFrame = Root.CFrame
 
