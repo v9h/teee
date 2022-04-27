@@ -1204,14 +1204,20 @@ function RefreshMenu()
     Menu:FindItem("Settings", "Menu", "Hotkey", "Menu key"):SetValue(Config.Menu.Key)
     Menu:FindItem("Settings", "Menu", "ComboBox", "Console font color"):SetValue(Config.Console.Accent, {"Cyan", "Blue", "Green", "Red", "Magenta", "Yellow", "White"})
 
-    
+    Menu.Keybinds.List.Aimbot:Update(Config.Aimbot.Enabled and "on" or "off")
+    Menu.Keybinds.List["Camera Lock"]:Update(Config.CameraLock.Enabled and "on" or "off")
+    Menu.Keybinds.List.Flight:Update(Config.Flight.Enabled and "on" or "off")
+    Menu.Keybinds.List.Blink:Update(Config.Blink.Enabled and "on" or "off")
+    Menu.Keybinds.List.Float:Update(Config.Float.Enabled and "on" or "off")
+    Menu.Keybinds.List.Noclip:Update(Config.Noclip.Enabled and "on" or "off")
+    Menu.Keybinds.List["Anti Aim"]:Update(Config.AntiAim.Enabled and "on" or "off")
+	
     Menu.Keybinds.List.Aimbot:SetVisible(Config.Aimbot.Enabled)
     Menu.Keybinds.List["Camera Lock"]:SetVisible(Config.CameraLock.Enabled)
     Menu.Keybinds.List.Flight:SetVisible(Config.Flight.Enabled)
     Menu.Keybinds.List.Blink:SetVisible(Config.Blink.Enabled)
     Menu.Keybinds.List.Float:SetVisible(Config.Float.Enabled)
     Menu.Keybinds.List.Noclip:SetVisible(Config.Noclip.Enabled)
-
     Menu.Keybinds.List["Anti Aim"]:SetVisible(Config.AntiAim.Enabled)
 
     Menu.Watermark:SetVisible(Config.Interface.Watermark.Enabled)
@@ -6448,6 +6454,7 @@ do
     Menu.Keybinds.Add("Noclip", Config.Noclip.Enabled and "on" or "off")
     Menu.Keybinds.Add("Anti Aim", Config.AntiAim.Enabled and "on" or "off")
 
+
     Menu.Keybinds.List.Aimbot:SetVisible(Config.Aimbot.Enabled)
     Menu.Keybinds.List["Camera Lock"]:SetVisible(Config.CameraLock.Enabled)
     Menu.Keybinds.List.Flight:SetVisible(Config.Flight.Enabled)
@@ -6964,7 +6971,7 @@ function Initialize()
                 local Limit = Config.FakeLag.Limit + Randomization
                 local Current = math_round(os.clock() - Tick, 2)
 
-                Menu.Indicators.List["Fake Lag"]:Update(math.clamp(Current, 0, Limit), 0, Limit)
+                Menu.\Fake Lag"]:Update(math.clamp(Current, 0, Limit), 0, Limit)
                 if Current >= Limit then -- if it's more than the limit then lets get our new last position
                     LastCFrame = Root.CFrame
 
