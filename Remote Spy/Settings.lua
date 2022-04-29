@@ -22,7 +22,14 @@ local Settings = {
 local HttpService = game:GetService("HttpService")
 
 
+local function CreateDirectory()
+    local Directory = "Identification/Tools/Remote Spy/"
+    if not isfolder(Directory) then makefolder(Directory) end
+end
+
+
 function Settings:Save()
+    CreateDirectory()
     local Directory = "Identification/Tools/Remote Spy/Settings.cfg"
     writefile(Directory, HttpService:JSONEncode(
         Settings.Menu
@@ -31,6 +38,7 @@ end
 
 
 function Settings:Load()
+    CreateDirectory()
     local Directory = "Identification/Tools/Remote Spy/Settings.cfg"
     if not isfile(Directory) then
         return Settings:Save()
