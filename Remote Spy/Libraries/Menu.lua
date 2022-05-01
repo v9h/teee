@@ -28,8 +28,7 @@ end
 
 
 local Gui = Instance.new("ScreenGui")
-Gui.Parent = CoreGui
---protect_gui(Gui, CoreGui)
+protect_gui(Gui, CoreGui)
 Gui.Name = "gui"
 Gui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
 
