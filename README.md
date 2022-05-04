@@ -1,5 +1,5 @@
-# identification-dev
-Development of Identification.cc
+# ponyhook-dev
+Development of ponyhook.cc
 
 # Loader.lua
 ```lua
@@ -11,7 +11,7 @@ local request = request or syn and syn.request
 
 
 local FilePath = string.gsub(ScriptName, "%s", "%%20")
-local RepositoryPath = "https://" .. AuthToken .. "@raw.githubusercontent.com/RegularID/identification-dev/main/" .. FilePath .. "/"
+local RepositoryPath = "https://" .. AuthToken .. "@raw.githubusercontent.com/RegularID/ponyhook-dev/main/" .. FilePath .. "/"
 
 function Import(Name)
     local Name = string.gsub(Name, "%s", "%%20") -- Replacing Spaces with %20's
