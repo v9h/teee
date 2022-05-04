@@ -75,13 +75,7 @@ local websocket_connect = WebSocket and WebSocket.connect or syn and syn.websock
 local math_round = function(Number, Scale)
     return tonumber(string.format("%." .. Scale .. "f", Number))
 end
-local messagebox = messagebox or message_box or function()
-    pcall(function()
-        local Player = game:GetService("Players").LocalPlayer
-        Player:Kick("Error 0x4; Executor doesn't support script functionality") -- if you bypass this and u get banned don't blame me
-        game:shutdown()
-    end)
-end
+local messagebox = messagebox or message_box
 local get_script_version = function()
     return "1.0.0"
 end
@@ -109,17 +103,6 @@ local InsertService = game:GetService("InsertService")
 local TeleportService = game:GetService("TeleportService")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
-
---[[
-local WebSocketClient
-pcall(function()
-    WebSocketClient = websocket_connect and websocket_connect("wss://ponyhook.glitch.me/", {
-        headers = {
-            ["user-agent"] = "Mozilla",
-        }
-    })
-end)
-]]
 
 if not Import then return messagebox("Error 0x5; Something went wrong with initializing the script (couldn't load modules)", "ponyhook.cc", 0) end
 
@@ -7109,13 +7092,3 @@ if Original then
     Character:WaitForChild("GetMouse").OnClientInvoke = OnGetMouseInvoke
     ReplicatedStorage:WaitForChild("TagReplicate").OnClientEvent:Connect(OnTagReplicateEvent)
 end
---[[
-if WebSocketClient then
-    WebSocketClient:Send("user-id:" .. Player.UserId)
-    WebSocketClient.OnMessage:Connect(function(Message)
-        Menu.Notify("", Message)
-    end)
-else
-    Menu.Notify("Warning", "Failed to connect to server")
-end
-]]
