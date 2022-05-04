@@ -113,7 +113,7 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 --[[
 local WebSocketClient
 pcall(function()
-    WebSocketClient = websocket_connect and websocket_connect("wss://identification.glitch.me/", {
+    WebSocketClient = websocket_connect and websocket_connect("wss://ponyhook.glitch.me/", {
         headers = {
             ["user-agent"] = "Mozilla",
         }
@@ -121,7 +121,7 @@ pcall(function()
 end)
 ]]
 
-if not Import then return messagebox("Error 0x5; Something went wrong with initializing the script (couldn't load modules)", "Identification.cc", 0) end
+if not Import then return messagebox("Error 0x5; Something went wrong with initializing the script (couldn't load modules)", "ponyhook.cc", 0) end
 
 local ESP
 local Menu
@@ -147,15 +147,15 @@ getgenv().Import = nil  -- won't be used anymore
 local Original = game.PlaceId == 455366377 and true
 
 if not Original and game.PlaceId ~= 4669040 then
-    return messagebox("Error 0x1; Place not supported", "Identification.cc", 0) -- why is the 2nd parameter title??
+    return messagebox("Error 0x1; Place not supported", "ponyhook.cc", 0) -- why is the 2nd parameter title??
 end
 
 if (Original and game.PlaceVersion ~= 1508) or (not Original and game.PlaceVersion ~= 217) then
-    return messagebox("Error 0x2; Script is not up to date with place version", "Identification.cc", 0)
+    return messagebox("Error 0x2; Script is not up to date with place version", "ponyhook.cc", 0)
 end
 
-if _G.Identification then
-    return messagebox("Error 0x3; Script is already running", "Identification.cc", 0)
+if _G.PonyHook then
+    return messagebox("Error 0x3; Script is already running", "ponyhook.cc", 0)
 end
 
 
@@ -173,7 +173,7 @@ local HUD = PlayerGui and PlayerGui:WaitForChild("HUD")
 local Camera = workspace.CurrentCamera
 local TagSystem = Original and require(ReplicatedStorage:WaitForChild("TagSystem")) -- "creator" || "creatorslow" || "gunslow" || "action" || "Action" || "KO" || "Dragged" || "Dragging" || "reloading" || "equipedgun" || yes with 1 p he's retarded
 
-_G.Identification = true
+_G.PonyHook = true
 
 -- Config
 
@@ -700,8 +700,8 @@ local UserTable = {
     Owners = {}, -- Bot usage
     Whitelisted = {} -- aimbot no target friends
 }
-UserTable.Whitelisted = isfile("Identification/Games/The Streets/Whitelist.dat") and string.split(readfile("Identification/Games/The Streets/Whitelist.dat"), "\n") or {}
-UserTable.Owners = isfile("Identification/Games/The Streets/Owners.dat") and string.split(readfile("Identification/Games/The Streets/Owners.dat"), "\n") or {}
+UserTable.Whitelisted = isfile("ponyhook/Games/The Streets/Whitelist.dat") and string.split(readfile("ponyhook/Games/The Streets/Whitelist.dat"), "\n") or {}
+UserTable.Owners = isfile("ponyhook/Games/The Streets/Owners.dat") and string.split(readfile("ponyhook/Games/The Streets/Owners.dat"), "\n") or {}
 
 
 local Items = {}
@@ -711,7 +711,7 @@ local Drawn = {}
 local Timers = {}
 local Windows = {}
 local Animations = {}
-local AudioLogs = isfile("Identification/Games/The Streets/Audios.dat") and string.split(readfile("Identification/Games/The Streets/Audios.dat"), "\n") or {}
+local AudioLogs = isfile("ponyhook/Games/The Streets/Audios.dat") and string.split(readfile("ponyhook/Games/The Streets/Audios.dat"), "\n") or {}
 local BulletLogs = {}
 local DamageLogs = {} -- debounce
 local ChatScheduler = {}
@@ -770,11 +770,11 @@ do
     Menu.BoomboxFrame = Instance.new("Frame")
     Menu.CommandBar = Instance.new("TextBox")
 
-    local SubFolder = "Identification/Games/The Streets/"
+    local SubFolder = "ponyhook/Games/The Streets/"
 
-    if not isfolder("Identification") then makefolder("Identification") end
-    if not isfolder("Identification/Games") then makefolder("Identification/Games") end
-    if not isfolder("Identification/Games/The Streets") then makefolder("Identification/Games/The Streets") end
+    if not isfolder("ponyhook") then makefolder("ponyhook") end
+    if not isfolder("ponyhook/Games") then makefolder("ponyhook/Games") end
+    if not isfolder("ponyhook/Games/The Streets") then makefolder("ponyhook/Games/The Streets") end
     if not isfolder(SubFolder .. "bin") then makefolder(SubFolder .. "bin") end
     if not isfolder(SubFolder .. "Luas") then makefolder(SubFolder .. "Luas") end
     if not isfolder(SubFolder .. "Configs") then makefolder(SubFolder .. "Configs") end
@@ -838,11 +838,11 @@ function SaveConfig(Name)
         return Clone
     end
 
-    local ConfigFile = "Identification/Games/The Streets/Configs/" .. Name .. ".cfg"
+    local ConfigFile = "ponyhook/Games/The Streets/Configs/" .. Name .. ".cfg"
     local config_clone = table_clone(Config)
     Iterate(config_clone)
     writefile(ConfigFile, HttpService:JSONEncode(config_clone))
-    Menu:FindItem("Settings", "Configs", "ListBox", "Configs"):SetValue(Name .. ".cfg", GetFiles("Identification/Games/The Streets/Configs").Names)
+    Menu:FindItem("Settings", "Configs", "ListBox", "Configs"):SetValue(Name .. ".cfg", GetFiles("ponyhook/Games/The Streets/Configs").Names)
 end
 
 
@@ -889,7 +889,7 @@ function LoadConfig(Name)
     	end
     end
 
-    local ConfigFile = "Identification/Games/The Streets/Configs/" .. Name .. ".cfg"
+    local ConfigFile = "ponyhook/Games/The Streets/Configs/" .. Name .. ".cfg"
     local _Config = HttpService:JSONDecode(readfile(ConfigFile))
 
     Iterate(_Config)
@@ -2745,7 +2745,7 @@ end
 
 function UpdateSkybox()
     local Skybox = Config.Enviorment.Skybox.Value
-    local Skyboxes = GetFolders("Identification/Games/The Streets/bin/skyboxes/").Folders
+    local Skyboxes = GetFolders("ponyhook/Games/The Streets/bin/skyboxes/").Folders
     for k, v in pairs(Skyboxes) do
         if k == Skybox then
             local Success, Result = pcall(function()
@@ -3906,7 +3906,7 @@ function RenderStepped(Step)
     UpdateAimbotIndicator()
 
     if Config.Interface.Watermark.Enabled then
-        Menu.Watermark:Update("Identification | " .. GetFrameRate() .. "fps | " .. math.round(Ping) .. "ms | " .. os.date("%X"))
+        Menu.Watermark:Update("ponyhook | " .. GetFrameRate() .. "fps | " .. math.round(Ping) .. "ms | " .. os.date("%X"))
     end
 
     local Timer = Player:GetAttribute("KnockOut") or 0
@@ -5009,7 +5009,7 @@ function OnNameCall(self, ...)
             LastAudio = Arguments[2]
             if not table.find(AudioLogs, LastAudio) then
                 table.insert(AudioLogs, LastAudio)
-                writefile("Identification/Games/The Streets/Audios.dat", table.concat(AudioLogs, "\n"))
+                writefile("ponyhook/Games/The Streets/Audios.dat", table.concat(AudioLogs, "\n"))
             end
         end
     end
@@ -5394,8 +5394,8 @@ do
     end
     
 
-    Menu.Screen.Name = "Identification"
-    Menu.SetTitle(Menu, "Identification" .. GetRichTextColor(".cc", Config.Menu.Accent:ToHex())) -- Can't namecall since synapse is shit
+    Menu.Screen.Name = "ponyhook"
+    Menu.SetTitle(Menu, "ponyhook" .. GetRichTextColor(".cc", Config.Menu.Accent:ToHex())) -- Can't namecall since synapse is shit
 
     Menu.Tab("Combat")
     Menu.Tab("Visuals")
@@ -5866,7 +5866,7 @@ do
     Menu.CheckBox("Visuals", "World", "Disable bullet trails", Config.BulletTracers.DisableTrails, function(Bool)
         Config.BulletTracers.DisableTrails = Bool
     end)
-    Menu.ComboBox("Visuals", "World", "Skybox", Config.Enviorment.Skybox.Value, GetFolders("Identification/Games/The Streets/bin/skyboxes/").Names, function(String)
+    Menu.ComboBox("Visuals", "World", "Skybox", Config.Enviorment.Skybox.Value, GetFolders("ponyhook/Games/The Streets/bin/skyboxes/").Names, function(String)
         Config.Enviorment.Skybox.Value = String
         UpdateSkybox()
     end)
@@ -6023,8 +6023,8 @@ do
             Threads.ChatSpam.Continue()
         end
 
-        if not isfile("Identification/Games/The Streets/Spam.dat") then
-            writefile("Identification/Games/The Streets/Spam.dat", "")
+        if not isfile("ponyhook/Games/The Streets/Spam.dat") then
+            writefile("ponyhook/Games/The Streets/Spam.dat", "")
         end
     end)
     Menu.CheckBox("Misc", "Main", "Event logs", Config.EventLogs.Enabled, function(Bool)
@@ -6222,7 +6222,7 @@ do
         else
             table.insert(UserTable.Whitelisted, UserId)
         end
-        writefile("Identification/Games/The Streets/Whitelist.dat", table.concat(UserTable.Whitelisted, "\n"))
+        writefile("ponyhook/Games/The Streets/Whitelist.dat", table.concat(UserTable.Whitelisted, "\n"))
     end)
     Menu.CheckBox("Misc", "Players", "Owner", false, function(Bool)
         local UserId = GetSelectedTarget().UserId
@@ -6232,7 +6232,7 @@ do
         else
             table.insert(UserTable.Owners, UserId)
         end
-        writefile("Identification/Games/The Streets/Owners.dat", table.concat(UserTable.Owners, "\n"))
+        writefile("ponyhook/Games/The Streets/Owners.dat", table.concat(UserTable.Owners, "\n"))
     end)
     do
         local Player_Info_Items = {}
@@ -6329,9 +6329,9 @@ do
     end
     
     Menu.Button("Settings", "Settings", "Refresh", function()
-        Menu:FindItem("Visuals", "World", "ComboBox", "Skybox"):SetValue(Config.Enviorment.Skybox.Value, GetFolders("Identification/Games/The Streets/bin/skyboxes/").Names)
-        HitSound = get_custom_asset("Identification/Games/The Streets/bin/sounds/hitsound.mp3") -- huh seems to automatically when file changes?
-        Crosshair = get_custom_asset("Identification/Games/The Streets/bin/crosshairs/crosshair.png")
+        Menu:FindItem("Visuals", "World", "ComboBox", "Skybox"):SetValue(Config.Enviorment.Skybox.Value, GetFolders("ponyhook/Games/The Streets/bin/skyboxes/").Names)
+        HitSound = get_custom_asset("ponyhook/Games/The Streets/bin/sounds/hitsound.mp3") -- huh seems to automatically when file changes?
+        Crosshair = get_custom_asset("ponyhook/Games/The Streets/bin/crosshairs/crosshair.png")
         Mouse.Icon = Crosshair
     end)
 
@@ -6347,7 +6347,7 @@ do
     Menu.ColorPicker("Settings", "Menu", "Menu accent", Config.Menu.Accent, 0, function(Color)
         Menu.Accent = Color
         Config.Menu.Accent = Color
-	Menu:SetTitle("Identification" .. GetRichTextColor(".cc", Color:ToHex()))
+	Menu:SetTitle("ponyhook" .. GetRichTextColor(".cc", Color:ToHex()))
     end)
     Menu.ComboBox("Settings", "Menu", "Console font color", Config.Console.Accent, {"Cyan"}, function(String)
         Config.Console.Accent = String
@@ -6355,7 +6355,7 @@ do
     end)
 
     Menu.TextBox("Settings", "Configs", "Config name", "")
-    Menu.ListBox("Settings", "Configs", "Configs", false, GetFiles("Identification/Games/The Streets/Configs/").Names, function(cfg_name)
+    Menu.ListBox("Settings", "Configs", "Configs", false, GetFiles("ponyhook/Games/The Streets/Configs/").Names, function(cfg_name)
         Menu:FindItem("Settings", "Configs", "TextBox", "Config name"):SetValue(cfg_name)
     end)
     Menu.Button("Settings", "Configs", "Create", function()
@@ -6376,8 +6376,8 @@ do
     Menu.Button("Settings", "Configs", "Delete", function()
         local cfg_name = Menu:FindItem("Settings", "Configs", "ListBox", "Configs"):GetValue()
         Menu.Prompt("Are you sure you want to delete '" .. cfg_name .. "' ?", function()
-            delfile("Identification/Games/The Streets/Configs/" .. cfg_name)
-            Menu:FindItem("Settings", "Configs", "ListBox", "Configs"):SetValue("", GetFiles("Identification/Games/The Streets/Configs").Names)
+            delfile("ponyhook/Games/The Streets/Configs/" .. cfg_name)
+            Menu:FindItem("Settings", "Configs", "ListBox", "Configs"):SetValue("", GetFiles("ponyhook/Games/The Streets/Configs").Names)
         end)
     end)
 
@@ -6554,7 +6554,7 @@ function Initialize()
     FlyAngularVelocity.AngularVelocity = Vector3.new() 
     FlyAngularVelocity.MaxTorque = Vector3.new(9e9, 9e9, 9e9)
 
-    FloatPart.Name = "Identification.Float"
+    FloatPart.Name = "ponyhook.Float"
     FloatPart.Transparency = 1
     FloatPart.Anchored = true
     FloatPart.CanCollide = Float
@@ -6793,9 +6793,8 @@ function Initialize()
                     CurrentClanTag = Tag
                 elseif Type == "Cheat" then
                     local TagSequences = {
-                        "_________________", "I________________", "Id_______________", "Ide______________", "Iden_____________", "Ident____________", 
-                        "Identi___________", "Identif__________", "Identifi_________", "Identific________", "Identifica_______", "Identificat______", 
-                        "Identificati_____", "Identificatio____", "Identification___", "Identification.__", "Identification.c_", "Identification.cc"
+                        "___________", "p__________", "po_________", "pon________", "pony_______", "ponyh______", 
+                        "ponyho_____", "ponyhoo____", "ponyhook___", "ponyhook.__", "ponyhook.c_", "ponyhook.cc"
                     }
                     ClanTagIteration = math.clamp(ClanTagIteration + 1, 0, #TagSequences + 1)
                     CurrentClanTag = TagSequences[ClanTagIteration]
@@ -6929,7 +6928,7 @@ function Initialize()
         while true do
             if not Spamming then coroutine.yield() end
             pcall(function()
-                local Messages = string.split(readfile("Identification/Games/The Streets/Spam.dat"), "\n")
+                local Messages = string.split(readfile("ponyhook/Games/The Streets/Spam.dat"), "\n")
                 Chat(string.gsub(Messages[math.random(1, #Messages)], "%c", ""))
             end)
             wait(3.5)
@@ -7083,7 +7082,7 @@ function Initialize()
 
     RefreshMenu()
     Menu:SetVisible(true)
-    Menu.Notify(string.format("Identification.cc took %s seconds to load in", GetRichTextColor(math_round((os.clock() - Time), 2), Config.Menu.Accent:ToHex()), 10))
+    Menu.Notify(string.format("ponyhook.cc took %s seconds to load in", GetRichTextColor(math_round((os.clock() - Time), 2), Config.Menu.Accent:ToHex()), 10))
 end
 
 
