@@ -1186,11 +1186,11 @@ function Menu.Slider(Tab_Name:string, Container_Name:string, Name:string, Min:nu
 
     Label.MouseEnter:Connect(function()
         if ToolTip then
-            Menu.ToolTip(true, ToolTip, Label)
+            Menu:SetToolTip(true, ToolTip, Label)
         end
     end)
     Label.MouseLeave:Connect(function()
-        Menu.ToolTip(false)
+        Menu:SetToolTip(false)
     end)
 
     Button.Name = "Slider"
