@@ -25,7 +25,7 @@ local Colors = {
 
 function Console:Init()
     if rconsolecreate then rconsolecreate() end
-    console_set_title("Identification.cc")
+    console_set_title("ponyhook.cc")
 end
 
 
