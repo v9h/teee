@@ -1,6 +1,8 @@
 -- // make multiselect in order
 -- // add border pixel math to dragging
 -- // containers canvasscroll update on setvisible
+-- // Dragging sys has errors
+-- // I think something was wrong with the keybinds/indicators tweening
 -- // Menu Effects (OnHover, OnClick)
 
 
@@ -617,20 +619,23 @@ function Menu.Container(Tab_Name:string, Container_Name:string, Side:string)
 
     local Container = {self = Frame, Height = 0}
     Container.Class = "Container"
+    Container.Visible = true
 
-    function Container:SetLabel(Name)
+    function Container:SetLabel(Name:string)
         Label.Text = tostring(Name)
     end
 
-    function Container:SetVisible(Visible)
-        if Visible then
+    function Container:SetVisible(Visible:boolean)
+        if Visible == true then
             if not Frame.Visible then
                 Frame.Visible = true
+                Container.Visible = true
                 Container:UpdateSize(25, Frame)
             end
         else
             if Frame.Visible then
                 Frame.Visible = false
+                Container.Visible = false
                 Container:UpdateSize(-25, Frame)
             end
         end
@@ -698,11 +703,11 @@ function Menu.Label(Tab_Name:string, Container_Name:string, Name:string, ToolTip
     Label.Tab = Tab_Name
     Label.Container = Container_Name
 
-    function Label:SetLabel(Name)
+    function Label:SetLabel(Name:string)
         GuiLabel.Text = tostring(Name)
     end
 
-    function Label:SetVisible(Visible)
+    function Label:SetVisible(Visible:boolean)
         if Visible then
             if not GuiLabel.Visible then
                 GuiLabel.Visible = true
@@ -734,7 +739,12 @@ function Menu.Button(Tab_Name:string, Container_Name:string, Name:string, Callba
     Button.Index = #Items + 1
     Button.Callback = typeof(Callback) == "function" and Callback or function() end
 
-    function Button:SetVisible(Visible)
+    
+    function Button:SetLabel(Name:string)
+        GuiButton.Text = tostring(Name)
+    end
+
+    function Button:SetVisible(Visible:boolean)
         if Visible then
             if not GuiButton.Visible then
                 GuiButton.Visible = true
@@ -746,10 +756,6 @@ function Menu.Button(Tab_Name:string, Container_Name:string, Name:string, Callba
                 Container:UpdateSize(-25, GuiButton)
             end
         end
-    end
-
-    function Button:SetLabel(Name)
-        GuiButton.Text = tostring(Name)
     end
 
 
@@ -802,7 +808,12 @@ function Menu.TextBox(Tab_Name:string, Container_Name:string, Name:string, Value
     TextBox.Value = typeof(Value) == "string" and Value or ""
     TextBox.Callback = typeof(Callback) == "function" and Callback or function() end
 
-    function TextBox:SetVisible(Visible)
+
+    function TextBox:SetLabel(Name:string)
+        Label.Text = tostring(Name)
+    end
+
+    function TextBox:SetVisible(Visible:boolean)
         if Visible then
             if not Label.Visible then
                 Label.Visible = true
@@ -816,15 +827,11 @@ function Menu.TextBox(Tab_Name:string, Container_Name:string, Name:string, Value
         end
     end
 
-    function TextBox:SetLabel(Name)
-        Label.Text = tostring(Name)
-    end
-
     function TextBox:GetValue()
         return TextBox.Value
     end
 
-    function TextBox:SetValue(Value)
+    function TextBox:SetValue(Value:string)
         TextBox.Value = tostring(Value)
         GuiTextBox.Text = TextBox.Value
     end
@@ -883,12 +890,17 @@ function Menu.CheckBox(Tab_Name:string, Container_Name:string, Name:string, Bool
     CheckBox.Value = typeof(Boolean) == "boolean" and Boolean or false
     CheckBox.Callback = typeof(Callback) == "function" and Callback or function() end
 
-    function CheckBox:Update(Value)
+
+    function CheckBox:Update(Value:boolean)
         CheckBox.Value = typeof(Value) == "boolean" and Value
         Button.BackgroundColor3 = CheckBox.Value and Menu.Accent or Menu.ItemColor
     end
 
-    function CheckBox:SetVisible(Visible)
+    function CheckBox:SetLabel(Name:string)
+        Label.Text = tostring(Name)
+    end
+
+    function CheckBox:SetVisible(Visible:boolean)
         if Visible then
             if not Label.Visible then
                 Label.Visible = true
@@ -902,15 +914,11 @@ function Menu.CheckBox(Tab_Name:string, Container_Name:string, Name:string, Bool
         end
     end
 
-    function CheckBox:SetLabel(Name)
-        Label.Text = tostring(Name)
-    end
-
     function CheckBox:GetValue()
         return CheckBox.Value
     end
 
-    function CheckBox:SetValue(Value)
+    function CheckBox:SetValue(Value:boolean)
         CheckBox:Update(Value)
     end
 
@@ -966,7 +974,8 @@ function Menu.Hotkey(Tab_Name:string, Container_Name:string, Name:string, Key:En
     Hotkey.Editing = false
     Hotkey.Mode = "Toggle"
 
-    function Hotkey:Update(Input, Mode)
+
+    function Hotkey:Update(Input, Mode:string)
         if Input then
             Button.Text = string.format("[%s]", Input.Name)
         else
@@ -977,7 +986,11 @@ function Menu.Hotkey(Tab_Name:string, Container_Name:string, Name:string, Key:En
         Hotkey.Editing = false
     end
 
-    function Hotkey:SetVisible(Visible)
+    function Hotkey:SetLabel(Name:string)
+        Label.Text = tostring(Name)
+    end
+
+    function Hotkey:SetVisible(Visible:boolean)
         if Visible then
             if not Label.Visible then
                 Label.Visible = true
@@ -991,15 +1004,11 @@ function Menu.Hotkey(Tab_Name:string, Container_Name:string, Name:string, Key:En
         end
     end
 
-    function Hotkey:SetLabel(Name)
-        Label.Text = tostring(Name)
-    end
-    
     function Hotkey:GetValue()
         return Hotkey.Key, Hotkey.Mode
     end
 
-    function Hotkey:SetValue(Key, Mode)
+    function Hotkey:SetValue(Key:EnumItem, Mode:string)
         Hotkey:Update(Key, Mode)
     end
 
@@ -1139,6 +1148,7 @@ function Menu.Slider(Tab_Name:string, Container_Name:string, Name:string, Min:nu
     Slider.Scale = typeof(Scale) == "number" and Scale or 0
     Slider.Callback = typeof(Callback) == "function" and Callback or function() end
 
+
     local function UpdateSlider(Percentage:float)
         local Percentage = typeof(Percentage == "number") and math.clamp(Percentage, 0, 1) or 0
         local Value = Slider.Min + ((Slider.Max - Slider.Min) * Percentage)
@@ -1150,11 +1160,16 @@ function Menu.Slider(Tab_Name:string, Container_Name:string, Name:string, Min:nu
         ValueLabel.Text = Slider.Value .. Slider.Unit
     end
 
-    function Slider:Update(Percentage:float)
+
+    function Slider:Update(Percentage:number)
         UpdateSlider(Percentage)
     end
 
-    function Slider:SetVisible(Visible)
+    function Slider:SetLabel(Name:string)
+        Label.Text = tostring(Name)
+    end
+
+    function Slider:SetVisible(Visible:boolean)
         if Visible then
             if not Label.Visible then
                 Label.Visible = true
@@ -1168,15 +1183,11 @@ function Menu.Slider(Tab_Name:string, Container_Name:string, Name:string, Min:nu
         end
     end
 
-    function Slider:SetLabel(Name)
-        Label.Text = tostring(Name)
-    end
-
     function Slider:GetValue()
         return Slider.Value
     end
 
-    function Slider:SetValue(Value)
+    function Slider:SetValue(Value:number)
         Slider.Value = typeof(Value) == "number" and math.clamp(Value, Slider.Min, Slider.Max) or Slider.Min
         local Percentage = (Slider.Value - Slider.Min) / (Slider.Max - Slider.Min)
         Slider:Update(Percentage)
@@ -1300,6 +1311,7 @@ function Menu.ColorPicker(Tab_Name:string, Container_Name:string, Name:string, C
     ColorPicker.Hue = 0
     ColorPicker.Callback = typeof(Callback) == "function" and Callback or function() end
 
+
     local function UpdateColor()
         ColorPicker.Color = Color3.fromHSV(ColorPicker.Hue, ColorPicker.Saturation[1], ColorPicker.Saturation[2])
 
@@ -1315,11 +1327,16 @@ function Menu.ColorPicker(Tab_Name:string, Container_Name:string, Name:string, C
         ColorPicker.Callback(ColorPicker.Color, ColorPicker.Alpha)
     end
 
+
     function ColorPicker:Update()
         UpdateColor()
     end
 
-    function ColorPicker:SetVisible(Visible)
+    function ColorPicker:SetLabel(Name:string)
+        Label.Text = tostring(Name)
+    end
+
+    function ColorPicker:SetVisible(Visible:boolean)
         if Visible then
             if not Label.Visible then
                 Label.Visible = true
@@ -1333,11 +1350,7 @@ function Menu.ColorPicker(Tab_Name:string, Container_Name:string, Name:string, C
         end
     end
 
-    function ColorPicker:SetLabel(Name)
-        Label.Text = tostring(Name)
-    end
-
-    function ColorPicker:SetValue(Color, Alpha)
+    function ColorPicker:SetValue(Color:Color3, Alpha:number)
         ColorPicker.Color, ColorPicker.Alpha = typeof(Color) == "Color3" and Color or Color3.new(), typeof(Alpha) == "number" and Alpha or 0
         ColorPicker.Hue, ColorPicker.Saturation[1], ColorPicker.Saturation[2] = ColorPicker.Color:ToHSV()
         ColorPicker:Update()
@@ -1347,6 +1360,17 @@ function Menu.ColorPicker(Tab_Name:string, Container_Name:string, Name:string, C
         return ColorPicker.Color, ColorPicker.Alpha
     end
 
+
+    Label.MouseEnter:Connect(function()
+        if ToolTip then
+            Menu:SetToolTip(true, ToolTip, Label)
+        end
+    end)
+    Label.MouseLeave:Connect(function()
+        if ToolTip then
+            Menu:SetToolTip(false)
+        end
+    end)
 
     Button.Name = "ColorPicker"
     Button.BackgroundColor3 = ColorPicker.Color
@@ -1612,6 +1636,7 @@ function Menu.ComboBox(Tab_Name:string, Container_Name:string, Name:string, Valu
         table.insert(ItemObjects, Button)
     end
 
+
     function ComboBox:Update(Value, Items)
         UpdateValue(Value)
         if typeof(Items) == "table" then
@@ -1632,7 +1657,11 @@ function Menu.ComboBox(Tab_Name:string, Container_Name:string, Name:string, Valu
         end
     end
 
-    function ComboBox:SetVisible(Visible)
+    function ComboBox:SetLabel(Name:string)
+        Label.Text = tostring(Name)
+    end
+
+    function ComboBox:SetVisible(Visible:boolean)
         if Visible then
             if not Label.Visible then
                 Label.Visible = true
@@ -1646,10 +1675,6 @@ function Menu.ComboBox(Tab_Name:string, Container_Name:string, Name:string, Valu
         end
     end
 
-    function ComboBox:SetLabel(Name)
-        Label.Text = tostring(Name)
-    end
-
     function ComboBox:GetValue()
         return ComboBox.Value
     end
@@ -1661,6 +1686,17 @@ function Menu.ComboBox(Tab_Name:string, Container_Name:string, Name:string, Valu
         ComboBox:Update(Value, ComboBox.Items)
     end
 
+
+    Label.MouseEnter:Connect(function()
+        if ToolTip then
+            Menu:SetToolTip(true, ToolTip, Label)
+        end
+    end)
+    Label.MouseLeave:Connect(function()
+        if ToolTip then
+            Menu:SetToolTip(false)
+        end
+    end)
 
     Button.Name = "Button"
     Button.BackgroundColor3 = Menu.ItemColor
@@ -1751,7 +1787,7 @@ function Menu.MultiSelect(Tab_Name:string, Container_Name:string, Name:string, V
     end
 
     local ItemObjects = {}
-    local function AddItem(Name, Checked)
+    local function AddItem(Name:string, Checked:boolean)
         local Button = Instance.new("TextButton")
         Button.BackgroundColor3 = Menu.ItemColor
         Button.BorderColor3 = Color3.new()
@@ -1780,6 +1816,7 @@ function Menu.MultiSelect(Tab_Name:string, Container_Name:string, Name:string, V
         table.insert(ItemObjects, Button)
     end
 
+
     function MultiSelect:Update(Value)
         if typeof(Value) == "table" then
             MultiSelect.Items = Value
@@ -1804,7 +1841,11 @@ function Menu.MultiSelect(Tab_Name:string, Container_Name:string, Name:string, V
         end
     end
 
-    function MultiSelect:SetVisible(Visible)
+    function MultiSelect:SetLabel(Name:string)
+        Label.Text = tostring(Name)
+    end
+
+    function MultiSelect:SetVisible(Visible:boolean)
         if Visible then
             if not Label.Visible then
                 Label.Visible = true
@@ -1818,18 +1859,25 @@ function Menu.MultiSelect(Tab_Name:string, Container_Name:string, Name:string, V
         end
     end
 
-    function MultiSelect:SetValue(Value)
-        MultiSelect:Update(Value)
-    end
-
-    function MultiSelect:SetLabel(Name)
-        Label.Text = tostring(Name)
-    end
-
     function MultiSelect:GetValue()
         return MultiSelect.Items
     end
 
+    function MultiSelect:SetValue(Value)
+        MultiSelect:Update(Value)
+    end
+
+
+    Label.MouseEnter:Connect(function()
+        if ToolTip then
+            Menu:SetToolTip(true, ToolTip, Label)
+        end
+    end)
+    Label.MouseLeave:Connect(function()
+        if ToolTip then
+            Menu:SetToolTip(false)
+        end
+    end)
 
     Button.BackgroundColor3 = Menu.ItemColor
     Button.BorderColor3 = Color3.new()
@@ -1919,7 +1967,7 @@ function Menu.ListBox(Tab_Name:string, Container_Name:string, Name:string, Multi
         end
     end
 
-    local function AddItem(Name, Checked)
+    local function AddItem(Name:string, Checked:boolean)
         local Button = Instance.new("TextButton")
         Button.BackgroundColor3 = Menu.ItemColor
         Button.BorderColor3 = Color3.new()
@@ -1982,6 +2030,7 @@ function Menu.ListBox(Tab_Name:string, Container_Name:string, Name:string, Multi
         table.insert(ItemObjects, Button)
     end
 
+
     function ListBox:Update(Value, Items)
         if ListBox.Method == "Default" then
             UpdateValue(Value)
@@ -2022,7 +2071,7 @@ function Menu.ListBox(Tab_Name:string, Container_Name:string, Name:string, Multi
         end
     end
 
-    function ListBox:SetVisible(Visible)
+    function ListBox:SetVisible(Visible:boolean)
         if Visible then
             if not List.Visible then
                 List.Visible = true
@@ -2062,6 +2111,16 @@ function Menu.ListBox(Tab_Name:string, Container_Name:string, Name:string, Multi
     List.ScrollBarThickness = 4
     List.ScrollBarImageColor3 = Menu.Accent
     List.Parent = Container.self
+    List.MouseEnter:Connect(function()
+        if ToolTip then
+            Menu:SetToolTip(true, ToolTip, List)
+        end
+    end)
+    List.MouseLeave:Connect(function()
+        if ToolTip then
+            Menu:SetToolTip(false)
+        end
+    end)
     CreateStroke(List, Color3.new(), 1)
     AddEventListener(List, function()
         List.BackgroundColor3 = Menu.ItemColor
@@ -2695,7 +2754,7 @@ RunService.RenderStepped:Connect(function(Step)
 
     if ToolTip.Enabled == true then
         ToolTip_Label.Text = ToolTip.Content
-        ToolTip_Label.Position = UDim2.fromOffset(ToolTip.Item.AbsolutePosition.X + 25, ToolTip.Item.AbsolutePosition.Y + 25)
+        ToolTip_Label.Position = UDim2.fromOffset(ToolTip.Item.AbsolutePosition.X, ToolTip.Item.AbsolutePosition.Y + 25)
     end
 end)
 Menu.Screen:GetPropertyChangedSignal("AbsoluteSize"):Connect(function()
