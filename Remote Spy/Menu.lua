@@ -191,7 +191,7 @@ end):SetLabel("Clear Calls"):SetRounded(Vector2.new(0, 3)):SetBackground(Color3.
 local RemoteInfoExportCalls = InfoMain.Button("Export Calls", UDim2.new(1, -40, 0, 25), UDim2.new(0, 20, 0, 110), "Center", function()
     if SelectedRemote then
         local Name = tostring(SelectedRemote.self)
-        local Directory = "Identification/Tools/Remote Spy/Logs/"
+        local Directory = Settings.Directory .. "/Logs/"
         if not isfolder(Directory) then makefolder(Directory) end
         local FileName = Directory .. "log-" .. os.time() .. ".txt"
         writefile(FileName, "")
