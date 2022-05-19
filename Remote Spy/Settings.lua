@@ -1,4 +1,6 @@
 local Settings = {
+    Directory = "ponyhook/Tools/Remote Spy/",
+    
     Ignore = false,
     CallerCheck = false,
     ThreadCheck = false,
@@ -23,14 +25,13 @@ local HttpService = game:GetService("HttpService")
 
 
 local function CreateDirectory()
-    local Directory = "ponyhook/Tools/Remote Spy/"
-    if not isfolder(Directory) then makefolder(Directory) end
+    if not isfolder(Settings.Directory) then makefolder(Settings.Directory) end
 end
 
 
 function Settings:Save()
     CreateDirectory()
-    local Directory = "ponyhook/Tools/Remote Spy/Settings.cfg"
+    local Directory = Settings.Directory .. "/Settings.cfg"
     writefile(Directory, HttpService:JSONEncode(
         Settings.Menu
     ))
@@ -39,7 +40,7 @@ end
 
 function Settings:Load()
     CreateDirectory()
-    local Directory = "ponyhook/Tools/Remote Spy/Settings.cfg"
+    local Directory = Settings.Directory .. "/Settings.cfg"
     if not isfile(Directory) then
         return Settings:Save()
     end
