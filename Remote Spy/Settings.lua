@@ -1,4 +1,5 @@
 local Settings = {
+    Authors = {"Elden#1111", "xaxa#1414"},
     Directory = "ponyhook/Tools/Remote Spy/",
     
     Ignore = false,
