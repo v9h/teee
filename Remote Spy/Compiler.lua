@@ -51,6 +51,47 @@ function _G.GetNull(Index)
     return NullInstances[Index]
 end
 
+function Compiler:InstanceToTable(self:Instance, All:boolean):table
+    local function Recurse(self:table, Function:Function):table
+        local Result = {}
+        if typeof(self) == "table" then
+            for k, v in pairs(self) do
+                if typeof(v) == "table" then
+                    Result[k] = Recurse(v, Function)
+                else
+                    Result[k] = Function(k, v)
+                end
+            end
+        end
+
+        return Result
+    end
+                    
+    local Result = {}
+    
+    if All == true then
+        for _, v in ipairs(self:GetChildren()) do
+            Result[tostring(v)] = InstanceToTable(v, true)
+        end
+    else
+        for _, v in ipairs(self:GetChildren()) do
+            Result[tostring(v)] = v
+        end
+    end
+    
+    -- Overwrite, Properties are more important than children
+    if typeof(self) == "Instance" and typeof(getproperties) == "function" then
+        for k, v in pairs(getproperties(self)) do
+            Result[k] = v
+        end
+    end
+    
+    return Result
+end
+
+
+print(InstanceToTable(game.Players.LocalPlayer, true).Backpack.Glock.Handle.Parent)
+
 
 function Compiler:GetPath(self)
     local Path = ""
