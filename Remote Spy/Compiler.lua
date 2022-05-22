@@ -90,9 +90,6 @@ function Compiler:InstanceToTable(self:Instance, All:boolean):table
 end
 
 
-print(InstanceToTable(game.Players.LocalPlayer, true).Backpack.Glock.Handle.Parent)
-
-
 function Compiler:GetPath(self)
     local Path = ""
     
