@@ -151,7 +151,7 @@ function Compiler:ToString(self)
 
                 if not IsArray then
                     if Table == k then continue end
-                    String ..= Compiler:ToString(k) .. " = "
+                    String ..= "[" .. Compiler:ToString(k) .. "] = "
                 end
 
                 if typeof(v) == "table" then
