@@ -194,6 +194,8 @@ function Compiler:ToString(self)
         return "CFrame.new(" .. Compiler:ToString(self.Position) .. ", " .. Compiler:ToString(self.LookVector) .. ")"
     elseif Type == "Color3" then
         return "Color3.new(" .. Compiler:ToString(self.r) .. ", " .. Compiler:ToString(self.g) .. ", " .. Compiler:ToString(self.b) .. ")"
+    elseif Type == "BrickColor" then
+        return "BrickColor.new(" .. Compiler:ToString(self.Number) .. ")" -- number instead of color because shorter
     elseif Type == "UDim" then
         return "UDim.new(" .. Compiler:ToString(self.Scale) .. ", " .. Compiler:ToString(self.Offset) .. ")"
     elseif Type == "UDim2" then
