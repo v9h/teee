@@ -4323,11 +4323,12 @@ function OnPlayerAdded(Player)
                 if Name == "creator" and self:IsA("ObjectValue") then
                     OnCreatorValueAdded(self)
                 elseif Name == "Bullet" and self.Parent == Humanoid then -- if it's the bullet instance not the value
-                    delay(0, function()
-                        self.Parent = Camera
-                        wait(15)
-                        self:Destroy()
-                    end)
+--		       for some reason this causes errors, but we don't really need them in the camera we can still see the bullets in first person
+--                     delay(0, function()
+--                         self.Parent = Camera
+--                         wait(15)
+--                         self:Destroy()
+--                     end)
                 elseif Name == "Bone" then
                     if Player:GetAttribute("KnockedOut") then return end
                     for _, Object in ipairs(Character:GetDescendants()) do if Object:IsA("Trail") then Object:Destroy() end end
@@ -4613,7 +4614,7 @@ function OnBulletAdded(Bullet)
     
         if Config.BulletImpact.Enabled then CreateBulletImpact(End, Config.BulletImpact.Color) end
         if Target then
-            Console:Warn("[DEBUG] Bullet position from target: " .. tostring(End - Target:GetAttribute("Position")))
+            --Console:Warn("[DEBUG] Bullet position from target: " .. tostring(End - Target:GetAttribute("Position")))
             --Console:Warn("[DEBUG] Current Aimbot Vector Velocity Amplifier (" .. tostring() .. ")")
         end
     
