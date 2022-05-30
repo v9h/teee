@@ -154,7 +154,20 @@ function Compiler:ToString(self)
     if Type == "Instance" then
         return Compiler:GetPath(self)
     elseif Type == "string" then
-        return "\"" .. self .. "\""
+        -- XD
+        local Array = {}
+	
+        local Patterns = {
+            ["%s"] = "\\n"
+        }
+
+        local Index = 1
+        for Pattern, Value in pairs(Patterns) do
+            Array[Index] = string.gsub(self, Pattern, Value)
+            Index += 1
+        end
+
+        return "\"" .. table.concat(Array, "") .. "\""
     elseif Type == "number" then
         local Rounded = math_round(self, 3)
 
