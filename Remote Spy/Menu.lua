@@ -190,7 +190,7 @@ end):SetLabel("Clear Calls"):SetRounded(Vector2.new(0, 3)):SetBackground(Color3.
 
 local RemoteInfoExportCalls = InfoMain.Button("Export Calls", UDim2.new(1, -40, 0, 25), UDim2.new(0, 20, 0, 110), "Center", function()
     if SelectedRemote then
-        local Name = tostring(SelectedRemote.self)
+        local Name = Compiler:ToString(tostring(SelectedRemote.self))
         local Directory = Settings.Directory .. "/Logs/"
         if not isfolder(Directory) then makefolder(Directory) end
         local FileName = Directory .. "log-" .. os.time() .. ".txt"
@@ -222,7 +222,7 @@ local function AddCallLog(Log)
     local Arguments = Log.Arguments
 
     local ArgumentsLength = (get_table_length(Arguments) * 15)
-    local GroupHeight = (15 * 3) + 25
+    local GroupHeight = (15 * 3) + 25 + 2 -- 2 is the offset of List padding?
 
     local Group = CallsList.Group("Log", UDim2.new(1, 0, 0, GroupHeight), UDim2.new()):SetBackground(Color3.fromRGB(45, 45, 45))
     Group.Label("Time", UDim2.new(1, 0, 0, 15), UDim2.new(), "Left"):SetLabel("Time: " .. Time)
@@ -266,7 +266,7 @@ end)
 
 function Menu:AddRemote(Remote)
     local self = Remote.self
-    local Name = tostring(self)
+    local Name = Compiler:ToString(tostring(self))
     local ClassName = self.ClassName
     local Calls = tostring(Remote.Calls)
 
@@ -288,7 +288,7 @@ function Menu:AddRemote(Remote)
 
     local function Callback()
         local self = Remote.self
-        local Name = tostring(self)
+        local Name = Compiler:ToString(tostring(self))
         local ClassName = self.ClassName
         local Calls = tostring(Remote.Calls)
         
@@ -315,7 +315,7 @@ function Menu:AddRemote(Remote)
 
     function Group:Update(Remote, Log)
         local self = Remote.self
-        local Name = tostring(self)
+        local Name = Compiler:ToString(tostring(self))
         local ClassName = self.ClassName
         local Calls = tostring(Remote.Calls)
 
