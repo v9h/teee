@@ -4882,13 +4882,13 @@ function OnIndex(self, Key)
         
         if (Name == "Stamina" or Name == "Stann" or Name == "Stam") and (Key == "Value") then
     	    return (Config.NoSlow.Enabled or Config.God.Enabled) and 100 or
-    		        math.clamp(Player:GetAttribute("Stamina"), 0, 100) -- meh?
+    		    math.clamp(Player:GetAttribute("Stamina"), 0, 100) -- meh?
         end
     
         if not Original and (Config.NoSlow.Enabled or Config.God.Enabled) then
-        	if self == Root and Key == "Anchored" and (Tool and Tool.GetAttribute(Tool, "Gun")) then
-        	   return false
-        	end
+            if self == Root and Key == "Anchored" and (Tool and Tool.GetAttribute(Tool, "Gun")) then
+        	return false
+            end
         end
     
         if self == ScriptContext and Key == "Error" then
@@ -4915,9 +4915,9 @@ function OnIndex(self, Key)
         if self == workspace and Key == "Gravity" then
             
         end
-    
-        return Index(self, Key)
     end
+
+    return Index(self, Key)
 end
 
 
