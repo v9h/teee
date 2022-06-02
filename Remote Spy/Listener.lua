@@ -6,7 +6,7 @@ local Callbacks = {}
 local Scheduled = {}
 local Scheduled2 = {} -- im lazy
 local ConnectionHooks = {}
-local Listeing = true
+local Listening = true
 
 local SchedulerUpdater
 
@@ -71,7 +71,7 @@ end
 
 
 function Listener:Kill()
-    Listeing = false
+    Listening = false
     SchedulerUpdater:Disconnect()
     for _, Connection in ipairs(ConnectionHooks) do
         Connection:Disconnect()
@@ -198,7 +198,7 @@ end)
 NameCall = hookmetamethod(game, "__namecall", function(self, ...)
     local Arguments = {...}
 
-    if Listeing then
+    if Listening then
         local Method = getnamecallmethod()
         local METHOD = lower_first_letter(Method) -- for cmp checks
         local hooks = Hooks:Get()
