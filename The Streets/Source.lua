@@ -4878,27 +4878,28 @@ function OnIndex(self, Key)
     local Caller = checkcaller()
 
     if not Caller then
-    local Name = tostring(self)
+        local Name = tostring(self)
+        
+        if (Name == "Stamina" or Name == "Stann" or Name == "Stam") and (Key == "Value") then
+    	return (Config.NoSlow.Enabled or Config.God.Enabled) and 100 or
+    		math.clamp(Player:GetAttribute("Stamina", 0, 100)) -- meh?
+        end
     
-    if (Name == "Stamina" or Name == "Stann" or Name == "Stam") and (Key == "Value") then
-	return (Config.NoSlow.Enabled or Config.God.Enabled) and 100 or
-		math.clamp(Player:GetAttribute("Stamina", 0, 100)) -- meh?
+        if not Original and (Config.NoSlow.Enabled or Config.God.Enabled) then
+    	if self == Root and Key == "Anchored" and (Tool and Tool.GetAttribute(Tool, "Gun")) then
+    	   return false
+    	end
+        end
+    
+        if self == ScriptContext and Key == "Error" then
+            return {connect = function() end} -- HACKED
+        end
+    
+        if Name == "Namer" and Config.God.Enabled then return "Torso" end
+        if Name == "LocalScript" and Key == "Disabled" then return false end
+    
+        return Index(self, Key)
     end
-
-    if not Original and (Config.NoSlow.Enabled or Config.God.Enabled) then
-	if self == Root and Key == "Anchored" and (Tool and Tool.GetAttribute(Tool, "Gun")) then
-	   return false
-	end
-    end
-
-    if self == ScriptContext and Key == "Error" then
-        return {connect = function() end} -- HACKED
-    end
-
-    if Name == "Namer" and Config.God.Enabled then return "Torso" end
-    if Name == "LocalScript" and Key == "Disabled" then return false end
-
-    return Index(self, Key)
 end
 
 
