@@ -130,10 +130,10 @@ getgenv().Import = nil  -- won't be used anymore
 local Original = game.PlaceId == 455366377 and true
 
 if not Original and game.PlaceId ~= 4669040 then
-    return messagebox("Error 0x1; Place not supported", "ponyhook.cc", 0) -- why is the 2nd parameter title??
+    --return messagebox("Error 0x1; Place not supported", "ponyhook.cc", 0) -- why is the 2nd parameter title??
 end
 
-if (Original and game.PlaceVersion ~= 1508) or (not Original and game.PlaceVersion ~= 217) then
+if (Original and game.PlaceVersion ~= 1508) or (game.PlaceId == 4669040 and game.PlaceVersion ~= 217) then
     return messagebox("Error 0x2; Script is not up to date with place version", "ponyhook.cc", 0)
 end
 
