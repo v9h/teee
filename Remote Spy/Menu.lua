@@ -222,7 +222,7 @@ local function AddCallLog(Log)
     local Arguments = Log.Arguments
 
     local ArgumentsLength = (get_table_length(Arguments) * 15)
-    local GroupHeight = (15 * 3) + 25 + 2 -- 2 is the offset of List padding?
+    local GroupHeight = (15 * 3) + 25
 
     local Group = CallsList.Group("Log", UDim2.new(1, 0, 0, GroupHeight), UDim2.new()):SetBackground(Color3.fromRGB(45, 45, 45))
     Group.Label("Time", UDim2.new(1, 0, 0, 15), UDim2.new(), "Left"):SetLabel("Time: " .. Time)
@@ -237,7 +237,7 @@ local function AddCallLog(Log)
     end):SetLabel("Compile"):SetRounded(Vector2.new(0, 3)):SetBackground(Color3.fromRGB(60, 60, 60))
 
 
-    CallsList:SetCanvasSize(UDim2.new(0, 0, 0, GroupHeight) + CallsList:GetCanvasSize())
+    CallsList:SetCanvasSize(UDim2.new(0, 0, 0, GroupHeight + 2) + CallsList:GetCanvasSize())
 end
 
 
