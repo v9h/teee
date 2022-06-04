@@ -158,7 +158,9 @@ function Compiler:ToString(self)
         local Array = {}
 	
         local Patterns = {
-            ["%s"] = "\\n"
+            ["\n"] = "\\n",
+	    ["\t"] = "\\t",
+	    ["\r"] = "\\r"
         }
 
         local Index = 1
