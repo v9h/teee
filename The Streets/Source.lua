@@ -4593,7 +4593,7 @@ function OnBulletAdded(Bullet)
     	return OnBulletAdded(Bullet)
     end
     
-    spawn(function()
+    delay(0, function()
         Bullet.Parent = Camera -- Snake didn't account for LocalTransparency so if ur in first person we can now see them again
     end)
     delay(15, Bullet.Destroy, Bullet)
