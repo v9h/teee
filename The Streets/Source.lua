@@ -4323,12 +4323,7 @@ function OnPlayerAdded(Player)
                 if Name == "creator" and self:IsA("ObjectValue") then
                     OnCreatorValueAdded(self)
                 elseif Name == "Bullet" and self.Parent == Humanoid then -- if it's the bullet instance not the value
---		       for some reason this causes errors, but we don't really need them in the camera we can still see the bullets in first person
---                     delay(0, function()
---                         self.Parent = Camera
---                         wait(15)
---                         self:Destroy()
---                     end)
+--		       OnBulletAdded(self)
                 elseif Name == "Bone" then
                     if Player:GetAttribute("KnockedOut") then return end
                     for _, Object in ipairs(Character:GetDescendants()) do if Object:IsA("Trail") then Object:Destroy() end end
@@ -4593,11 +4588,18 @@ end
 
 
 function OnBulletAdded(Bullet)
+    if Bullet.Parent == nil then
+	Bullet.AncestryChanged:Wait()
+	return OnBulletAdded(Bullet)
+    end
+
+    Bullet.Parent = Camera -- Snake didn't account for LocalTransparency so if ur in first person we can now see them again
+    delay(15, Bullet.Destroy, Bullet)
+
     if Bullet.Parent ~= Humanoid then return end
     BulletTick = math_round(os.clock() - FireTick, 5)
 
     local Origin = Bullet.Position
-
     spawn(function()
         Bullet:GetPropertyChangedSignal("Position"):Wait()
     
@@ -4675,11 +4677,6 @@ function OnBulletAdded(Bullet)
             Tracer.Enabled = true
             Tracer.Parent = Bullet
         end
-        
-        if Bullet.Parent == nil then Bullet.AncestryChanged:Wait() end
-        Bullet.Parent = Camera -- Snake didn't account for LocalTransparency so if ur in first person we can now see them again
-        wait(15) -- we are in a thread so we don't need to make a new one
-        Bullet:Destroy()
     end)
 end
 
@@ -4882,7 +4879,7 @@ function OnIndex(self, Key)
         
         if (Name == "Stamina" or Name == "Stann" or Name == "Stam") and (Key == "Value") then
     	    return (Config.NoSlow.Enabled or Config.God.Enabled) and 100 or
-    		    math.clamp(Player:GetAttribute("Stamina"), 0, 100) -- meh?
+    		    math.clamp(Player:GetAttribute("Stamina") or 0, 0, 100) -- meh?
         end
     
         if not Original and (Config.NoSlow.Enabled or Config.God.Enabled) then
