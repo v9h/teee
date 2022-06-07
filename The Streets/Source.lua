@@ -4323,7 +4323,7 @@ function OnPlayerAdded(Player)
                 if Name == "creator" and self:IsA("ObjectValue") then
                     OnCreatorValueAdded(self)
                 elseif Name == "Bullet" and self.Parent == Humanoid then -- if it's the bullet instance not the value
---		       OnBulletAdded(self)
+                    OnBulletAdded(self)
                 elseif Name == "Bone" then
                     if Player:GetAttribute("KnockedOut") then return end
                     for _, Object in ipairs(Character:GetDescendants()) do if Object:IsA("Trail") then Object:Destroy() end end
@@ -4589,11 +4589,13 @@ end
 
 function OnBulletAdded(Bullet)
     if Bullet.Parent == nil then
-	Bullet.AncestryChanged:Wait()
-	return OnBulletAdded(Bullet)
+    	Bullet.AncestryChanged:Wait()
+    	return OnBulletAdded(Bullet)
     end
-
-    Bullet.Parent = Camera -- Snake didn't account for LocalTransparency so if ur in first person we can now see them again
+    
+    spawn(function()
+        Bullet.Parent = Camera -- Snake didn't account for LocalTransparency so if ur in first person we can now see them again
+    end)
     delay(15, Bullet.Destroy, Bullet)
 
     if Bullet.Parent ~= Humanoid then return end
