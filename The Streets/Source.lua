@@ -104,7 +104,7 @@ local TeleportService = game:GetService("TeleportService")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 
-if not Import then return messagebox("Error 0x5; Something went wrong with initializing the script (couldn't load modules)", "ponyhook.cc", 0) end
+if not import then return messagebox("Error 0x5; Something went wrong with initializing the script (couldn't load modules)", "ponyhook.cc", 0) end
 
 local ESP
 local Menu
@@ -116,15 +116,15 @@ local DoorData
 
 -- Importing the modules and yielding until they are loaded
 
-spawn(function() ESP = Import("ESP") end)
-spawn(function() Menu = Import("Menu") end)
-spawn(function() Console = Import("Console") end)
-spawn(function() Commands = Import("Commands") end)
-spawn(function() ToolData = Import("Tool Data") end)
-spawn(function() DoorData = Import("Door Data") end)
+spawn(function() ESP = import("ESP") end)
+spawn(function() Menu = import("Menu") end)
+spawn(function() Console = import("Console") end)
+spawn(function() Commands = import("Commands") end)
+spawn(function() ToolData = import("Tool Data") end)
+spawn(function() DoorData = import("Door Data") end)
 
 while not ESP or not Menu or not Console or not Commands or not ToolData or not DoorData do wait() end -- waiting for the modules to load...
-getgenv().Import = nil  -- won't be used anymore
+getgenv().import = nil  -- won't be used anymore
 
 
 local Original = game.PlaceId == 455366377 and true
