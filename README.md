@@ -30,6 +30,7 @@ function import(Name: string)
         return
     end
     
+    getfenv()[Name] = Result
     return Result
 end
 
