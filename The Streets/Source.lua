@@ -4250,13 +4250,15 @@ function OnCharacterAdded(_Character)
     end
 
     -- https://devforum.roblox.com/t/error-cannot-load-the-animationclipprovider-service/1639315/7
+    -- think this was patched not sure tho :starlightawkward:
     if Character and Humanoid and Character.Parent and Humanoid.Parent == Character then
-        for _, Track in ipairs(Humanoid:GetPlayingAnimationTracks()) do
-            local AnimationId = string.gsub(Track.Animation.AnimationId, "%D", "")
-            if AnimationId == "8587081257" or AnimationId == "376653421" or AnimationId == "458506542" or AnimationId == "1484589375" or AnimationId == "180426354" then Track:Stop() end -- Stopping the run animations
-        end
+--         for _, Track in ipairs(Humanoid:GetPlayingAnimationTracks()) do
+--             local AnimationId = string.gsub(Track.Animation.AnimationId, "%D", "")
+	
+--             if AnimationId == "8587081257" or AnimationId == "376653421" or AnimationId == "458506542" or AnimationId == "1484589375" or AnimationId == "180426354" then Track:Stop() end -- Stopping the run animations
+--         end
         for _, Animation in pairs(Animations) do
-	        Animation.self = Humanoid:LoadAnimation(Animation.Animation) -- This has to be done after god mode
+	    Animation.self = Humanoid:LoadAnimation(Animation.Animation) -- This has to be done after god mode
         end
     end
 
