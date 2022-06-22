@@ -60,6 +60,13 @@ Silent Animation Table Check ???
 
 -- Variables
 
+-- Original values maybe different for some remakes but I'm too lazy to add support for that
+local ORIGINAL_GRAVITY = workspace.Gravity
+
+local ORIGINAL_SPEED = 0 -- if this gets read first before write then umm :rainbow_dash_idk_3:
+local ORIGINAL_HIPHEIGHT = 2
+local ORIGINAL_JUMPPOWER = game:GetService("StarterPlayer").CharacterJumpPower
+
 local Time = os.clock()
 if not game:IsLoaded() then game.Loaded:Wait() end
 
@@ -4888,7 +4895,7 @@ function OnIndex(self, Key)
     
         if not Original and (Config.NoSlow.Enabled or Config.God.Enabled) then
             if self == Root and Key == "Anchored" and (Tool and Tool.GetAttribute(Tool, "Gun")) then
-        	return false
+        	    return false
             end
         end
     
@@ -4901,20 +4908,20 @@ function OnIndex(self, Key)
         
         if self == Humanoid then
             if Key == "WalkSpeed" then
-                
+                return ORIGINAL_SPEED
             end
             
             if Key == "HipHeight" then
-                
+                return ORIGINAL_HIPHEIGHT
             end
-            
+        
             if Key == "JumpPower" then
-                
+                return ORIGINAL_JUMPPOWER
             end
         end
         
         if self == workspace and Key == "Gravity" then
-            
+            return ORIGINAL_GRAVITY
         end
     end
 
@@ -4932,16 +4939,16 @@ function OnNewIndex(self, Key, Value)
     if self == Humanoid then
         if Key == "WalkSpeed" then
             local IsRunning = Value > 16
-            local IsWalking = Value == 16
+            local IsWalking = Value > 8 and Value < 18
             local IsCrouching = Value == 8
             local Hit = Value == 2
             local CantMove = Value == 0
 
             Running = IsRunning
             Crouching = IsCrouching
+            ORIGINAL_SPEED = Value
 
             if (Config.NoSlow.Enabled or Config.God.Enabled) and (CantMove or Hit) then return end
-
             Value = (IsRunning and Config.RunSpeed.Value) or (IsCrouching and Config.CrouchSpeed.Value) or (IsWalking and Config.WalkSpeed.Value)
         end
 
@@ -4980,7 +4987,7 @@ function OnNameCall(self, ...)
 
             if Key == "bv" or Key == "hb" or Key == "ws" or Key == "strafe" then return end
             if Key == "ml" or Key == "moff1" then
-		if not Caller and Menu.IsVisible then return end
+		        if not Caller and Menu.IsVisible then return end
                 if not Arguments[2] then Arguments[2] = {} end
                 -- MouseHit only thing required for attacking/unattacking
                 -- Server indexes mousehit.p so we can also do {p = Vector3.new()}
@@ -5108,7 +5115,7 @@ Commands.Add("hipheight", {"hh"}, "[number] - sets your hipheight to 'number'", 
 end)
 
 Commands.Add("gravity", {}, "[number] - sets your gravity to 'number'", function(Arguments)
-    workspace.Gravity = Arguments[1] or 196.05
+    workspace.Gravity = Arguments[1] or 196.2
 end)
 
 Commands.Add("blink", {"cfwalk"}, "- enables 'blink mode'", function()
