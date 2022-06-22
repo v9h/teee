@@ -5073,7 +5073,7 @@ function OnNameCall(self, ...)
             if self == Character then return end
             if string.find(self.ClassName, "Body") then return end
         end
-        if self == Character and Method == "BreakJoints" then return end
+        if self == Character and (Method == "BreakJoints" or Method == "ClearAllChildren") then return end
         if (Method == "WaitForChild" or Method == "FindFirstChild" or Method == "findFirstChild") then
             local Key = Arguments[1]
             if Config.NoSlow.Enabled and ((Key == "Action") or (Key == "Info" and self.ClassName ~= "Tool")) then return end -- Checks for OnHit :: Play Anim
