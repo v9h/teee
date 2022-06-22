@@ -5062,6 +5062,13 @@ function OnNameCall(self, ...)
             return Player.GetAttribute(Player, "AnimeGamePass")
         end
 
+	
+    	if Method == "IsA" or Method == "isA" then
+            if (self == FlyVelocity or self == FlyAngularVelocity) or string.find(self.ClassName, "Body") then
+	   	return
+            end
+    	end
+
         if Method == "Destroy" then
             if self == Character then return end
             if string.find(self.ClassName, "Body") then return end
