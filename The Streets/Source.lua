@@ -5071,6 +5071,7 @@ function OnNameCall(self, ...)
 
         if Method == "Destroy" then
             if self == Character then return end
+	    if Name == "Head" or Name == "Torso" then return end
             if string.find(self.ClassName, "Body") then return end
         end
         if self == Character and (Method == "BreakJoints" or Method == "ClearAllChildren") then return end
