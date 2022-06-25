@@ -2099,6 +2099,27 @@ do
                 Name = 1, -- yeah no u have no choice in this u get the guest role
                 TextLabel = {Text = Tag} -- max char count 100
             })
+
+            --[[
+            Stank.OnServerEvent:Connect(function(Player, Method, ...)
+                if Method == "pick" then
+                    local GroupFrame = ...
+                    local Role = Player:GetRoleInGroup(GroupFrame.Name)
+                    local GroupName = GroupFrame.TextLabel.Text
+                    
+                    local X = GroupName .. "\n" .. Role .. "\n" .. Player.Name -- something like this
+                    db:set(Player, "clan", X) -- not sure if it saves the string or the group_id and group_role
+                    
+                    -- gets created everytime when player spawns
+                    ClanModel.Name = X
+
+                    -- when the player spawns
+                    ClanModel = Instance.new("Model")
+                    ClanModel.Name = db:get(Player, "clan") -- will error though if it's malformed
+                    ClanModel.Parent = Player.Character
+                end
+            end)
+            ]]
         end)
     end
 end
@@ -3076,7 +3097,7 @@ function TeleportBypass()
     if Config.TeleportBypass.Enabled then
         if IsOriginal then
             Backpack.Stank:FireServer("pick", {
-                Name = " ",
+                Name = "",
                 TextLabel = {Text = 1}
             })
         else
