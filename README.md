@@ -13,8 +13,13 @@ local request = request or syn and syn.request
 local FilePath = string.gsub(ScriptName, "%s", "%%20")
 local RepositoryPath = "https://" .. AuthToken .. "@raw.githubusercontent.com/RegularID/ponyhook-dev/main/" .. FilePath .. "/"
 
+local Imported = {}
 function import(Name: string)
     local Name = string.gsub(Name, "%s", "%%20") -- Replacing Spaces with %20's
+    if Imported[Name] then
+        return Imported[Name]
+    end
+    
     local Url = RepositoryPath .. Name .. ".lua"
     local Response = request({Url = Url})
     local Source = loadstring(Response.Body)
@@ -30,7 +35,7 @@ function import(Name: string)
         return
     end
     
-    getfenv()[Name] = Result
+    Imported[Name] = Result
     return Result
 end
 

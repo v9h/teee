@@ -134,13 +134,14 @@ while not ESP or not Menu or not Console or not Commands or not ToolData or not 
 getgenv().import = nil  -- won't be used anymore
 
 
-local Original = game.PlaceId == 455366377 and true
+local IsOriginal = game.PlaceId == 455366377 and true
+local IsPrison = game.PlaceId == 4669040 and true
 
-if not Original and game.PlaceId ~= 4669040 then
+if not IsOriginal and not IsPrison then
     --return messagebox("Error 0x1; Place not supported", "ponyhook.cc", 0) -- why is the 2nd parameter title??
 end
 
-if (Original and game.PlaceVersion ~= 1511) or (game.PlaceId == 4669040 and game.PlaceVersion ~= 223) then
+if (IsOriginal and game.PlaceVersion ~= 1511) or (IsPrison and game.PlaceVersion ~= 223) then
     return messagebox("Error 0x2; Script is not up to date with place version", "ponyhook.cc", 0)
 end
 
@@ -161,7 +162,7 @@ local Tool = Character:FindFirstChildOfClass("Tool")
 local PlayerGui, ChatFrame = Player:WaitForChild("PlayerGui"), nil
 local HUD = PlayerGui and PlayerGui:WaitForChild("HUD")
 local Camera = workspace.CurrentCamera
-local TagSystem = Original and require(ReplicatedStorage:WaitForChild("TagSystem")) -- "creator" || "creatorslow" || "gunslow" || "action" || "Action" || "KO" || "Dragged" || "Dragging" || "reloading" || "equipedgun" || yes with 1 p he's retarded
+local TagSystem = IsOriginal and require(ReplicatedStorage:WaitForChild("TagSystem")) -- "creator" || "creatorslow" || "gunslow" || "action" || "Action" || "KO" || "Dragged" || "Dragging" || "reloading" || "equipedgun" || yes with 1 p he's retarded
 
 _G.PonyHook = true
 
@@ -907,12 +908,12 @@ function LoadConfig(Name)
     end)
 
 
-    if Original and Config.HatChanger.Enabled then
+    if IsOriginal and Config.HatChanger.Enabled then
         Threads.HatChanger.Continue()
     end
 
 
-    if Original and Config.ClanTag.Enabled then
+    if IsOriginal and Config.ClanTag.Enabled then
         Threads.ClanTag.Continue()
     end
 
@@ -928,7 +929,7 @@ function LoadConfig(Name)
         Threads.FakeLag.Continue()
     end
 
-    if not Original and Config.ClickSpam.Enabled then
+    if not IsOriginal and Config.ClickSpam.Enabled then
         Threads.ClickSpam.Continue()
     end
 
@@ -1433,7 +1434,7 @@ function GetStamina(_Player)
     local Player = _Player or Player
     local Stamina = 100
     local StaminaInstance
-    if Original then
+    if IsOriginal then
         local Character = Player.Character
         StaminaInstance = Character and Character:FindFirstChild("Stamina")
         if StaminaInstance then
@@ -1531,7 +1532,7 @@ function GetToolInfo(self, Property) -- Maybe use attributes to log ammo;
                     AmmoPerClip = 4
                 elseif Tool_Name == "Sawed Off" then
                     AmmoPerClip = 2
-                    if not Original then -- prison is retarded
+                    if not IsOriginal then -- prison is retarded
                         AmmoPerClip = 4
                     end
                 end
@@ -1859,7 +1860,7 @@ end
 function IsCharacterAlive(Character)
     if typeof(Character) == "Instance" and Character:IsA("Model") then
         local CurrentParent = Character.Parent
-        return (Original and CurrentParent == workspace.Live) or (not Original and CurrentParent == workspace)
+        return (IsOriginal and CurrentParent == workspace.Live) or (not IsOriginal and CurrentParent == workspace)
     end
 
     return false
@@ -2696,7 +2697,7 @@ function UpdateInterface(Fade)
     if typeof(HUD) ~= "Instance" then return end
     local Bars = {HUD:FindFirstChild("HP"), HUD:FindFirstChild("KO"), HUD:FindFirstChild("Stam")}
     local Buttons = {HUD:FindFirstChild("ImageButton"), HUD:FindFirstChild("Mute")} -- ImageButton-LowGFX
-    if Original then
+    if IsOriginal then
         table.insert(Buttons, HUD:FindFirstChild("Shop"))
         table.insert(Buttons, HUD:FindFirstChild("Groups"))
     end
@@ -3073,7 +3074,7 @@ end
 
 function TeleportBypass()
     if Config.TeleportBypass.Enabled then
-        if Original then
+        if IsOriginal then
             Backpack.Stank:FireServer("pick", {
                 Name = " ",
                 TextLabel = {Text = 1}
@@ -3082,7 +3083,7 @@ function TeleportBypass()
             local RootPart = GetRoot(Player)
             if tostring(RootPart) == "HumanoidRootPart" then
                 Torso.Anchored = true
-		Player:SetAttribute("RootPoint", RootPart.Position)
+		        Player:SetAttribute("RootPoint", RootPart.Position)
                 RootPart:Destroy()
                 Torso.Anchored = false
                 Root = Torso
@@ -3090,7 +3091,7 @@ function TeleportBypass()
         end
     else
         if not Character:FindFirstChildOfClass("Model") then
-            if Original then Backpack.Stank:FireServer("leave") end
+            if IsOriginal then Backpack.Stank:FireServer("leave") end
         end
     end
 end
@@ -3104,7 +3105,7 @@ end
 
 
 function EnableInfiniteStamina(Value: number)
-    if Original or not Config.InfiniteStamina.Enabled then return end
+    if IsOriginal or not Config.InfiniteStamina.Enabled then return end
     spawn(function()
         local Remote = Backpack:WaitForChild("ServerTraits"):WaitForChild("Touch1")
         local Sound = workspace.OneHoop.Score.Sound -- Don't ask okay
@@ -3121,7 +3122,7 @@ end
 
 
 function PlaySoundExploit(Sound)
-    if Original or not Sound then return end
+    if IsOriginal or not Sound then return end
     spawn(function()
         local Remote = Backpack:WaitForChild("ServerTraits"):WaitForChild("Touch1")
         Remote:FireServer({
@@ -3169,7 +3170,7 @@ end
 
 
 function ResetCharacter()
-    if Original then
+    if IsOriginal then
         --Character.Head:Destroy()
         Torso:Destroy() -- Server Kill + No lag while dragged
     else
@@ -3184,10 +3185,10 @@ function Attack(CF)
 
     if not Tool then return end
 
-    if Original then
+    if IsOriginal then
         -- Tool.CD is disabled for reg
         if TagSystem.has("reloading") then return end
-	--if TagSystem.has("gunslow") then return end
+	    --if TagSystem.has("gunslow") then return end
 
         local Arguments = {
             shift = UserInput:IsKeyDown(Enum.KeyCode.LeftShift),
@@ -3202,7 +3203,11 @@ function Attack(CF)
             if not Tool.CD then return end -- Cooldown
             local AnimationId = string.gsub(Tool.Fires.AnimationId, "%D", "")
             GetAnimation(AnimationId):Play(0.1, 1, 2)
-            Tool.Fire:FireServer(CF, true) -- we send the boolean true for telling the hook to ignore it (AutShoot)
+            if IsPrison and not Tool:FindFirstChild("Fire") then
+                Tool.Fire:FireServer(CF, true) -- not sure why we sending boolean something for namecall check
+            else
+                Tool.Shoot:FireServer(CF, true)
+            end
         elseif Tool:FindFirstChild("Finish") then
             Backpack.ServerTraits.Touch1:FireServer(Tool, 0, UserInput:IsKeyDown(Enum.KeyCode.LeftShift), 0)
         end
@@ -3212,7 +3217,7 @@ end
 
 function Stomp(Amount)
     local Amount = typeof(Amount) == "number" and Amount or 1
-    if Original then
+    if IsOriginal then
         if Tool and Tool:FindFirstChild("Finish") then
             local Input = Backpack.Input
             for _ = 1, Amount do
@@ -3233,7 +3238,7 @@ end
 
 function Drag()
     if Character and not Dragging then
-        if Original then
+        if IsOriginal then
             Backpack.Input:FireServer("e", {})
         else
             Backpack.ServerTraits.Drag:FireServer(true)
@@ -3470,7 +3475,7 @@ function Heartbeat(Step) -- after phys :: after heartbeat comes network stepped
         Camera.CameraSubject = Config.View.Enabled and (tHumanoid or Humanoid) or Humanoid
     end
 
-    if Original then
+    if IsOriginal then
         if TagSystem then
             Dragging = TagSystem.has(Character, "Dragging")
             Dragged = TagSystem.has(Character, "Dragged")
@@ -3982,7 +3987,7 @@ function OnInput(Input, Process)
             if not UserInput:IsKeyDown(Key) then
                 if Character and not Dragging and Config.StompSpam.Enabled then
                     if GetStompTarget() then
-                        Stomp(Original and 50 or 200)
+                        Stomp(IsOriginal and 50 or 200)
                     end
                 end
             end
@@ -4241,7 +4246,7 @@ function OnCharacterAdded(_Character)
     for _, Tool in ipairs(GetTools()) do OnBackpackChildAdded(Tool) end
 
     if Config.God.Enabled then
-        if Original then
+        if IsOriginal then
             -- Only 1 method by Cyrus, I know of
         else
             -- Method by Reestart; 
@@ -4250,10 +4255,10 @@ function OnCharacterAdded(_Character)
             Animator:Clone().Parent = Humanoid
             Animator:Destroy()
         end
-        --Character:WaitForChild(Original and "Used" or "Right Leg"):Destroy()
+        --Character:WaitForChild(IsOriginal and "Used" or "Right Leg"):Destroy()
     else
         
-        --Character:WaitForChild(Original and "GetMouse" or "Gun", 10)
+        --Character:WaitForChild(IsOriginal and "GetMouse" or "Gun", 10)
     end
 
     -- https://devforum.roblox.com/t/error-cannot-load-the-animationclipprovider-service/1639315/7
@@ -4640,7 +4645,7 @@ function OnBulletAdded(Bullet)
         if Part then
             local Humanoid = Part.Parent:FindFirstChild("Humanoid") or Part.Parent.Parent:FindFirstChild("Humanoid")
             if Humanoid then
-                if Original then -- not useful in prison, also the function isn't very reliable; snake please add damage logs in tagsystem
+                if IsOriginal then -- not useful in prison, also the function isn't very reliable; snake please add damage logs in tagsystem
                     OnPlayerDamaged(Players:GetPlayerFromCharacter(Humanoid.Parent), Player, 0, tick())
                 end
             end
@@ -4847,8 +4852,7 @@ end
 
 -- Game Hook
 
-if Original then
-
+if IsOriginal then
     for _, Connection in ipairs(getconnections(ScriptContext.Error)) do
         if getfenv(Connection.Function).script == PlayerGui.LocalScript then
             Connection:Disable()
@@ -4856,6 +4860,7 @@ if Original then
     end
 
     --[[
+    -- what is das?
     local OldHas
     OldHas = hookfunction(TagSystem.has, function(self, ...)
         local Arguments = {...}
@@ -4870,7 +4875,8 @@ if Original then
 else
 
     local wait_hook = nil 
-    wait_hook = hookfunction(getrenv()["wait"], function(constant) -- (note from xaxa) for info on why im writing getrenv()["wait"], please refer to line 69 in the source (literally not a coincidence, BLAME ELDEN)
+    -- (note from elden) im writing getrenv().wait instead of getrenv()["wait"] because just no
+    wait_hook = hookfunction(getrenv().wait, function(constant) -- (note from xaxa) for info on why im writing getrenv()["wait"], please refer to line 69 in the source (literally not a coincidence, BLAME ELDEN)
         if not checkcaller() and Config.NoGunDelay.Enabled and (constant == 0.5 or constant == 0.25 or constant == 0.33) then 
             constant = 0
         end
@@ -4893,7 +4899,7 @@ function OnIndex(self, Key)
     		    math.clamp(Player:GetAttribute("Stamina") or 0, 0, 100) -- meh?
         end
     
-        if not Original and (Config.NoSlow.Enabled or Config.God.Enabled) then
+        if not IsOriginal and (Config.NoSlow.Enabled or Config.God.Enabled) then
             if self == Root and Key == "Anchored" and (Tool and Tool.GetAttribute(Tool, "Gun")) then
         	    return false
             end
@@ -4934,7 +4940,7 @@ function OnNewIndex(self, Key, Value)
     if Caller then return NewIndex(self, Key, Value) end
 
     if self == Mouse and Key == "Icon" then return end
-    if Original and Key == "OnClientInvoke" and tostring(self) == "GetMouse" then Value = OnGetMouseInvoke end
+    if IsOriginal and Key == "OnClientInvoke" and tostring(self) == "GetMouse" then Value = OnGetMouseInvoke end
 
     if self == Humanoid then
         if Key == "WalkSpeed" then
@@ -4993,28 +4999,34 @@ function OnNameCall(self, ...)
                 -- Server indexes mousehit.p so we can also do {p = Vector3.new()}
                 Arguments[2].mousehit = Mouse.Hit or CFrame.new()
                 Arguments[2].velo = 16 -- just incase shift is somehow true
+                
                 if Target and Config.Aimbot.Enabled then
                     Arguments[2].mousehit = GetAimbotCFrame(true) or Mouse.Hit
                 end
+
                 if Config.AlwaysGroundHit.Enabled then
                     Arguments[2].shift = true
                 end
+
                 FireTick = os.clock()
             end
         end
-        if Name == "Fire" then
-	    if not Caller and Menu.IsVisible then return end
+        if (IsPrison and Name == "Fire") or (not Original and Name == "Shoot") then
+	        if not Caller and Menu.IsVisible then return end
             Arguments[1] = Mouse.Hit or CFrame.new()
             if Target and Config.Aimbot.Enabled and ((not Caller) or Arguments[2]) then -- Arguments[2] =  (AutShoot)
                 Arguments[1] = GetAimbotCFrame(true) or Mouse.Hit
             end
+
             FireTick = os.clock()
         end
+
         if Name == "Touch1" then
             if Config.AlwaysGroundHit.Enabled then
                 Arguments[3] = true
             end
         end
+
         if not Caller and Arguments[1] == "play" and Arguments[2] then
             LastAudio = Arguments[2]
             if not table.find(AudioLogs, LastAudio) then
@@ -5028,6 +5040,7 @@ function OnNameCall(self, ...)
         if FlyVelocity.Parent == self then
             FlyVelocity.Parent = nil
         end
+
         if FlyAngularVelocity.Parent == self then
             FlyAngularVelocity.Parent = nil
         end
@@ -5065,16 +5078,17 @@ function OnNameCall(self, ...)
 	
     	if Method == "IsA" or Method == "isA" then
             if (self == FlyVelocity or self == FlyAngularVelocity) or string.find(self.ClassName, "Body") then
-	   	return
+	   	        return
             end
     	end
 
         if Method == "Destroy" then
             if self == Character then return end
-	    if Name == "Head" or Name == "Torso" then return end
+	        if Name == "Head" or Name == "Torso" then return end
             if string.find(self.ClassName, "Body") then return end
         end
         if self == Character and (Method == "BreakJoints" or Method == "ClearAllChildren") then return end
+        
         if (Method == "WaitForChild" or Method == "FindFirstChild" or Method == "findFirstChild") then
             local Key = Arguments[1]
             if Config.NoSlow.Enabled and ((Key == "Action") or (Key == "Info" and self.ClassName ~= "Tool")) then return end -- Checks for OnHit :: Play Anim
@@ -5200,7 +5214,7 @@ Commands.Add("rejoin", {"rj"}, "- attempts to rejoin to the current server", fun
 end)
 
 Commands.Add("swap", {}, "- teleports either to the streets or the prison", function()
-    TeleportToPlace(Original and 4669040 or 455366377)
+    TeleportToPlace(IsOriginal and 4669040 or 455366377)
 end)
 
 Commands.Add("goto", {"to"}, "[player] - teleports to the 'player'", function(Arguments)
@@ -5225,7 +5239,7 @@ Commands.Add("item", {"get"}, "[name] - if the item is found then it teleports y
             break
         end
     end
-    if Original and not Found then BuyItem(Item_Name) end
+    if IsOriginal and not Found then BuyItem(Item_Name) end
 end)
 
 Commands.Add("play", {}, "[id] - mass plays the selected 'id'", function(Arguments)
@@ -5249,7 +5263,7 @@ Commands.Add("play", {}, "[id] - mass plays the selected 'id'", function(Argumen
 end)
 
 Commands.Add("bypass", {}, "[prison only] - Attempts to give you tool and teleport bypass", function()
-    if not Original then
+    if not IsOriginal then
         queue_on_teleport([[
             if not game:IsLoaded() then game.Loaded:Wait() end -- Synapse is shit
             game:GetService("TeleportService"):TeleportToPlaceInstance(4669040, game.JobId)
@@ -5260,7 +5274,7 @@ end)
 
 --[[
     Commands.Add("breakpads", {"breakbuypads"}, "", function()
-        if Original then
+        if IsOriginal then
             Humanoid:Destroy() -- Kicks you, disabling for now
             Backpack:Destroy() -- If This Replicated It Would Also Break Them
             BuyItem("Glock")
@@ -5350,7 +5364,7 @@ Commands.Add("steal", {"st", "log"}, "([audio]/[decal]) [player] - steals the se
         if spray_part then
             local decal = spray_part:WaitForChild("Decal")
             local decal_id = string.match(decal.Texture, "%d+")
-            if not Original then decal_id += 1 end
+            if not IsOriginal then decal_id += 1 end
             setclipboard(decal_id)
             local Color = Config.EventLogs.Colors.Success:ToHex()
             return Menu.Notify(GetRichTextColor("set decal_id rbxassetid://'" .. decal_id .. "' to your clipboard", Color))
@@ -5434,12 +5448,12 @@ do
     Menu.Container("Visuals", "Interface", "Right")
     Menu.Container("Visuals", "World", "Right")
     Menu.Container("Visuals", "Weapons", "Right")
-    Menu.Container("Visuals", "Hats", "Right"):SetVisible(Original)
+    Menu.Container("Visuals", "Hats", "Right"):SetVisible(IsOriginal)
     Menu.Container("Misc", "Main", "Left")
     Menu.Container("Misc", "Animations", "Left")
     Menu.Container("Misc", "Exploits", "Left")
     Menu.Container("Misc", "Players", "Right")
-    Menu.Container("Misc", "Clan tag", "Right"):SetVisible(Original)
+    Menu.Container("Misc", "Clan tag", "Right"):SetVisible(IsOriginal)
     Menu.Container("Settings", "Demo recorder", "Left")
     Menu.Container("Settings", "Settings", "Left")
     Menu.Container("Settings", "Menu", "Left")
@@ -5990,13 +6004,13 @@ do
     end)
 
     Menu.CheckBox("Visuals", "Hats", "Hat color changer", Config.HatChanger.Enabled, function(Bool)
-        Config.HatChanger.Enabled = Original and Bool
-        if Original and Bool then
+        Config.HatChanger.Enabled = IsOriginal and Bool
+        if IsOriginal and Bool then
             Threads.HatChanger.Continue()
         end
     end)
     Menu.CheckBox("Visuals", "Hats", "Hat color sequence", Config.HatChanger.Sequence, function(Bool)
-        Config.HatChanger.Sequence = Original and Bool
+        Config.HatChanger.Sequence = IsOriginal and Bool
     end)
     Menu.Slider("Visuals", "Hats", "Hat color rate", 0, 5, Config.HatChanger.Speed, "s", 1, function(Value)
         Config.HatChanger.Speed = Value
@@ -6031,7 +6045,7 @@ do
     end)
     Menu.GetItem(Menu, Menu.CheckBox("Misc", "Main", "Auto heal", Config.AutoHeal.Enabled, function(Bool) -- Can't namecall synapse compiler retarded
         Config.AutoHeal.Enabled = Bool
-    end)):SetVisible(Original)
+    end)):SetVisible(IsOriginal)
     Menu.CheckBox("Misc", "Main", "Click open", Config.ClickOpen.Enabled, function(Bool)
         Config.ClickOpen.Enabled = Bool
     end)
@@ -6151,7 +6165,7 @@ do
     Menu.GetItem(Menu, Menu.CheckBox("Misc", "Exploits", "Infinite stamina", Config.InfiniteStamina.Enabled, function(Bool) -- Can't namecall synapse compiler retarded
         Config.InfiniteStamina.Enabled = Bool
         EnableInfiniteStamina()
-    end)):SetVisible(not Original)
+    end)):SetVisible(not IsOriginal)
     Menu.CheckBox("Misc", "Exploits", "Infinite force field", Config.InfiniteForceField.Enabled, function(Bool)
         Config.InfiniteForceField.Enabled = Bool
         if Bool then
@@ -6164,16 +6178,16 @@ do
     end)
     Menu.GetItem(Menu, Menu.CheckBox("Misc", "Exploits", "God", Config.God.Enabled, function(Bool) -- Can't namecall synapse compiler retarded
         Config.God.Enabled = Bool
-    end)):SetVisible(not Original)
+    end)):SetVisible(not IsOriginal)
     Menu.GetItem(Menu, Menu.CheckBox("Misc", "Exploits", "Click spam", Config.ClickSpam.Enabled, function(Bool) -- Can't namecall synapse compiler retarded
-        Config.ClickSpam.Enabled = not Original and Bool
+        Config.ClickSpam.Enabled = not IsOriginal and Bool
         if Bool then
             Threads.ClickSpam.Continue()
         end
-    end)):SetVisible(not Original)
+    end)):SetVisible(not IsOriginal)
     Menu.GetItem(Menu, Menu.CheckBox("Misc", "Exploits", "No gun delay", Config.NoGunDelay.Enabled, function(Bool)
         Config.NoGunDelay.Enabled = Bool 
-    end)):SetVisible(not Original)
+    end)):SetVisible(not IsOriginal)
     Menu.CheckBox("Misc", "Exploits", "Lag on dragged", Config.LagOnDragged.Enabled, function(Bool)
         Config.LagOnDragged.Enabled = Bool
     end)
@@ -6520,7 +6534,7 @@ function Initialize()
         local Sky = Lighting:FindFirstChildOfClass("Sky")
         local Blur = Instance.new("BlurEffect")
         local Bloom = Instance.new("BloomEffect")
-        local SunRays = Original and Lighting:WaitForChild("SunRays") or Instance.new("SunRaysEffect")
+        local SunRays = IsOriginal and Lighting:WaitForChild("SunRays") or Instance.new("SunRaysEffect")
         local Atmosphere = Instance.new("Atmosphere")
         local DepthOfField = Instance.new("DepthOfFieldEffect")
 
@@ -6534,7 +6548,7 @@ function Initialize()
         Bloom.Threshold = 0
         Bloom.Parent = Lighting
 
-        SunRays.Enabled = Original
+        SunRays.Enabled = IsOriginal
         SunRays.Spread = 0
         SunRays.Intensity = 0
         SunRays.Parent = Lighting
@@ -6721,7 +6735,7 @@ function Initialize()
     end
 
     -- Initialize Threads
-    if Original then
+    if IsOriginal then
         CreateThread("HatChanger", function()
             local Sequence = {
                 "#bc67f0",
@@ -7123,7 +7137,7 @@ Menu.CommandBar.FocusLost:Connect(OnCommandBarFocusLost)
 workspace.ChildAdded:Connect(OnWorkspaceChildAdded)
 workspace.ChildRemoved:Connect(OnWorkspaceChildRemoved)
 Lighting.Changed:Connect(OnLightingChanged)
-if Original then
+if IsOriginal then
     Character:WaitForChild("GetMouse").OnClientInvoke = OnGetMouseInvoke
     ReplicatedStorage:WaitForChild("TagReplicate").OnClientEvent:Connect(OnTagReplicateEvent)
 end
