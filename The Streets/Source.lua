@@ -2653,7 +2653,7 @@ function UpdateESP()
                 v.Snapline:SetColor(ESP.WhitelistOverride.Color, ESP_Snaplines.Transparency)
                 v.Box:SetColor(ESP.WhitelistOverride.Color, ESP_Box.Transparency)
                 --v.CornerBox:SetColor(ESP.WhitelistOverride.Color, ESP_Box.Transparency)
-                v.Arrow:SetColor(Admin.Color, ESP_Arrows.Transparency)
+                v.Arrow:SetColor(ESP.WhitelistOverride.Color, ESP_Arrows.Transparency)
             elseif Target and ESP.TargetOverride.Enabled then
                 v.Skeleton:SetColor(ESP.TargetOverride.Color, ESP_Skeleton.Transparency)
                 v.Snapline:SetColor(ESP.TargetOverride.Color, ESP_Snaplines.Transparency)
