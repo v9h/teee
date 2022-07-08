@@ -141,7 +141,7 @@ if not IsOriginal and not IsPrison then
     --return messagebox("Error 0x1; Place not supported", "ponyhook.cc", 0) -- why is the 2nd parameter title??
 end
 
-if (IsOriginal and game.PlaceVersion ~= 1513) or (IsPrison and game.PlaceVersion ~= 223) then
+if (IsOriginal and game.PlaceVersion ~= 1518) or (IsPrison and game.PlaceVersion ~= 223) then
     return messagebox("Error 0x2; Script is not up to date with place version", "ponyhook.cc", 0)
 end
 
