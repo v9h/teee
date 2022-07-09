@@ -3224,7 +3224,7 @@ function Attack(CF)
             if not Tool.CD then return end -- Cooldown
             local AnimationId = string.gsub(Tool.Fires.AnimationId, "%D", "")
             GetAnimation(AnimationId):Play(0.1, 1, 2)
-            if IsPrison and not Tool:FindFirstChild("Fire") then
+            if IsPrison and Tool:FindFirstChild("Fire") then
                 Tool.Fire:FireServer(CF, true) -- not sure why we sending boolean something for namecall check
             else
                 Tool.Shoot:FireServer(CF, true)
