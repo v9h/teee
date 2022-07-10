@@ -2047,15 +2047,15 @@ do
 
         local Stank = Backpack:FindFirstChild("Stank")
         if Stank then
-            local GroupTitle = HUD and HUD:FindFirstChild("Clan") and HUD.Clan:FindFirstChild("Group") and Hud.Clan.Group:FindFirstChild("Title")
-            if GroupTitle then
-                GroupTitle.AutoLocalize = false -- disable TextScraper lag; LocalizationService:StopTextScraper()
-            end
-
             Stank:FireServer("pick", {
                 Name = 1, -- yeah no u have no choice in this u get the guest role
                 TextLabel = {Text = Tag} -- max char count 100
             })
+            
+            local GroupTitle = HUD and HUD:FindFirstChild("Clan") and HUD.Clan:FindFirstChild("Group") and HUD.Clan.Group:FindFirstChild("Title")
+            if GroupTitle then
+                GroupTitle.AutoLocalize = false -- disable TextScraper lag; LocalizationService:StopTextScraper()
+            end
         end
 
         --[[
