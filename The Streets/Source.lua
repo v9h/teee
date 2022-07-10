@@ -1,58 +1,6 @@
 --[[ TO DO:
-hide sprays fix
-
-Make MultiSelect be on click order
-
-fix set bar points on esp bars
-
-esp fix; breaks idk; fixed?
-
-SetVisibles for refreshmenus
-fix animations
-
-indicator frame size off?
-
-Right / Bottom bar position might be broken
-
-add \n support for Clan Tag Tag
-fix clan tag  animations (Forward, Normal, Reverse)
-
-Auto Attack
-Auto Fire Raycast hitpoints fix
-Compare (Bullet_EndPosition - Shot(CFrame.Position)).Magnitude
-
-bar fade broken?
-
-small spray & small boombox(maybe no need cuz we log audios already) library ui to find ids easily?
-
-fix whitelist; owner only work on rejoin
-GetCars?
-
-custom models; umm maybe not Lo.
-local chams overlay; lazy
-
-Gun Chams Fix UsePartColor; fixed?
-
-The TF2 Spin Crosshair
-
-Aimbot Auto Adjust Vector Velocity ????
-Wireframe chams?
-Gun outline chams
-
-AntiAim:Desync (checkbox); Velocity (checkbox); remove only 1 type at a time
-Resync Desynced antiaim
-desync visualization is not happening since it's different for every client (I think)
-Flipped Mode :|
-
-Brick Trajectory prediction LOL?
-Remake bind system?
-ADD TARGET INDICATORS local TargetInfo = Menu.Indicators() :|
-Audio Play List, plays a new song when u die || when the song finishes || Maybe audio search func like the audio library
-Crouch Remote True: Hides Name + Health || False: Shows Name + Health (ForceHideName) Disabled due to snake being retarded, but keeping this since he might add the feature back
-FIX FLY DOUBLE KEY HOLD? :|
-HIT DETECTION STILL SUCKS NUTS (RayCast Fix)
-
-Silent Animation Table Check ???
+    fix the script,
+    maybe a full rewrite?
 ]]
 
 -- Fake Roblex : 6029419 && Roblex : 6029417 && Platinum Rolex : 6094781
@@ -75,10 +23,8 @@ local wait = task.wait
 local delay = task.delay
 local spawn = task.spawn
 local request = request or syn and syn.request or http and http.request
-local secure_call = secure_call or syn and syn.secure_call or function(f, _, ...) return f(...) end -- Meh
 local get_custom_asset = getcustomasset or syn and getsynasset
 local queue_on_teleport = queue_on_teleport or syn and syn.queue_on_teleport
-local websocket_connect = WebSocket and WebSocket.connect or syn and syn.websocket and syn.websocket.connect
 local math_round = function(Number, Scale)
     return tonumber(string.format("%." .. Scale .. "f", Number))
 end
@@ -655,6 +601,7 @@ local Threads = {}
 local Events = {FirstPerson = {}, Reset = nil}
 
 local UserTable = {
+    Developers = {"Elden", "xaxa", "f6oor"},
     Admin = {
         [1892264393] = {
             Tag = "Elden", -- AverageID:Elden (regularid)
@@ -1744,7 +1691,8 @@ function GetHitPoints(Target)
             end
             
             for _, Part in ipairs(Parts) do
-                local IsBehind, Hit = IsBehindAWall(Tool.Barrel, Part)
+                -- not sure if I should blacklist Tool or not but whatever
+                local IsBehind, Hit = IsBehindAWall(Tool.Barrel, Part, {Tool})
                 if IsBehind == false then
                     if Hit and Hit.Instance:IsDescendantOf(tCharacter) then
                         table.insert(Points, Hit.Position)
@@ -1777,8 +1725,12 @@ end
 
 function IsBehindAWall(Part, Part2, Blacklist)
     if not Part or not Part2 then return end
+    local Blacklist = typeof(Blacklist) == "table" and Blacklist or {}
+    table.insert(Blacklist, Camera)
+    table.insert(Blacklist, Character)
+
     local CF = CFrame.new(Part.Position, Part2.Position)
-    local Hit = Raycast(CF.Position, CF.LookVector * (Part.Position - Part2.Position).Magnitude, {Character, Camera})
+    local Hit = Raycast(CF.Position, CF.LookVector * (Part.Position - Part2.Position).Magnitude, Blacklist)
     if Hit then
         local HitPart = Hit.Instance
         if HitPart then
@@ -2092,35 +2044,40 @@ do
     function SetClanTag(Tag)
         local Tag = typeof(Tag) == "string" and Tag or ""
         Tag = string.rep("\n", 100 - #Tag) .. Tag
-        pcall(function()
-            local Stank = Backpack.Stank
-            HUD.Clan.Group.Title.AutoLocalize = false -- disable TextScraper lag; LocalizationService:StopTextScraper()
+
+        local Stank = Backpack:FindFirstChild("Stank")
+        if Stank then
+            local GroupTitle = HUD and HUD:FindFirstChild("Clan") and HUD.Clan:FindFirstChild("Group") and Hud.Clan.Group:FindFirstChild("Title")
+            if GroupTitle then
+                GroupTitle.AutoLocalize = false -- disable TextScraper lag; LocalizationService:StopTextScraper()
+            end
+
             Stank:FireServer("pick", {
                 Name = 1, -- yeah no u have no choice in this u get the guest role
                 TextLabel = {Text = Tag} -- max char count 100
             })
+        end
 
-            --[[
-            Stank.OnServerEvent:Connect(function(Player, Method, ...)
-                if Method == "pick" then
-                    local GroupFrame = ...
-                    local Role = Player:GetRoleInGroup(GroupFrame.Name)
-                    local GroupName = GroupFrame.TextLabel.Text
-                    
-                    local X = GroupName .. "\n" .. Role .. "\n" .. Player.Name -- something like this
-                    db:set(Player, "clan", X) -- not sure if it saves the string or the group_id and group_role
-                    
-                    -- gets created everytime when player spawns
-                    ClanModel.Name = X
+        --[[
+        Stank.OnServerEvent:Connect(function(Player, Method, ...)
+            if Method == "pick" then
+                local GroupFrame = ...
+                local Role = Player:GetRoleInGroup(GroupFrame.Name)
+                local GroupName = GroupFrame.TextLabel.Text
+                
+                local X = GroupName .. "\n" .. Role .. "\n" .. Player.Name -- something like this
+                db:set(Player, "clan", X) -- not sure if it saves the string or the group_id and group_role
+                
+                -- gets created everytime when player spawns
+                ClanModel.Name = X
 
-                    -- when the player spawns
-                    ClanModel = Instance.new("Model")
-                    ClanModel.Name = db:get(Player, "clan") -- will error though if it's malformed
-                    ClanModel.Parent = Player.Character
-                end
-            end)
-            ]]
+                -- when the player spawns
+                ClanModel = Instance.new("Model")
+                ClanModel.Name = db:get(Player, "clan") -- will error though if it's malformed
+                ClanModel.Parent = Player.Character
+            end
         end)
+        ]]
     end
 end
 
@@ -2769,9 +2726,11 @@ function UpdateSkybox()
                 Sky.SkyboxLf = get_custom_asset(readfile(Skybox .. "/Left.png"))
                 Sky.SkyboxRt = get_custom_asset(readfile(Skybox .. "/Right.png"))
             end)
+
             if not Success then
                 return Console:Error(Result)
             end
+
             break
         end
     end
@@ -2858,6 +2817,7 @@ function BuyItem(Item_Name:string)
                         Part = v2.Head
                         Price = Part.ShopData.Price.Value
                     end)
+                    
                     break
                 end
             end
@@ -3527,8 +3487,10 @@ function Heartbeat(Step) -- after phys :: after heartbeat comes network stepped
 
             if Player ~= _Player then -- local player has custom thing
                 _Player:SetAttribute("Stamina", GetStamina(_Player) or 0)
-                local IsBehind = IsBehindAWall(Root, _Root)
-                _Player:SetAttribute("BehindWall", IsBehind)
+
+                -- local player's character should already be blacklisted
+                -- _Root.Parent is the Target Character we need to filter that so we don't get false positives
+                _Player:SetAttribute("BehindWall", (IsBehindAWall(Root, _Root, {_Root.Parent})))
             end
             _Player:SetAttribute("Distance", math_round(Player:DistanceFromCharacter(Position), 2))
             _Player:SetAttribute("Velocity", (Position - LastPosition) / Step)
@@ -4629,7 +4591,9 @@ function OnBulletAdded(Bullet)
     end
     
     delay(0, function()
-        Bullet.Parent = Camera -- Snake didn't account for LocalTransparency so if ur in first person we can now see them again
+        if Bullet.Parent then
+            Bullet.Parent = Camera
+        end -- Snake didn't account for LocalTransparency so if ur in first person we can now see them again
     end)
     delay(15, Bullet.Destroy, Bullet)
 
@@ -5347,7 +5311,7 @@ Commands.Add("clear", {"cls"}, "- clears the rconsole of all text", function()
 88                                         d8'                                                        
 88                                        d8'                                                                                                                                                                                                                                                                                                                                                          
 ]])
-    Console:Write("\nBy RegularID, xaxa, f6oor, and nixon")
+    Console:Write("\nBy: " .. table.concat(UserTable.Developers, ", "))
     Console:Write(string.format("Script Version: %s", get_script_version()))
     Console:Write("\nType 'cmds' to see the commands!")
 end)
@@ -6268,8 +6232,8 @@ do
         Config.Follow.Enabled = Bool
     end)
     Menu.CheckBox("Misc", "Players", "Whitelisted", false, function(Bool)
-        local UserId = GetSelectedTarget().UserId
-        local Index = table.find(UserTable.Whitelisted, tostring(UserId))
+        local UserId = tostring(GetSelectedTarget().UserId)
+        local Index = table.find(UserTable.Whitelisted, UserId)
         if Index then
             table.remove(UserTable.Whitelisted, Index)
         else
@@ -6278,8 +6242,8 @@ do
         writefile("ponyhook/Games/The Streets/Whitelist.dat", table.concat(UserTable.Whitelisted, "\n"))
     end)
     Menu.CheckBox("Misc", "Players", "Owner", false, function(Bool)
-        local UserId = GetSelectedTarget().UserId
-        local Index = table.find(UserTable.Owners, tostring(UserId))
+        local UserId = tostring(GetSelectedTarget().UserId)
+        local Index = table.find(UserTable.Owners, UserId)
         if Index then
             table.remove(UserTable.Owners, Index)
         else
@@ -6695,7 +6659,7 @@ function Initialize()
 88                                         d8'                                                        
 88                                        d8'                                                                                                                                                                                                                                                                                                                                                   
 ]])
-            Console:Write("\nBy RegularID, xaxa, f6oor, and nixon")
+            Console:Write("\nBy: " .. table.concat(UserTable.Developers, ", "))
             Console:Write(string.format("Script Version: %s", get_script_version()))
             Console:Write("\nType 'cmds' to see the commands!")
 
@@ -6758,14 +6722,19 @@ function Initialize()
     -- Initialize Threads
     if IsOriginal then
         CreateThread("HatChanger", function()
+            -- feeling emo rn
             local Sequence = {
-                "#bc67f0",
-                "#9851c4",
-                "#9340c7",
-                "#933fc4",
-                "#9f31bd",
-                "#8514bd",
-                "#7500bd"
+                "#ff0000",
+                "#960000",
+                "#780000",
+                "#500000",
+                "#1e0000",
+                "#000000",
+                "#ffffff",
+                "#000000",
+                "#ffffff",
+                "#000000",
+                "#ffffff"
             }
             local CurrentStep = 1
 
@@ -6899,6 +6868,7 @@ function Initialize()
                         end
                     end
                 elseif Type == "Spotify" then
+                    -- why would this crash you?
                     local Data = GetPlayingSpotifySong()
                     if Data and Data.item then
                         local Name = Data.item.name
