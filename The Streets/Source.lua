@@ -688,6 +688,7 @@ local Spamming = false
 local Crouching = false
 local BarsFading = false
 local Teleporting = false
+local GivingTools = false
 local RefreshingCharacter = false
 
 local DeathPosition = CFrame.new()
@@ -3161,6 +3162,73 @@ function ResetCharacter()
 end
 
 
+function GiveToolsPlayer(Target: Player)
+    local Tool = Character:FindFirstChild("Punch") or Backpack:FindFirstChild("Punch")
+    if not Tool then
+        Tool = Backpack.ChildAdded:Wait()
+        wait()
+    end
+
+    local function DisableGivingTools()
+        Menu.Notify("Please select a valid target to give tools to!", 5)
+        Menu:FindItem("Misc", "Players", "CheckBox", "Give Tools"):SetValue(false)
+        GivingTools = false
+    end
+
+    local tCharacter = typeof(Target) == "Instance" and Target:IsA("Player") and Target.Character
+    if not tCharacter then return DisableGivingTools() end
+    
+    local tHumanoid = tCharacter:FindFirstChild("Humanoid")
+    local tRoot = tHumanoid and tHumanoid.RootPart
+    if not tRoot then return DisableGivingTools() end
+
+    local function LoadHandles()
+        Humanoid:UnequipTools()
+        for _, v in ipairs(Backpack:GetChildren()) do
+            if v:IsA("Tool") and v ~= Tool then
+                v.Parent = Character
+                wait()
+                v.Parent = Backpack
+            end
+        end
+    end
+
+    local function SetToolsParent()
+        LoadHandles()
+        Humanoid:UnequipTools()
+        wait(0.1)
+        for _, v in ipairs(Backpack:GetChildren()) do
+            if v:IsA("Tool") and v ~= Tool then
+              -- not exactly sure what this is but we need this for replicating the parent to the tool; test it yourself using roblox studio
+                v.Parent = Character
+                v.Parent = Tool
+                v.Parent = Backpack
+                v.Parent = Tool
+            end
+            
+            wait()
+        end
+    end
+
+    SetToolsParent()
+    
+    local Tools = {}
+    for _, Tool in ipairs(Tool:GetChildren()) do
+        if not Tool:IsA("Tool") then continue end
+        table.insert(Tools, Tool)
+    end
+
+    Tool.Parent = Character
+    for _, Tool in ipairs(Tools) do
+        local Handle = Tool:WaitForChild("Handle")
+        firetouchinterest(Handle, tRoot, 0)
+        firetouchinterest(Handle, tRoot, 1)
+    end
+
+    ResetCharacter()
+end
+
+
 function Attack(CF)
     local CF = Target and Config.Aimbot.Enabled and GetAimbotCFrame(true) or CF
 
@@ -4187,6 +4255,10 @@ function OnCharacterAdded(_Character)
         end
     end
 
+    if GivingTools then
+        delay(0.3, GiveToolsPlayer, GetSelectedTarget())
+    end
+
     CustomCharacter.Parent = Character
     Player:SetAttribute("AnimeGamePass", UserOwnsAsset(Player, 1082540, "GamePass") and true or false) -- just don't buy the gamepass in mid game :|
     Player:SetAttribute("Vest", UserOwnsAsset(Player, 6967243, "GamePass"))
@@ -4996,7 +5068,7 @@ function OnNameCall(self, ...)
                 FireTick = os.clock()
             end
         end
-        if (IsPrison and Name == "Fire") or (not Original and Name == "Shoot") then
+        if (IsPrison and Name == "Fire") or (not IsOriginal and Name == "Shoot") then
 	        if not Caller and Menu.IsVisible then return end
             Arguments[1] = Mouse.Hit or CFrame.new()
             if Target and Config.Aimbot.Enabled and ((not Caller) or Arguments[2]) then -- Arguments[2] =  (AutShoot)
@@ -6208,6 +6280,12 @@ do
     end)
     Menu.Slider("Misc", "Players", "Priority", 0, 3, 1, "", 0, function(Value)
         -- 0 don't attack target; > 0 attack target higher priority target
+    end)
+    Menu.CheckBox("Misc", "Players", "Give Tools", false, function(Bool)
+        GivingTools = Bool
+        if GivingTools then
+            GiveToolsPlayer(GetSelectedTarget())
+        end
     end)
     Menu.CheckBox("Misc", "Players", "Attach", Config.Attach.Enabled, function(Bool)
         Config.Attach.Enabled = Bool
