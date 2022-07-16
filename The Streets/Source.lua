@@ -5167,7 +5167,7 @@ local PostMessageHook = function(self, Message)
         MessageEvent:Fire(Message)
         return
     end
-    
+    -- Credits to whoever made this function
     return OldFunctionHook(self, Message)
 end
 
