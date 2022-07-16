@@ -108,7 +108,11 @@ local Tool = Character:FindFirstChildOfClass("Tool")
 local PlayerGui, ChatFrame = Player:WaitForChild("PlayerGui"), nil
 local HUD = PlayerGui and PlayerGui:WaitForChild("HUD")
 local Camera = workspace.CurrentCamera
+
 local TagSystem = IsOriginal and require(ReplicatedStorage:WaitForChild("TagSystem")) -- "creator" || "creatorslow" || "gunslow" || "action" || "Action" || "KO" || "Dragged" || "Dragging" || "reloading" || "equipedgun" || yes with 1 p he's retarded
+local PostMessage = require(Player:WaitForChild("PlayerScripts", 1/0):WaitForChild("ChatScript", 1/0):WaitForChild("ChatMain", 1/0)).MessagePosted
+
+MessageEvent = Instance.new("BindableEvent")
 
 _G.PonyHook = true
 
@@ -236,6 +240,7 @@ local Config = {
     AutoCash = {Enabled = false},
     AutoPlay = {Enabled = false},
     AutoReconnect = {Enabled = true},
+    AntiChatLog = {Enabled = true},
     AutoHeal = {Enabled = false},
     ClickOpen = {Enabled = false},
     ClickSpam = {Enabled = false},
@@ -1082,6 +1087,7 @@ function RefreshMenu()
     Menu:FindItem("Misc", "Main", "MultiSelect", "Auto farm table"):SetValue(Config.AutoFarm.Table)
     Menu:FindItem("Misc", "Main", "CheckBox", "Auto play"):SetValue(Config.AutoPlay.Enabled)
     Menu:FindItem("Misc", "Main", "CheckBox", "Auto reconnect"):SetValue(Config.AutoReconnect.Enabled)
+    Menu:FindItem("Misc", "Main", "CheckBox", "Anti chat log"):SetValue(Config.AntiChatLog.Enabled)
     Menu:FindItem("Misc", "Main", "CheckBox", "Auto sort"):SetValue(Config.AutoSort.Enabled)
     Menu:FindItem("Misc", "Main", "MultiSelect", "Auto sort order"):SetValue(Config.AutoSort.Order)
     Menu:FindItem("Misc", "Main", "CheckBox", "Auto heal"):SetValue(Config.AutoHeal.Enabled)
@@ -4932,7 +4938,6 @@ if IsOriginal then
 else
 
     local wait_hook = nil 
-    -- (note from elden) im writing getrenv().wait instead of getrenv()["wait"] because just no
     wait_hook = hookfunction(getrenv().wait, function(constant) -- (note from xaxa) for info on why im writing getrenv()["wait"], please refer to line 69 in the source (literally not a coincidence, BLAME ELDEN)
         if not checkcaller() and Config.NoGunDelay.Enabled and (constant == 0.5 or constant == 0.25 or constant == 0.33) then 
             constant = 0
@@ -4942,8 +4947,7 @@ else
     end)
 end
 
-
-local Index, NewIndex, NameCall
+local Index, NewIndex, NameCall, OldFunctionHook
 
 function OnIndex(self, Key)
     local Caller = checkcaller()
@@ -5158,6 +5162,15 @@ function OnNameCall(self, ...)
     return NameCall(self, unpack(Arguments))
 end
 
+local PostMessageHook = function(self, Message)
+    if not checkcaller() and self == PostMessage and Config.AntiChatLog.Enabled then
+        MessageEvent:Fire(Message)
+        return
+    end
+    
+    return OldFunctionHook(self, Message)
+end
+
 
 --if u do getgenv().hookmetamethod then ur the retard not me fuck you
 if not hookmetamethod then while true do end end -- just incase someone tries to use a krnl for this script, sorry for the crash but I would rather crash you than you getting banned
@@ -5165,6 +5178,7 @@ Index = hookmetamethod(game, "__index", OnIndex)
 NewIndex = hookmetamethod(game, "__newindex", OnNewIndex)
 NameCall = hookmetamethod(game, "__namecall", OnNameCall)
 
+OldFunctionHook = hookfunction(PostMessage.fire, PostMessageHook)
 
 --local mt = getrawmetatable(game); setreadonly(mt, false); local old_namecall = mt.__namecall; mt.__namecall = function(...) return old_namecall(...) end
 
@@ -6093,6 +6107,9 @@ do
     end)
     Menu.CheckBox("Misc", "Main", "Auto reconnect", Config.AutoReconnect.Enabled, function(Bool)
         Config.AutoReconnect.Enabled = Bool
+    end)
+    Menu.CheckBox("Misc", "Main", "Anti chat log", Config.AntiChatLog.Enabled, function(Bool)
+        Config.AntiChatLog.Enabled = Bool
     end)
     Menu.CheckBox("Misc", "Main", "Auto sort", Config.AutoSort.Enabled, function(Bool)
         Config.AutoSort.Enabled = Bool
