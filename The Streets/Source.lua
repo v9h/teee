@@ -202,6 +202,7 @@ local Config = {
         Enabled = false,
         Key = nil
     },
+    DisableToolCollision = {Enabled = false},
     RunSpeed = {Value = 24.5},
     WalkSpeed = {Value = 16},
     JumpPower = {Value = 37.5},
@@ -1069,6 +1070,7 @@ function RefreshMenu()
     Menu:FindItem("Player", "Movement", "CheckBox", "Infinite jump"):SetValue(Config.InfiniteJump.Enabled)
     Menu:FindItem("Player", "Movement", "CheckBox", "Noclip"):SetValue(Config.Noclip.Enabled)
     Menu:FindItem("Player", "Movement", "Hotkey", "Noclip key"):SetValue(Config.Noclip.Key)
+    Menu:FindItem("Player", "Movement", "CheckBox", "Disable tool collision"):SetValue(Config.DisableToolCollision.Enabled)
 
     Menu:FindItem("Player", "Other", "CheckBox", "No knock out"):SetValue(Config.NoKnockOut.Enabled)
     Menu:FindItem("Player", "Other", "CheckBox", "No slow"):SetValue(Config.NoSlow.Enabled)
@@ -3844,6 +3846,14 @@ function Stepped(_, Step) -- before phys
                     Torso.CanCollide = false
                 end
             end
+            
+            if Config.DisableToolCollision.Enabled then 
+                for Index, Object in next, Character:GetDescendants() do 
+                    if Object and Object:FindFirstAncestorWhichIsA("Tool") and (Object:IsA("BasePart") or Object:IsA("MeshPart")) then 
+                        Object.CanCollide = false 
+                    end
+                end
+            end
 
             if Config.Blink.Enabled then
                 local MoveDirection = Humanoid.MoveDirection
@@ -5644,6 +5654,9 @@ do
         Config.Noclip.Key = KeyCode
         ContextAction:BindAction("noclipToggle", NoclipToggle, false, KeyCode)
     end)
+    Menu.CheckBox("Player", "Movement", "Disable tool collision", Config.DisableToolCollision.Enabled, function(Bool)
+        Config.DisableToolCollision.Enabled = Bool
+    end)
     Menu.CheckBox("Player", "Other", "No knock out", Config.NoKnockOut.Enabled, function(Bool)
         Config.NoKnockOut.Enabled = Bool
     end)
@@ -6459,7 +6472,7 @@ do
     Menu.ColorPicker("Settings", "Menu", "Menu accent", Config.Menu.Accent, 0, function(Color)
         Menu.Accent = Color
         Config.Menu.Accent = Color
-	Menu:SetTitle("ponyhook" .. GetRichTextColor(".cc", Color:ToHex()))
+	    Menu:SetTitle("ponyhook" .. GetRichTextColor(".cc", Color:ToHex()))
     end)
     Menu.ComboBox("Settings", "Menu", "Console font color", Config.Console.Accent, {"Cyan"}, function(String)
         Config.Console.Accent = String
