@@ -16,8 +16,10 @@ local ORIGINAL_HIPHEIGHT = 2
 local ORIGINAL_JUMPPOWER = game:GetService("StarterPlayer").CharacterJumpPower
 
 local Time = os.clock()
-if not game:IsLoaded() then game.Loaded:Wait() end
 
+if not game:IsLoaded() then 
+    game.Loaded:Wait() 
+end
 
 local wait = task.wait
 local delay = task.delay
@@ -25,14 +27,10 @@ local spawn = task.spawn
 local request = request or syn and syn.request or http and http.request
 local get_custom_asset = getcustomasset or syn and getsynasset
 local queue_on_teleport = queue_on_teleport or syn and syn.queue_on_teleport
-local math_round = function(Number, Scale)
-    return tonumber(string.format("%." .. Scale .. "f", Number))
-end
-local messagebox = messagebox or message_box
-local get_script_version = function()
-    return "1.0.0"
-end
 
+local math_round = function(Number, Scale) return tonumber(string.format("%." .. Scale .. "f", Number)) end
+local messagebox = messagebox or message_box
+local get_script_version = function() return "1.0.0" end
 
 local Stats = game:GetService("Stats")
 local Debris = game:GetService("Debris")
@@ -56,7 +54,6 @@ local InsertService = game:GetService("InsertService")
 local TeleportService = game:GetService("TeleportService")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
-
 if not import then return messagebox("Error 0x5; Something went wrong with initializing the script (couldn't load modules)", "ponyhook.cc", 0) end
 
 local ESP
@@ -79,13 +76,8 @@ spawn(function() DoorData = import("Door Data") end)
 while not ESP or not Menu or not Console or not Commands or not ToolData or not DoorData do wait() end -- waiting for the modules to load...
 getgenv().import = nil  -- won't be used anymore
 
-
 local IsOriginal = game.PlaceId == 455366377 and true
 local IsPrison = game.PlaceId == 4669040 and true
-
-if not IsOriginal and not IsPrison then
-    --return messagebox("Error 0x1; Place not supported", "ponyhook.cc", 0) -- why is the 2nd parameter title??
-end
 
 if (IsOriginal and game.PlaceVersion ~= 1520) or (IsPrison and game.PlaceVersion ~= 225) then
     return messagebox("Error 0x2; Script is not up to date with place version", "ponyhook.cc", 0)
@@ -94,7 +86,6 @@ end
 if _G.PonyHook then
     return messagebox("Error 0x3; Script is already running", "ponyhook.cc", 0)
 end
-
 
 local Player = Players.LocalPlayer or Players:GetPropertyChangedSignal("LocalPlayer"):Wait() and Players.LocalPlayer
 local Mouse = Player:GetMouse()
@@ -111,6 +102,7 @@ local Camera = workspace.CurrentCamera
 
 local TagSystem = IsOriginal and require(ReplicatedStorage:WaitForChild("TagSystem")) -- "creator" || "creatorslow" || "gunslow" || "action" || "Action" || "KO" || "Dragged" || "Dragging" || "reloading" || "equipedgun" || yes with 1 p he's retarded
 local PostMessage = require(Player:WaitForChild("PlayerScripts", 1/0):WaitForChild("ChatScript", 1/0):WaitForChild("ChatMain", 1/0)).MessagePosted
+local AnimationIds = {"458506542", "8587081257", "376653421", "1484589375"}
 
 MessageEvent = Instance.new("BindableEvent")
 
@@ -644,9 +636,9 @@ local UserTable = {
     Owners = {}, -- Bot usage
     Whitelisted = {} -- aimbot no target friends
 }
+
 UserTable.Whitelisted = isfile("ponyhook/Games/The Streets/Whitelist.dat") and string.split(readfile("ponyhook/Games/The Streets/Whitelist.dat"), "\n") or {}
 UserTable.Owners = isfile("ponyhook/Games/The Streets/Owners.dat") and string.split(readfile("ponyhook/Games/The Streets/Owners.dat"), "\n") or {}
-
 
 local Items = {}
 local Seats = {}
@@ -742,9 +734,7 @@ do
     Crosshair = get_custom_asset(SubFolder .. "bin/crosshairs/crosshair.png")
 end
 
-
 -- Functions
-
 
 function SaveConfig(Name)
     local function Iterate(Table)
@@ -785,8 +775,10 @@ function SaveConfig(Name)
 
     local ConfigFile = "ponyhook/Games/The Streets/Configs/" .. Name .. ".cfg"
     local config_clone = table_clone(Config)
+
     Iterate(config_clone)
     writefile(ConfigFile, HttpService:JSONEncode(config_clone))
+
     Menu:FindItem("Settings", "Configs", "ListBox", "Configs"):SetValue(Name .. ".cfg", GetFiles("ponyhook/Games/The Streets/Configs").Names)
 end
 
@@ -795,6 +787,7 @@ function LoadConfig(Name)
     local function Iterate(Table)
         for k, v in pairs(Table) do
             local Type = typeof(v)
+
             if Type == "table" then
                 Iterate(v)
             else
@@ -828,6 +821,7 @@ function LoadConfig(Name)
             if typeof(Copy[k]) == "nil" then
                 Copy[k] = v
             end
+
     		if typeof(v) == "table" then
     			DeepPatch(v, Copy[k] or {})
     		end
@@ -857,6 +851,7 @@ function LoadConfig(Name)
 
     pcall(function()
         ChatFrame = PlayerGui.Chat.Frame.ChatChannelParentFrame
+
         ChatFrame.Position = UDim2.new(0, 0, 1, Config.Interface.Chat.Position)
         ChatFrame.Visible = Config.Interface.Chat.Enabled
     end)
@@ -1218,18 +1213,22 @@ function get_clipboard()
     text_box.Parent = CoreGui
 
     text_box:CaptureFocus()
+
     keypress(0x11)
     keypress(0x44)
+
     wait()
+
     keyrelease(0x11)
     keyrelease(0x44)
+
     text_box:ReleaseFocus()
 
     local clipboard = text_box.Text
     text_box:Destroy()
+
     return clipboard
 end
-
 
 function set_clipboard(text)
     while not iswindowactive() do wait() end
@@ -1241,14 +1240,15 @@ function set_clipboard(text)
     text_box:CaptureFocus()
     keypress(0x11)
     keypress(0x43)
+
     wait()
+
     keyrelease(0x11)
     keyrelease(0x43)
-    text_box:ReleaseFocus()
 
+    text_box:ReleaseFocus()
     text_box:Destroy()
 end
-
 
 function GetRichTextColor(Text, Color)
     if typeof(Color) == "string" then
@@ -1261,16 +1261,16 @@ function GetRichTextColor(Text, Color)
     end
 end
 
-
 function GetSelectedTarget()
     return Players:FindFirstChild(SelectedTarget or "")
 end
 
-
 function GetTarget()
     if not Root then return end
+
     local Selected
     local Radius = math.huge
+
     for _, _Player in ipairs(Players:GetPlayers()) do
         if (_Player == Player) or (table.find(UserTable.Whitelisted, tostring(_Player.UserId))) then continue end
         if _Player.Character then
@@ -1278,6 +1278,7 @@ function GetTarget()
             local Root = GetRoot(_Player) -- Target root
             if Root then
                 local Distance = 0
+
                 if Config.Aimbot.TargetSelection == "Near mouse" then
                     Distance = (Mouse.Hit.Position - Root.Position).Magnitude
                     if Distance > (Config.Aimbot.Radius) then continue end
@@ -1285,6 +1286,7 @@ function GetTarget()
                     if _Player:GetAttribute("KnockedOut") or not _Player:GetAttribute("IsAlive") then continue end
                     Distance = Player:DistanceFromCharacter(Root.Position)
                 end
+
                 if Distance < Radius then
                     Radius = Distance
                     Selected = _Player
@@ -1300,6 +1302,7 @@ end
 function GetStompTarget()
     if Character and Root then
         local Ray = streets_raycast(Root.Position, Root.Position - Vector3.new(0, 2, 0), 3, Character)
+
         if Ray and Ray.Parent then
             local Humanoid = Ray.Parent:FindFirstChild("Humanoid")
             if Humanoid and Humanoid.Parent:FindFirstChild("KO") and Humanoid.Health > 0 then
@@ -1324,11 +1327,13 @@ function GetPlayer(Name)
         table.remove(Matches, table.find(Matches, Player))
         return Matches
     end
+
     for _, Player in ipairs(PlayersTable) do
         if Name == string.sub(string.lower(tostring(Player)), 1, #Name) then
             table.insert(Matches, Player)
         end
     end
+
     if #Matches == 0 then
         for _, Player in ipairs(PlayersTable) do
             if Name == string.sub(string.lower(Player.DisplayName), 1, #Name) then
@@ -1336,6 +1341,7 @@ function GetPlayer(Name)
             end
         end
     end
+
     return Matches
 end
 
@@ -1343,6 +1349,7 @@ end
 function GetRoot(Player)
     local Character = Player and Player.Character
     local Humanoid = Character and Character:FindFirstChild("Humanoid")
+
     return Humanoid and Humanoid.RootPart
 end
 
@@ -1350,6 +1357,7 @@ end
 function GetLimbs(Player)
     local Character = Player and Player.Character
     local Humanoid = Character and Character:FindFirstChild("Humanoid")
+
     if Character and Humanoid then
         local LimbCount = 0
         local Limbs = {}
@@ -1358,6 +1366,7 @@ function GetLimbs(Player)
         for _, v in ipairs(Character:GetChildren()) do
             if table.find(Blacklist, tostring(v)) then continue end
             local Limb = Humanoid:GetLimb(v)
+
             if Limb ~= Enum.Limb.Unknown then
                 LimbCount += 1
                 Limbs[Limb.Name] = v
@@ -1390,9 +1399,11 @@ function GetStamina(_Player)
     local Player = _Player or Player
     local Stamina = 100
     local StaminaInstance
+
     if IsOriginal then
         local Character = Player.Character
         StaminaInstance = Character and Character:FindFirstChild("Stamina")
+
         if StaminaInstance then
             Stamina = StaminaInstance.Value
         end
@@ -1400,6 +1411,7 @@ function GetStamina(_Player)
         local Backpack = Player:FindFirstChild("Backpack")
         local ServerTraits = Backpack and Backpack:FindFirstChild("ServerTraits")
         StaminaInstance = ServerTraits and ServerTraits:FindFirstChild("Stann")
+
         if StaminaInstance then
             Stamina = StaminaInstance.Value
         end
@@ -1411,6 +1423,7 @@ end
 
 function GetClanModel()
     local Model
+
     if Character then
         for _, v in ipairs(Character:GetChildren()) do
             if v:IsA("Model") then
@@ -1440,6 +1453,7 @@ function GetAimbotCFrame(Randomize)
     if Randomize then
         Random = Vector3.new(math.random(-5, 5) / 10, math.random(-5, 5) / 10, math.random(-5, 5) / 10)
     end
+
     return HitPart.CFrame + Random + (VectorVelocity * Ping / 1000)
 end
 
@@ -1448,6 +1462,7 @@ function GetTools(_Player, Type)
     local Player = _Player or Player
     local Character = Player.Character
     local Backpack = Player:FindFirstChild("Backpack")
+
     if not Character or not Backpack then return {} end
 
     local Tools = {}
@@ -1455,11 +1470,15 @@ function GetTools(_Player, Type)
     local CharacterTools = {}
 
     for _, v in ipairs(Character:GetChildren()) do
-        if v:IsA("Tool") then table.insert(CharacterTools, v) end
+        if v:IsA("Tool") then 
+            table.insert(CharacterTools, v) 
+        end
     end
 
     for _, v in ipairs(Backpack:GetChildren()) do
-        if v:IsA("Tool") then table.insert(BackpackTools, v) end
+        if v:IsA("Tool") then 
+            table.insert(BackpackTools, v) 
+        end
     end
 
     if Type == "Backpack" then return BackpackTools end
@@ -1467,6 +1486,7 @@ function GetTools(_Player, Type)
 
     table.move(BackpackTools, 1, #BackpackTools, #Tools + 1, Tools)
     table.move(CharacterTools, 1, #CharacterTools, #Tools + 1, Tools)
+
     return Tools
 end
 
@@ -1495,20 +1515,21 @@ function GetToolInfo(self, Property) -- Maybe use attributes to log ammo;
 
                 if Ammo and Clips then return Ammo.Value, Clips.Value, AmmoPerClip end
                 if self:GetAttribute("Gun") then return 0, 0, AmmoPerClip end
+
                 return
             elseif Property == "IsGun" then
                 local Guns = {"Glock", "Uzi", "Shotty", "Sawed Off"}
                 return table.find(Guns, tostring(self)) and true or false
             end
         end
+
         return ToolData[Tool_Name]
     end
 end
 
-
-
 function GetModelParts(Model, Ignore)
     local Parts = {}
+
     for _, v in ipairs(Model:GetDescendants()) do
         if v:IsA("BasePart") then
             if Ignore then
@@ -1517,6 +1538,7 @@ function GetModelParts(Model, Ignore)
             table.insert(Parts, v)
         end
     end
+
     return Parts
 end
 
@@ -1524,6 +1546,7 @@ end
 function GetCash()
     local Cash
     local CashLabel = HUD and HUD:FindFirstChild("Cash")
+
     if CashLabel then
         Cash = string.gsub(CashLabel.Text, "%D", "")
         Cash = tonumber(Cash)
@@ -1543,6 +1566,7 @@ do
     spawn(function()
         while true do
             LastIteration = os.clock()
+
             for Index = #FrameUpdateTable, 1, -1 do
                 FrameUpdateTable[Index + 1] = FrameUpdateTable[Index] >= LastIteration - 1 and FrameUpdateTable[Index] or nil
             end
@@ -1550,6 +1574,7 @@ do
             FrameUpdateTable[1] = LastIteration
             local Time = os.clock() - Start
             FPS = tostring(math.round(Time >= 1 and #FrameUpdateTable or #FrameUpdateTable / Time))
+
             RunService.Stepped:Wait()
         end
 
@@ -1569,24 +1594,29 @@ do
         if Buyers[Name] then
             if Count then
                 local temp = Name .. Count
+
                 if Buyers[temp] then
                     return get_name(Name, Count + 1)
                 end
+
                 Name = temp
             else
                 return get_name(Name, 2)
             end
         end
+
         return Name
     end
 
     local function add_to_pad_list(ItemName, self)
         local Name = string.lower(tostring(self))
+
         if Name == "bought!" then
             local Event
             Event = self:GetPropertyChangedSignal("Name"):Connect(function()
                 add_to_pad_list(ItemName, self)
             end)
+
             delay(20, Event.Disconnect, Event) -- if the buy pad is broken
         elseif string.find(Name, " | ") and string.find(Name, string.lower(ItemName)) then
             local BuyerName = get_name(string.lower(ItemName))
@@ -1609,16 +1639,10 @@ do
     end
 end
 
-
-do
-    local Buyers = GetBuyPads()
-
-    function GetItem(Name)
-        local Item = Buyers[string.lower(Name)]
-        return Item.Part, Item.Price
-    end
+function GetItem(Name)
+    local Item = GetBuyPads()[string.lower(Name)]
+    return Item.Part, Item.Price
 end
-
 
 function GetBrickTrajectoryPoints(Brick)
     local Handle = Brick:FindFirstChild("Handle")
@@ -1629,8 +1653,10 @@ function GetBrickTrajectoryPoints(Brick)
 
     local Origin = Handle.Position
     local End = Mouse.Hit.Position
+
     if Target and Config.Aimbot.Enabled then
         local AimbotCFrame = GetAimbotCFrame()
+
         if AimbotCFrame then
             End = AimbotCFrame.Position
         end
@@ -1679,7 +1705,9 @@ function GetBrickTrajectoryPoints(Brick)
         ClampAxis(Position, Position + LookVector)
         table.insert(Points, Position)
 
-        if Clamped.x and Clamped.y and Clamped.z then break end
+        if Clamped.x and Clamped.y and Clamped.z then 
+            break 
+        end
     end
 
     return Points
@@ -1702,6 +1730,7 @@ function GetHitPoints(Target)
             for _, Part in ipairs(Parts) do
                 -- not sure if I should blacklist Tool or not but whatever
                 local IsBehind, Hit = IsBehindAWall(Tool.Barrel, Part, {Tool})
+
                 if IsBehind == false then
                     if Hit and Hit.Instance:IsDescendantOf(tCharacter) then
                         table.insert(Points, Hit.Position)
@@ -1723,23 +1752,27 @@ function GetAssetInfo(AssetId)
     local Success, Result = pcall(function()
         Info = Marketplace:GetProductInfo(AssetId)
     end)
+
     if not Success then
         Console:Error("[GET ASSET INFO] " .. Result)
         wait(3)
         return GetAssetInfo(AssetId)
     end
+
     return Info
 end
 
 
 function IsBehindAWall(Part, Part2, Blacklist)
     if not Part or not Part2 then return end
+
     local Blacklist = typeof(Blacklist) == "table" and Blacklist or {}
     table.insert(Blacklist, Camera)
     table.insert(Blacklist, Character)
 
     local CF = CFrame.new(Part.Position, Part2.Position)
     local Hit = Raycast(CF.Position, CF.LookVector * (Part.Position - Part2.Position).Magnitude, Blacklist)
+
     if Hit then
         local HitPart = Hit.Instance
         if HitPart then
@@ -1757,47 +1790,62 @@ end
 
 function IsDoorOpen(Door)
     local Vector = Door.WoodPart.Position
+
     for _, OpenVector in pairs(DoorData.Doors.Open) do
-        if math.abs((Vector - OpenVector).Magnitude) < 1.15 then return true end
+        if math.abs((Vector - OpenVector).Magnitude) < 1.15 then 
+            return true 
+        end
     end
+
     for _, ClosedVector in pairs(DoorData.Doors.Closed) do
-        if math.abs((Vector - ClosedVector).Magnitude) < 1.15 then return false end
+        if math.abs((Vector - ClosedVector).Magnitude) < 1.15 then 
+            return false 
+        end
     end
 end
-
 
 function IsWindowOpen(Window)
     local Vector = Window.Move.Click.Position
+
     for _, OpenVector in pairs(DoorData.Windows.Open) do
-        if math.abs((Vector - OpenVector).Magnitude) < 0.2 then return true end
+        if math.abs((Vector - OpenVector).Magnitude) < 0.2 then 
+            return true 
+        end
     end
+
     for _, ClosedVector in pairs(DoorData.Windows.Closed) do
-        if math.abs((Vector - ClosedVector).Magnitude) < 0.2 then return false end
+        if math.abs((Vector - ClosedVector).Magnitude) < 0.2 then 
+            return false 
+        end
     end
 end
 
-
 function IsInCar()
     local Jeep = workspace:FindFirstChild("Jeep")
+
     if Jeep then
         Jeep.Name = "_Jeep"
     else
         return false
     end
+
     local Jeep2 = workspace:FindFirstChild("Jeep")
     Jeep.Name = "Jeep"
+
     local Jeeps = {Jeep, Jeep2}
     for _, Jeep in ipairs(Jeeps) do
         local Seat = Jeep:FindFirstChild("DriveSeat")
         local IsSeated = IsOnSeat(Player, Seat) -- Don't use IsSeated that doesn't have Car Seats Cached
+
         if IsSeated then return Jeep end
     end
+
     return false
 end
 
-
 function IsOnSeat(_Player, Seat)
     local Player = _Player or Player
+
     if Seat then
         local Occupant = Seat.Occupant
         if Occupant and tostring(Occupant.Parent) == tostring(Player) then return true end
@@ -1805,7 +1853,6 @@ function IsOnSeat(_Player, Seat)
 
     return false
 end
-
 
 function IsSeated(_Player, Seat)
     local Player = _Player or Player
@@ -1817,7 +1864,6 @@ function IsSeated(_Player, Seat)
     return false
 end
 
-
 function IsCharacterAlive(Character)
     if typeof(Character) == "Instance" and Character:IsA("Model") then
         local CurrentParent = Character.Parent
@@ -1827,12 +1873,12 @@ function IsCharacterAlive(Character)
     return false
 end
 
-
 function UserOwnsAsset(_Player, AssetId, AssetType)
     --https://inventory.roblox.com/docs#!/Inventory/get_v1_users_userId_items_itemType_itemTargetId
     -- AssetType : "GamePass", "Asset", "Badge", "Bundle"
     local Player = _Player or Player
     local UserId = typeof(Player) == "Instance" and Player.UserId or Player
+
     if UserId and AssetId and AssetType then
         -- Concatenation is faster than the %s pattern
         local Url = "https://inventory.roblox.com/v1/users/" .. UserId .. "/items/" .. AssetType .. "/" .. AssetId
@@ -1849,6 +1895,7 @@ end
 function TeleportToPlace(Place_Id, Job_Id)
     if Job_Id then
         TeleportService:TeleportToPlaceInstance(Place_Id, Job_Id)
+
         if Job_Id == game.JobId then
             if (#Players:GetPlayers() == 1) or (#Players:GetPlayers() == Players.MaxPlayers) then
                 Player:Kick("Rejoining server..")
@@ -1862,9 +1909,11 @@ end
 
 function Teleport(Destination)
     Teleporting = false
+
     local Event
     local Distance = Player:DistanceFromCharacter(Destination.Position)
     local Destination = CFrame.new(Destination.Position, Root.Orientation)
+
     if Distance < 50 or (Config.God.Enabled or Config.TeleportBypass.Enabled) then
         Root.CFrame = Destination
         Teleporting = false
@@ -1872,16 +1921,22 @@ function Teleport(Destination)
     end
 
     Teleporting = true
+
     local Info = TweenInfo.new(Distance / 300, Enum.EasingStyle.Linear)
     local Tween = TweenService:Create(Root, Info, {CFrame = Destination})
-
     Root.CFrame = CFrame.new(Root.Position, Destination.Position)
+
     spawn(function()
         while Teleporting do wait() end
         Tween:Cancel()
     end)
-    Tween.Completed:Connect(function() Teleporting = false end)
+
+    Tween.Completed:Connect(function() 
+        Teleporting = false 
+    end)
+
     Tween:Play()
+
     return Tween
 end
 
@@ -1918,14 +1973,16 @@ do
 
     function SetCharacterServerCFrame(CF)
         if Root and typeof(CF) == "CFrame" then
-            CFrameToSend = CF
             if CFrameSending then return end
+
+            CFrameToSend = CF
             CFrameSending = true
 
             spawn(function()
                 RunService.Heartbeat:Wait()
                 local LastCFrame = Root.CFrame
                 Root.CFrame = CFrameToSend
+
                 Player:SetAttribute("ServerVector", CFrameToSend.Position)
                 CFrameSending = false
 
@@ -1937,16 +1994,19 @@ do
 
     function SetCharacterServerVelocity(Velocity, AngularVelocity)
         if Root and typeof(Velocity) == "Vector3" and typeof(AngularVelocity) == "Vector3" then
-            VelocityToSend, AngularVelocityToSend = Velocity, AngularVelocity
             if VelocitySending then return end
+
+            VelocityToSend, AngularVelocityToSend = Velocity, AngularVelocity
             VelocitySending = true
 
             spawn(function()
                 RunService.Heartbeat:Wait()
                 local LastVelocity = Root.AssemblyLinearVelocity
                 local LastAngularVelocity = Root.AssemblyAngularVelocity
+
                 Root.AssemblyLinearVelocity = Velocity
                 Root.AssemblyAngularVelocity = AngularVelocity
+
                 Player:SetAttribute("ServerVelocity", Velocity)
                 Player:SetAttribute("ServerAngularVelocity", AngularVelocity)
                 VelocitySending = false
@@ -1964,14 +2024,17 @@ function SetModelDefaults(Model, Ignore)
     if not Model:GetAttribute("DefaultsSet") then
         for _, Part in ipairs(GetModelParts(Model, Ignore)) do
             if Part:GetAttribute("DefaultTransparency") == 1 then continue end
+
             Part:SetAttribute("DefaultColor", Part.Color)
             Part:SetAttribute("DefaultMaterial", Part.Material.Name)
             Part:SetAttribute("DefaultReflectance", Part.Reflectance)
             Part:SetAttribute("DefaultTransparency", Part.Transparency)
+
             if Part:IsA("UnionOperation") then
                 Part:SetAttribute("DefaultUsePartColor", Part.UsePartColor)
             end
         end
+
         Model:SetAttribute("DefaultsSet", true)
     end
 end
@@ -1979,22 +2042,28 @@ end
 
 function SetModelProperties(Model, Color, Material, Reflectance, Transparency, UsePartColor)
     if Material == "Force field" then
-	Material = "ForceField"
+	    Material = "ForceField"
     end
+
     for _, Part in ipairs(GetModelParts(Model)) do
         if Part:GetAttribute("DefaultTransparency") == 1 then continue end
+
         if Part:GetAttribute("DefaultColor") then
             Part.Color = typeof(Color) == "Color3" and Color or Part:GetAttribute("DefaultColor")
         end
+
         if Part:GetAttribute("DefaultMaterial") then
             Part.Material = typeof(Material) == "string" and Material or Part:GetAttribute("DefaultMaterial")
         end
+
         if Part:GetAttribute("DefaultReflectance") then
             Part.Reflectance = typeof(Reflectance) == "number" and Reflectance or Part:GetAttribute("DefaultReflectance")
         end
+
         if Part:GetAttribute("DefaultTransparency") then
             Part.Transparency = typeof(Transparency) == "number" and Transparency or Part:GetAttribute("DefaultTransparency")
         end
+
         if Part:IsA("UnionOperation") and Part:GetAttribute("DefaultUsePartColor") ~= nil then
             Part.UsePartColor = typeof(UsePartColor) == "boolean" and UsePartColor or Part:GetAttribute("DefaultUsePartColor") -- ?
         end
@@ -2004,6 +2073,7 @@ end
 
 function SetPlayerChams(Player, ...) -- not actual chams just changing the properties of players parts
     local Character = Player.Character
+
     if Character then
         SetModelProperties(Character, ...)
     end
@@ -2013,6 +2083,7 @@ end
 function SetToolChams(Tool)
     if not Tool then return end
     SetModelDefaults(Tool)
+
     if Config.GunChams.Enabled then
         SetModelProperties(Tool, Config.GunChams.Color, Config.GunChams.Material, Config.GunChams.Reflectance, Config.GunChams.Transparency, true)
     else
@@ -2026,6 +2097,7 @@ function SetHat(Name)
         local Stank = Backpack.Stank
         local Hat = Character and Character:FindFirstChild(Name)
         local Handle = Hat and Hat:FindFirstChild("Handle")
+
         if Handle then
             Stank:FireServer("rep", {
                 typ = {Value = tostring(Hat)}
@@ -2041,6 +2113,7 @@ end
 function SetHatColor(_Color)
     local Color = _Color or Color3.new()
     local Stank = Backpack:FindFirstChild("Stank")
+
     if Stank then
         Stank:FireServer("color", {BackgroundColor3 = Color})
     end
@@ -2055,6 +2128,7 @@ do
         Tag = string.rep("\n", 100 - #Tag) .. Tag
 
         local Stank = Backpack:FindFirstChild("Stank")
+
         if Stank then
             Stank:FireServer("pick", {
                 Name = 1, -- yeah no u have no choice in this u get the guest role
@@ -2156,6 +2230,7 @@ function AddKnockedOutTimer(Player)
                 Player:SetAttribute("KnockOut", 15 - Timer:Get())
                 wait()
             end
+
             Player:SetAttribute("KnockOut", 0)
             Timer:Destroy()
         end)
@@ -2164,13 +2239,17 @@ end
 
 
 function AddFirstPersonEventListeners()
-    for _, v in ipairs(Events.FirstPerson) do v:Disconnect() end
+    for _, v in ipairs(Events.FirstPerson) do 
+        v:Disconnect() 
+    end
+
     table.clear(Events.FirstPerson)
 
     if Character and Config.FirstPerson.Enabled then
         for _, Object in ipairs(Character:GetChildren()) do
             if Object:IsA("BasePart") and string.find(tostring(Object), "Arm") then
                 Object.LocalTransparencyModifier = 0
+
                 table.insert(Events.FirstPerson, Object:GetPropertyChangedSignal("LocalTransparencyModifier"):Connect(function()
                     Object.LocalTransparencyModifier = 0
                 end))
@@ -2185,14 +2264,16 @@ function AddItem(Spawn)
     local function Set(Spawn, Name)
         Spawn:SetAttribute("Item", Name)
         Items[Spawn] = Spawn
+
         AddItemESP(Spawn)
 
-        local Event
-        local Touched
+        local Event, Touched
         Touched = Spawn.Touched:Connect(function(Part)
             if Event then return end
+
             local _Player = Player -- OUR LOCAL PLAYER
             local Player = Players:GetPlayerFromCharacter(Part.Parent)
+
             if Player then
                 Event = Spawn.AncestryChanged:Connect(function(_, Parent)
                     if Parent then return end
@@ -2202,14 +2283,11 @@ function AddItem(Spawn)
                     local Distance = math_round(_Player:DistanceFromCharacter(Part.Position), 2) -- DISTANCE FROM LOCAL PLAYER
                     local Color = Config.EventLogs.Colors["Picked up"]:ToHex()
                     local Message = string.format("%s picked up a %s from %s", GetRichTextColor(tostring(Player), Color), GetRichTextColor(Name, Color),
-                        GetRichTextColor(Distance, Color) .. " studs away")
-                    Client.OnEvent({
-                        GetName = function() return "picked_up" end,
-                        GetValue = function() return Spawn end,
-                        GetPlayer = function() return Player end
-                    })
+
+                    GetRichTextColor(Distance, Color) .. " studs away")
                     LogEvent("Picked up", Message, tick())
                 end)
+
                 delay(10, function()
                     Event:Disconnect()
                     Event = nil
@@ -2224,6 +2302,7 @@ function AddItem(Spawn)
         for k2, v2 in pairs(ToolData) do
             local Name = tostring(v)
             local ClassName = v.ClassName
+
             if ClassName == "Sound" then
                 if string.find(tostring(v.SoundId), tostring(v2.EspId)) then return Set(Spawn, k2) end
             elseif ClassName == "SpecialMesh" then
@@ -2246,7 +2325,9 @@ function AddPlayerESP(_Player)
 
     local Player = _Player
     local Character = Player.Character
+
     if not Character then return end
+
     local Humanoid = Character:FindFirstChild("Humanoid")
     local Head = Character:FindFirstChild("Head")
     local Torso = Character:FindFirstChild("Torso")
@@ -2404,6 +2485,7 @@ function UpdateESP()
 
             local function IS_VISIBLE()
                 local TARGET_CHECK = true
+
                 if ESP.ForceTarget then
                     TARGET_CHECK = Target
                 end
@@ -2548,6 +2630,7 @@ function UpdateESP()
             do
                 local Timer = Player:GetAttribute("KnockOut")
                 v.KnockedOutBar.Visible = IS_VISIBLE() and Timer > 0 and ESP_KnockedOutBar.Enabled
+
                 if v.KnockedOutBar.Visible then
                     SET_BAR_POINTS(v.KnockedOutBar, ESP_KnockedOutBar.Position)
                     v.KnockedOutBar:SetValue((Timer / 15) * 100)
@@ -2583,6 +2666,7 @@ function UpdateESP()
             if IS_VISIBLE() and ESP_Skeleton.Enabled then
                 local Limbs, Success = GetLimbs(Player)
                 v.Skeleton.Visible = Success and Player:GetAttribute("IsAlive") and true or false
+
                 if v.Skeleton.Visible then
                     pcall(function()
                         v.Skeleton:UpdatePoints({
@@ -2672,6 +2756,7 @@ function UpdateESP()
             end
 
             v.Snapline.Visible = Item_ESP_Enabled and Item_ESP_Snaplines.Enabled
+            
             if v.Snapline.Visible then
                 v.Snapline:SetColor(Item_ESP_Snaplines.Color, Item_ESP_Snaplines.Transparency)
             end
@@ -2682,29 +2767,38 @@ end
 
 function UpdateInterface(Fade)
     if typeof(HUD) ~= "Instance" then return end
+
     local Bars = {HUD:FindFirstChild("HP"), HUD:FindFirstChild("KO"), HUD:FindFirstChild("Stam")}
     local Buttons = {HUD:FindFirstChild("ImageButton"), HUD:FindFirstChild("Mute")} -- ImageButton-LowGFX
+
     if IsOriginal then
         table.insert(Buttons, HUD:FindFirstChild("Shop"))
         table.insert(Buttons, HUD:FindFirstChild("Groups"))
     end
 
     if Config.Interface.BarFade.Enabled then
-        if BarsFading then return end
+        if BarsFading then 
+            return 
+        end
+
         if Fade then
             BarsFading = true
+
             local Info = TweenInfo.new(0.5)
             local Properties = {Transparency = 1}
 
             for _, Bar in ipairs(Bars) do
                 local Tween = TweenService:Create(Bar, Info, Properties)
                 local Tween2 = TweenService:Create(Bar.Bar, Info, Properties)
+
                 Tween:Play()
                 Tween2:Play()
-                Tween.Completed:Connect(function() BarsFading = false end)
+
+                Tween.Completed:Connect(function() 
+                    BarsFading = false 
+                end)
             end
         else
-            
             for _, Bar in ipairs(Bars) do
                 Bar.Transparency = 0
                 Bar.Bar.Transparency = 0
@@ -2712,22 +2806,28 @@ function UpdateInterface(Fade)
         end
     else
         BarsFading = false
+
         for _, Bar in ipairs(Bars) do
             Bar.Transparency = 0
             Bar.Bar.Transparency = 0
         end
     end
-    for _, Button in ipairs(Buttons) do Button.Visible = not Config.Interface.RemoveUIElements.Enabled end
+
+    for _, Button in ipairs(Buttons) do 
+        Button.Visible = not Config.Interface.RemoveUIElements.Enabled 
+    end
 end
 
 
 function UpdateSkybox()
     local Skybox = Config.Enviorment.Skybox.Value
     local Skyboxes = GetFolders("ponyhook/Games/The Streets/bin/skyboxes/").Folders
+
     for k, v in pairs(Skyboxes) do
         if k == Skybox then
             local Success, Result = pcall(function()
                 local Sky = Lighting.Sky
+
                 Sky.SkyboxUp = get_custom_asset(readfile(Skybox .. "/Up.png"))
                 Sky.SkyboxDn = get_custom_asset(readfile(Skybox .. "/Down.png"))
                 Sky.SkyboxFt = get_custom_asset(readfile(Skybox .. "/Front.png"))
@@ -2749,6 +2849,7 @@ end
 function UpdateAntiAim()
     Animations.AntiAim.self:Stop()
     Menu.Indicators.List["Fake Velocity"]:SetVisible(false)
+
     if Config.AntiAim.Enabled then
         if Config.AntiAim.Type == "Velocity" then
             Menu.Indicators.List["Fake Velocity"]:SetVisible(true)
@@ -2759,13 +2860,11 @@ function UpdateAntiAim()
     end
 end
 
-
 function UpdateFieldOfViewCircle()
     FieldOfViewCircle.Visible = Config.Interface.FieldOfViewCircle.Enabled
-    if FieldOfViewCircle.Visible then
-        local Location = UserInput:GetMouseLocation()
-        FieldOfViewCircle.Position = Location
 
+    if FieldOfViewCircle.Visible then
+        FieldOfViewCircle.Position = UserInput:GetMouseLocation()
         FieldOfViewCircle.Thickness = Config.Interface.FieldOfViewCircle.Thickness
         FieldOfViewCircle.Transparency = Config.Interface.FieldOfViewCircle.Transparency
         FieldOfViewCircle.NumSides = Config.Interface.FieldOfViewCircle.NumSides
@@ -2774,7 +2873,6 @@ function UpdateFieldOfViewCircle()
         FieldOfViewCircle.Filled = Config.Interface.FieldOfViewCircle.Filled
     end
 end
-
 
 function UpdateAimbotIndicator()
     if (Config.Aimbot.Visualize and Config.Aimbot.Enabled) then
@@ -2791,7 +2889,6 @@ function UpdateAimbotIndicator()
     end
 end
 
-
 function BindKey(Name, Mode, Key, Command, Arguments)
     if Mode == "Add" then
         Config.Keybinds.Commands[Name] = {
@@ -2804,13 +2901,11 @@ function BindKey(Name, Mode, Key, Command, Arguments)
     end
 end
 
-
 function LogEvent(Flag, Message, Time:tick)
     if Config.EventLogs.Enabled and Config.EventLogs.Flags[Flag] then
         Menu.Notify(Message, 8)
     end
 end
-
 
 function BuyItem(Item_Name:string)
     local Item_Name = string.lower(Item_Name)
@@ -2821,6 +2916,7 @@ function BuyItem(Item_Name:string)
         if string.find(string.lower(v), Item_Name) then
             for _, v2 in ipairs(workspace:GetChildren()) do
                 local Name = string.lower(tostring(v2))
+
                 if string.find(Name, " | ") and string.find(Name, Item_Name) then
                     pcall(function()
                         Part = v2.Head
@@ -2830,21 +2926,26 @@ function BuyItem(Item_Name:string)
                     break
                 end
             end
+
             if not Part then
                 local Color = Config.EventLogs.Colors.Error:ToHex()
                 return Menu.Notify(GetRichTextColor("Item '" .. Item_Name .. "' was not found", Color))
             end
+
             if Price > GetCash() then
                 local Color = Config.EventLogs.Colors.Error:ToHex()
                 return Menu.Notify(GetRichTextColor("Not enough cash...", Color))
             end
+
             if Part then
                 Buying = true
                 BuyPart = Part
+
                 delay(5, function()
                     Buying = false
                     BuyPart = nil
                 end)
+
                 spawn(function()
                     Part.Changed:Wait()
                     Buying = false
@@ -2869,6 +2970,7 @@ function CreateBulletImpact(Position, Color, Material)
     Impact.Size = Vector3.new(0.2, 0.2, 0.2)
     Impact.Parent = Camera
     Debris:AddItem(Impact, 5)
+
     return Impact
 end
 
@@ -2882,6 +2984,7 @@ function DrawLine(Color, Transparency, From, To)
     Line.To = To or Vector2.new()
     Line.Visible = false
     Line.ZIndex = 1
+
     return Line
 end
 
@@ -2939,8 +3042,10 @@ function DrawCross(Size, Offset)
 
     function Cross:SetColor(Color, Transparency)
         if not Cross.Alive then return error("CROSS IS DEAD") end
+
         Cross.Color = typeof(Color) == "Color3" and Color or Cross.Color
         Cross.Transparency = typeof(Transparency) == "number" and 1 - Transparency or Cross.Transparency
+
         for _, Line in ipairs(Lines) do
             Line.Color = Cross.Color
             Line.Transparency = Cross.Transparency
@@ -2949,6 +3054,7 @@ function DrawCross(Size, Offset)
     
     function Cross:SetVisible(Visible)
         if not Cross.Alive then return error("CROSS IS DEAD") end
+
         for _, Line in ipairs(Lines) do
             Line.Visible = Visible and true or false
         end
@@ -2956,6 +3062,7 @@ function DrawCross(Size, Offset)
 
     function Cross:FadeIn(Callback)
         if not Cross.Alive then return error("CROSS IS DEAD") end
+
         spawn(function()
             for i = 1, 100 do
                 if Cross.Alive then
@@ -2963,12 +3070,16 @@ function DrawCross(Size, Offset)
                     RunService.RenderStepped:Wait()
                 end
             end
-            if typeof(Callback) == "function" then Callback() end
+
+            if typeof(Callback) == "function" then 
+                Callback()
+            end
         end)
     end
 
     function Cross:FadeOut(Callback)
         if not Cross.Alive then return error("CROSS IS DEAD") end
+
         spawn(function()
             for i = 1, 100 do
                 if Cross.Alive then
@@ -2976,24 +3087,27 @@ function DrawCross(Size, Offset)
                     RunService.RenderStepped:Wait()
                 end
             end
-            if typeof(Callback) == "function" then Callback() end
+
+            if typeof(Callback) == "function" then 
+                Callback() 
+            end
         end)
     end
     
     function Cross:Remove()
         if not Cross.Alive then return error("CROSS IS DEAD") end
         Cross.Alive = false
+
         for _, Line in ipairs(Lines) do
             Line:Remove()
         end
     end
 
     function Cross:Destroy() return Cross:Remove() end
-
     function Cross:IsAlive() return Cross.Alive end
 
     Cross:SetColor(Color3.new(1, 1, 1), 0)
-    
+
     return Cross
 end
 
@@ -3033,32 +3147,43 @@ end
 
 
 function PlaySound(SoundId, Volume)
-    assert(SoundId, "Missing soundId")
+    assert(SoundId, "Missing SoundId")
+
     local Sound = Instance.new("Sound")
     Sound.SoundId = SoundId
     Sound.Volume = Volume or 1
     Sound.PlayOnRemove = true
     Sound.Parent = SoundService
+
     Sound:Destroy()
 end
 
 
 function SortBackpack()
     if not Humanoid then return end
+
     local Tools = {}
     Humanoid:UnequipTools()
+
     for _, Tool in ipairs(GetTools()) do
         table.insert(Tools, Tool)
         Tool.Parent = nil
     end
+
     for k, v in pairs(Config.AutoSort.Order) do
         if not v then continue end
+
         for _, Tool in ipairs(Tools) do
-            if tostring(Tool) == k then Tool.Parent = Backpack end
+            if tostring(Tool) == k then 
+                Tool.Parent = Backpack 
+            end
         end
     end
+
     -- if it's already in backpack it won't change the order
-    for _, Tool in ipairs(Tools) do Tool.Parent = Backpack end
+    for _, Tool in ipairs(Tools) do 
+        Tool.Parent = Backpack 
+    end
 end
 
 
@@ -3096,6 +3221,7 @@ end
 
 function EnableInfiniteStamina(Value: number)
     if IsOriginal or not Config.InfiniteStamina.Enabled then return end
+
     spawn(function()
         local Remote = Backpack:WaitForChild("ServerTraits"):WaitForChild("Touch1")
         local Sound = workspace.OneHoop.Score.Sound -- Don't ask okay
@@ -3113,9 +3239,9 @@ end
 
 function PlaySoundExploit(Sound)
     if IsOriginal or not Sound then return end
+
     spawn(function()
-        local Remote = Backpack:WaitForChild("ServerTraits"):WaitForChild("Touch1")
-        Remote:FireServer({
+        Backpack:WaitForChild("ServerTraits"):WaitForChild("Touch1"):FireServer({
             Handle = {
                 Hit = Sound, -- The Cloned "Parent" will be set after it tries to set the "Pitch" property, only sound has a pitch property
                 Swing = Sound
@@ -3133,7 +3259,9 @@ end
 function RefreshCharacter()
     if RefreshingCharacter then return end
     RefreshingCharacter = true
+
     Character:WaitForChild("Humanoid")
+
     local Script = PlayerGui:FindFirstChild("LocalScript")
     local ScreenGui = PlayerGui:FindFirstChild("ScreenGui")
     local EquippedTool = Tool
@@ -3147,11 +3275,13 @@ function RefreshCharacter()
 
     Player.Character = nil
     Player.Character = Character
+
     delay(0, function()
         HUD.Parent = PlayerGui
         Script.Parent = PlayerGui
         ScreenGui.Parent = PlayerGui
     end)
+
     wait(Players.RespawnTime - 0.1)
     ResetCharacter()
 
@@ -3172,6 +3302,7 @@ end
 
 function GiveToolsPlayer(Target: Player)
     local Tool = Character:FindFirstChild("Punch") or Backpack:FindFirstChild("Punch")
+
     if not Tool then
         Tool = Backpack.ChildAdded:Wait()
         wait()
@@ -3180,6 +3311,7 @@ function GiveToolsPlayer(Target: Player)
     local function DisableGivingTools()
         Menu.Notify("Please select a valid target to give tools to!", 5)
         Menu:FindItem("Misc", "Players", "CheckBox", "Give Tools"):SetValue(false)
+
         GivingTools = false
     end
 
@@ -3205,6 +3337,7 @@ function GiveToolsPlayer(Target: Player)
         LoadHandles()
         Humanoid:UnequipTools()
         wait(0.1)
+
         for _, v in ipairs(Backpack:GetChildren()) do
             if v:IsA("Tool") and v ~= Tool then
               -- not exactly sure what this is but we need this for replicating the parent to the tool; test it yourself using roblox studio
@@ -3227,6 +3360,7 @@ function GiveToolsPlayer(Target: Player)
     end
 
     Tool.Parent = Character
+
     for _, Tool in ipairs(Tools) do
         local Handle = Tool:WaitForChild("Handle")
         firetouchinterest(Handle, tRoot, 0)
@@ -3260,6 +3394,7 @@ function Attack(CF)
             if not Tool.CD then return end -- Cooldown
             local AnimationId = string.gsub(Tool.Fires.AnimationId, "%D", "")
             GetAnimation(AnimationId):Play(0.1, 1, 2)
+
             if IsPrison and Tool:FindFirstChild("Fire") then
                 Tool.Fire:FireServer(CF, true) -- not sure why we sending boolean something for namecall check
             else
@@ -3274,6 +3409,7 @@ end
 
 function Stomp(Amount)
     local Amount = typeof(Amount) == "number" and Amount or 1
+
     if IsOriginal then
         if Tool and Tool:FindFirstChild("Finish") then
             local Input = Backpack.Input
@@ -3283,9 +3419,11 @@ function Stomp(Amount)
         end
     else
         local Finish = Backpack.ServerTraits.Finish
+
         if not Tool or Tool and not Tool:FindFirstChild("Finish") then
             Tool = Backpack:FindFirstChild("Punch")
         end
+
         for _ = 1, Amount do
             Finish:FireServer(Tool) -- does raycast if hitpart found Root.Position - Vector3.new(0, 2, 0) then if raycast.Parent:find humanoid kill humanoid and humanoid.Parent needs to have KO value
         end
@@ -3345,6 +3483,7 @@ function CanPlayerAttackVictim(Player, Victim, Range)
         if Root and vRoot then
             if (vRoot - (Root.Position + (Root.CFrame.LookVector * Range / 2))).Magnitude < Range then
                 local Hit = streets_raycast(Root.Position, TargetRoot.Position, 5, Character)
+
                 if Hit == nil or Hit.Anchored == false then
                     return true
                 end
@@ -3360,11 +3499,11 @@ function streets_raycast(Start, End, Distance, Ignore)
     return workspace:FindPartOnRay(Ray.new(Start, CFrame.new(Start, End).LookVector * Distance), Ignore)
 end
 
-
 function Raycast(Position, Position_2, Blacklist)
     local RayParams = RaycastParams.new()
     RayParams.FilterType = Enum.RaycastFilterType.Blacklist
     RayParams.FilterDescendantsInstances = Blacklist
+
     return workspace:Raycast(Position, Position_2, RayParams)
 end
 
@@ -3373,6 +3512,7 @@ function GripTool(Tool, Grip_CFrame)
     local Arm = Character:FindFirstChild("Right Arm")
     local Handle = Tool:FindFirstChild("Handle")
     if not Arm or not Handle then return end
+
     return Weld("RightGrip", Arm, Handle, Grip_CFrame)
 end
 
@@ -3382,6 +3522,7 @@ function CreateJoint(Name, Part, CF)
     Attachment.Name = Name
     Attachment.CFrame = CF
     Attachment.Parent = Part
+
     return Attachment
 end
 
@@ -3394,12 +3535,14 @@ function Weld(Name, Part, Part2, CF, CF2)
     Grip.Parent = Part
     Grip.C0 = CF or CFrame.new()
     Grip.C1 = CF2 or CFrame.new()
+
     return Grip
 end
 
 
 function CreateJoints(Player)
     local Limbs, Success = GetLimbs(Player)
+
     if Success then
         CreateJoint("Neck", Limbs.Head, CFrame.new(Vector3.new(0, -0.7, 0)))
         CreateJoint("Pelvis", Limbs.Torso, CFrame.new(Vector3.new(0, -0.7, 0)))
@@ -3430,6 +3573,7 @@ function ResyncPlayer(Player)
                     local Magnitude = (Root.Position - Torso.Position).Magnitude
                     if Magnitude > 0.1 then
                         local Tracks = Humanoid:GetPlayingAnimationTracks()
+
                         for _, Track in ipairs(Tracks) do
                             if Track.Animation.AnimationId == "rbxassetid://215384594" then
                                 local TimePosition = Track.TimePosition
@@ -3448,6 +3592,7 @@ function ShowDoorMenu(self) -- I hate this shitty code
     local Lock = self:FindFirstChild("Lock").ClickDetector.RemoteEvent
     local Locker = self:FindFirstChild("Locker")
     local Click = self:FindFirstChild("Click").ClickDetector.RemoteEvent
+
     if not Lock or not Locker or not Click then return end
 
     local BillboardGui = Instance.new("BillboardGui")
@@ -3505,20 +3650,21 @@ function ShowDoorMenu(self) -- I hate this shitty code
     
     LoopEvent = RunService.Heartbeat:Connect(function()
         local Distance = Player:DistanceFromCharacter(self.WoodPart.Position)
+
         if Distance > 8 or not Humanoid or Humanoid.Health <= 0 then
             BillboardGui:Destroy()
             LoopEvent:Disconnect()
         end
+
         LastLabel.Text = "Last: " .. (self.Last.Value or "Nobody")
         LockButton.Text = Locker.Value and "Unlock" or "Lock"
     end)
 end
 
-
-
 function Heartbeat(Step) -- after phys :: after heartbeat comes network stepped
     Camera = workspace.CurrentCamera
     if UserInput:GetFocusedTextBox() ~= Menu.CommandBar then OnCommandBarFocusLost() end
+
     for i, v in ipairs(ChatScheduler) do
         table.remove(ChatScheduler, i)
         spawn(OnChatted, v)
@@ -3526,9 +3672,11 @@ function Heartbeat(Step) -- after phys :: after heartbeat comes network stepped
 
     local SelectedTarget = GetSelectedTarget()
     Target = TargetLock and SelectedTarget or GetTarget()
+
     do
         local tCharacter = SelectedTarget and SelectedTarget.Character
         local tHumanoid = tCharacter and tCharacter:FindFirstChild("Humanoid")
+
         Camera.CameraSubject = Config.View.Enabled and (tHumanoid or Humanoid) or Humanoid
     end
 
@@ -3546,6 +3694,7 @@ function Heartbeat(Step) -- after phys :: after heartbeat comes network stepped
         if Config.ClanTag.Visualize and not Config.TeleportBypass.Enabled then
             local ClanModel = GetClanModel() 
             local Head = ClanModel and ClanModel:FindFirstChild("Head")
+
             if Head then
                 Head.Transparency = 0
             end
@@ -3568,6 +3717,7 @@ function Heartbeat(Step) -- after phys :: after heartbeat comes network stepped
                 -- _Root.Parent is the Target Character we need to filter that so we don't get false positives
                 _Player:SetAttribute("BehindWall", (IsBehindAWall(Root, _Root, {_Root.Parent})))
             end
+
             _Player:SetAttribute("Distance", math_round(Player:DistanceFromCharacter(Position), 2))
             _Player:SetAttribute("Velocity", (Position - LastPosition) / Step)
             _Player:SetAttribute("Position", Position)
@@ -3599,6 +3749,7 @@ function Heartbeat(Step) -- after phys :: after heartbeat comes network stepped
                             
                             if Config.AutoFire.VelocityCheck.Enabled then
                                 local Velocity = Target:GetAttribute("Velocity")
+
                                 if Velocity.Magnitude > Config.AutoFire.VelocityCheck.MaxVelocity then
                                     CanShoot = false
                                 end
@@ -3607,9 +3758,11 @@ function Heartbeat(Step) -- after phys :: after heartbeat comes network stepped
                             if CanShoot then
                                 local Barrel = Tool:FindFirstChild("Barrel")
                                 local Ammo, Clips = GetToolInfo(Tool, "Ammo")
+
                                 if Barrel and (Ammo > 0 or Clips > 0) then
                                     if (Target:DistanceFromCharacter(Barrel.Position) < Config.AutoFire.Range) then
                                         local HitPoints = GetHitPoints(Target)
+
                                         if #HitPoints > 0 then
                                             Attack(CFrame.new(HitPoints[1]))
                                         end
@@ -3628,10 +3781,12 @@ function Heartbeat(Step) -- after phys :: after heartbeat comes network stepped
                         local TargetDistance = Target:GetAttribute("Distance")
 
                         Humanoid:MoveTo(Position)
+
                         if TargetDistance > 5 then
                             if Config.Flight.Enabled then
                                 Root.CFrame = Root.CFrame:Lerp(_Root.CFrame, Config.Flight.Speed / TargetDistance)
                             end
+
                             if Config.Blink.Enabled then
                                 Root.CFrame = Root.CFrame:Lerp(_Root.CFrame * CFrame.new(1, 0, 1), Config.Blink.Speed / TargetDistance)
                             end
@@ -3653,15 +3808,19 @@ function Heartbeat(Step) -- after phys :: after heartbeat comes network stepped
 
         if not Healing and Config.AutoHeal.Enabled and Player:GetAttribute("Health") < 88 then
             local Foods, HealCount = {}, 0
+
             for _, Tool in ipairs(GetTools()) do
                 local Tool_Name = tostring(Tool)
+
                 if Tool_Name == "Burger" or Tool_Name == "Chicken" then
                     table.insert(Foods, Tool)
                 end
             end
+
             if #Foods > 0 then
                 Healing = true
                 Humanoid:UnequipTools()
+
                 local FoodsToEat = {}
                 for _, Food in ipairs(Foods) do
                     local FoodHealth = GetToolInfo(tostring(Food)).Health
@@ -3670,12 +3829,14 @@ function Heartbeat(Step) -- after phys :: after heartbeat comes network stepped
                         table.insert(FoodsToEat, Food)
                     end
                 end
+
                 spawn(function()
                     for _, Food in ipairs(FoodsToEat) do
                         Food.Parent = Character
                         Food:Activate()
                         Food.Parent = Backpack
                     end
+
                     wait(1.8)
                     Healing = false
                 end)
@@ -3709,14 +3870,19 @@ function Heartbeat(Step) -- after phys :: after heartbeat comes network stepped
                 local Tool_Name = tostring(Tool)
 
                 if (Tool_Name == "Glock" and Config.Animations.Glock.Enabled and Config.Animations.Glock.Style ~= "Default") or (Tool_Name == "Uzi" and Config.Animations.Uzi.Enabled and Config.Animations.Uzi.Style ~= "Default") then
-                    if AnimationId == "503285264" then Track:Stop() end
+                    if AnimationId == "503285264" then 
+                        Track:Stop() 
+                    end
                 elseif (Tool_Name == "Shotty" and Config.Animations.Shotty.Enabled and Config.Animations.Shotty.Style ~= "Default") or (Tool_Name == "Sawed Off" and Config.Animations["Sawed Off"].Enabled and Config.Animations["Sawed Off"].Style ~= "Default") then
-                    if AnimationId == "889390949" then Track:Stop() end
+                    if AnimationId == "889390949" then 
+                        Track:Stop() 
+                    end
                 end
 
                 if (Tool_Name == "Glock" or Tool_Name == "Uzi") then
                     if Config.Animations[Tool_Name].Enabled then
                         local Style = Config.Animations[Tool_Name].Style
+
                         if Style == "Style-2" then
                             Animations.Gun.self:Play()
                         elseif Style == "Style-3" then
@@ -3726,6 +3892,7 @@ function Heartbeat(Step) -- after phys :: after heartbeat comes network stepped
                 elseif (Tool_Name == "Shotty" or Tool_Name == "Sawed Off") then
                     if Config.Animations[Tool_Name].Enabled then
                         local Style = Config.Animations[Tool_Name].Style
+
                         if Style == "Style-2" then
                             Animations.Gun.self:Play()
                         elseif Style == "Style-3" then
@@ -3763,6 +3930,7 @@ function Stepped(_, Step) -- before phys
                 else
                     FloatPart.Position = Root.Position - Vector3.new(0, 3.499, 0)
                 end
+
                 if UserInput:IsKeyDown(Enum.KeyCode.E) and not UserInput:GetFocusedTextBox() then
                     FloatPart.Position += Vector3.new(0, 0.4, 0)
                 elseif UserInput:IsKeyDown(Enum.KeyCode.Q) and not UserInput:GetFocusedTextBox() then
@@ -3786,6 +3954,7 @@ function Stepped(_, Step) -- before phys
 
                     Root.CanCollide = false
                     Car:PivotTo(CFrame.new(Root.Position, Root.Position + LookVector))
+
                     if not UserInput:GetFocusedTextBox() then
                         if UserInput:IsKeyDown(Enum.KeyCode.W) then
                             Car:PivotTo(Root.CFrame + LookVector * Config.Flight.Speed)
@@ -3803,6 +3972,7 @@ function Stepped(_, Step) -- before phys
                 else
                     Humanoid:ChangeState(Enum.HumanoidStateType.Running)
                     Humanoid:ChangeState(Enum.HumanoidStateType.RunningNoPhysics)
+
                     Root.CFrame = Config.Flight.Rotation and CFrame.new(Root.Position, Root.Position + LookVector) or CFrame.new(Root.Position, Root.Position + LookVector * Vector3.new(1, 0, 1))
                     
                     local Velocity = Player:GetAttribute("Velocity")
@@ -3812,6 +3982,7 @@ function Stepped(_, Step) -- before phys
                         if UserInput:IsKeyDown(Enum.KeyCode.W) then
                             Root.CFrame += LookVector * Config.Flight.Speed
                         end
+
                         if UserInput:IsKeyDown(Enum.KeyCode.S) then
                             Root.CFrame -= LookVector * Config.Flight.Speed
                         end
@@ -3823,6 +3994,7 @@ function Stepped(_, Step) -- before phys
                                 Root.CFrame *= CFrame.new(-Config.Flight.Speed, 0, 0)
                             end
                         end
+
                         if UserInput:IsKeyDown(Enum.KeyCode.D) then
                             if Config.Flight.Rotation or Config.Flipped.Enabled then
                                 Root.CFrame += (Humanoid.MoveDirection * Config.Flight.Speed)
@@ -3866,16 +4038,20 @@ function Stepped(_, Step) -- before phys
                 if Root.AssemblyLinearVelocity.Magnitude > 200 or Root.AssemblyAngularVelocity.Magnitude > 200 then
                     Root.AssemblyLinearVelocity = Vector3.new()
                 end
+
                 for _, _Player in ipairs(Players:GetPlayers()) do
                     if _Player == Player then continue end
+
                     local Root = GetRoot(_Player)
                     local Character = _Player.Character
                     local Head = Character and Character:FindFirstChild("Head")
+
                     if Root then
                         Root.AssemblyLinearVelocity = Vector3.new()
                         Root.AssemblyAngularVelocity = Vector3.new()
                         Root.CanCollide = false
                     end
+
                     if Head then Head.CanCollide = false end
                 end
             end
@@ -3894,10 +4070,12 @@ function Stepped(_, Step) -- before phys
                     elseif Config.AutoStomp.Target == "All" then
                         if table.find(UserTable.Whitelisted, tostring(_Player.UserId)) then continue end
                     end
+
                     local _Root = GetRoot(_Player)
                     if _Player ~= Player and _Root and tostring(_Root) == "HumanoidRootPart" and _Player:GetAttribute("KnockedOut") then
                         if Player:DistanceFromCharacter(_Root.Position) < Config.AutoStomp.Distance and _Player:GetAttribute("Health") > 0 then
                             Teleport(_Root.CFrame)
+
                             if GetStompTarget() then
                                 Stomp()
                             end
@@ -3911,18 +4089,23 @@ function Stepped(_, Step) -- before phys
             for _, Door in ipairs(Doors) do
                 if Player:DistanceFromCharacter(Door.WoodPart.Position) < 10 then
                     local IsOpen = IsDoorOpen(Door)
+                
                     if not IsOpen then
                         local Locker = Door:FindFirstChild("Locker")
+
                         if Locker and Locker.Value then
                             Door.Lock.ClickDetector.RemoteEvent:FireServer()
                         end
+
                         Door.Click.ClickDetector.RemoteEvent:FireServer()
                     end
                 end
             end
+
             for _, Window in ipairs(Windows) do
                 if Player:DistanceFromCharacter(Window.Move.Click.Position) < 10 then
                     local IsOpen = IsWindowOpen(Window)
+
                     if not IsOpen then
                         Window.Move.Click.ClickDetector.RemoteEvent:FireServer()
                     end
@@ -3936,6 +4119,7 @@ function Stepped(_, Step) -- before phys
                     if Door:FindFirstChild("Locker") and Door.Locker.Value then continue end
                     local IsOpen = IsDoorOpen(Door)
                     if IsOpen == nil then continue end
+
                     if IsOpen then
                         if not Config.CloseDoors.Enabled then continue end
                         Door.Click.ClickDetector.RemoteEvent:FireServer()
@@ -3945,10 +4129,12 @@ function Stepped(_, Step) -- before phys
                     end
                 end
             end
+
             if (Config.OpenDoors.Enabled or Config.CloseDoors.Enabled) then
                 for _, Window in ipairs(Windows) do
                     local IsOpen = IsWindowOpen(Window)
                     if IsOpen == nil then continue end
+
                     if IsOpen then
                         if not Config.CloseDoors.Enabled then continue end
                         Window.Move.Click.ClickDetector.RemoteEvent:FireServer()
@@ -3979,6 +4165,7 @@ function RenderStepped(Step)
         Menu.Indicators.List["Knocked Out"]:SetVisible(false)
     end
     Menu.Indicators.List.Target:Update("[" .. tostring(Target) .. "]")
+
     do
         local SelectedTarget = GetSelectedTarget()
         if SelectedTarget then
@@ -3986,6 +4173,7 @@ function RenderStepped(Step)
         end
     end
     Menu.Indicators.List["Bullet Tick"]:Update(BulletTick)
+
     do
         local StompTarget = GetStompTarget()
         Menu.Indicators.List["Stomp Target"]:Update(tostring(StompTarget))
@@ -4006,6 +4194,7 @@ function RenderStepped(Step)
     if AmmoLabel then
         if Tool and Tool:GetAttribute("Gun") then
             local Ammo, Clips = GetToolInfo(Tool, "Ammo")
+
             AmmoLabel.Text = Config.Interface.ShowAmmo.Enabled and (Clips .. " Clips\n" .. Ammo .. " Ammo") or AmmoLabel.Text
             AmmoLabel.Visible = true
         else
@@ -4013,7 +4202,11 @@ function RenderStepped(Step)
         end
     end
 
-    if BrickTrajectory then BrickTrajectory:Remove() BrickTrajectory = nil end
+    if BrickTrajectory then 
+        BrickTrajectory:Remove() 
+        BrickTrajectory = nil 
+    end
+
     if Config.BrickTrajectory.Enabled then
         if Tool and tostring(Tool) == "Brick" then
             local Points = GetBrickTrajectoryPoints(Tool)
@@ -4032,7 +4225,11 @@ function OnInput(Input, Process)
     local Input = Input.UserInputType
 
     local function CheckInput(Comparison)
-        if Key == Comparison or Input == Comparison then return true end
+        if Key == Comparison or Input == Comparison then 
+            return true 
+        end
+
+        return false
     end
 
     -- Command binds set by user
@@ -4040,9 +4237,11 @@ function OnInput(Input, Process)
         for _, Bind in pairs(Config.Keybinds.Commands) do
             if CheckInput(Bind[1]) then
                 local Arguments = ""
+
                 for _, v2 in ipairs(Bind[3]) do
                     Arguments ..= " " .. v2
                 end
+
                 Commands.Check(Bind[2] .. Arguments)
             end
         end
@@ -4050,6 +4249,7 @@ function OnInput(Input, Process)
 
     if CheckInput(Enum.KeyCode.E) then
         if Process then return end
+
         delay(0.1, function()
             if not UserInput:IsKeyDown(Key) then
                 if Character and not Dragging and Config.StompSpam.Enabled then
@@ -4063,13 +4263,16 @@ function OnInput(Input, Process)
 
     if CheckInput(Enum.UserInputType.MouseButton1) then
         if Process then return end
+
         if Config.ClickOpen.Enabled and Object and Object:IsA("BasePart") and Player:DistanceFromCharacter(Object.Position) < 7 then
             local Object_Name = tostring(Object)
             local Door = Object:FindFirstAncestor("Door")
             local Window = Object:FindFirstAncestor("Window", true)
+
             if (Door or Window) then
                 if (Object_Name == "Part" or Object_Name == "Union" or Object_Name == "Click" or Object_Name == "Hinge" or Object_Name == "Glass" or tostring(Object.Parent) == "WoodPart") then
                     local Click = Door:FindFirstChild("Click", true)
+
                     if Click then
                         Click:FindFirstChildWhichIsA("RemoteEvent", true):FireServer()
                     end
@@ -4080,9 +4283,11 @@ function OnInput(Input, Process)
 
     if CheckInput(Enum.UserInputType.MouseButton2) then
         if Process then return end
+
         if Object and Config.DoorMenu.Enabled then
             local Door = Object:FindFirstAncestor("Door")
-            if tostring(Object) == "Door" or Door then
+
+            if Door and tostring(Object) == "Door" then
                 local Distance = Player:DistanceFromCharacter(Object.Position)
                 if Distance < 8 and not Menu.Screen:FindFirstChild("DoorMenu") then
                     ShowDoorMenu(Door)
@@ -4102,17 +4307,14 @@ function OnInputEnded(Input, Process)
     end
 end
 
-
 function OnChatted(Message)
     Commands.Check(Message, string.char(Config.Prefix.Value))
 end
-
 
 function OnIdle()
     VirtualUser:CaptureController()
     VirtualUser:ClickButton2(Vector2.new())
 end
-
 
 function OnCommandBarFocusLost(CheckCommand)
     local CommandBar = Menu.CommandBar
@@ -4141,6 +4343,7 @@ function OnStateChange(Old, New)
             Humanoid:ChangeState(Enum.HumanoidStateType.Running)
         end
     end
+
     if New == Enum.HumanoidStateType.PlatformStanding then
         Humanoid.PlatformStand = false
     end
@@ -4151,6 +4354,7 @@ function OnHealthChange(Health)
     if Health < Player:GetAttribute("Health") then -- if current health is less than last time then we give player the health_tick attribute
         Player:SetAttribute("HealthTick", os.clock())
     end
+
     Player:SetAttribute("Health", math_round(Health, 2))
 end
 
@@ -4159,6 +4363,7 @@ function OnStaminaChanged(Stamina)
     if Stamina < Player:GetAttribute("Stamina") then -- if current stamina is less than last time then we give player the stamina_tick attribute
         Player:SetAttribute("StaminaTick", os.clock())
     end
+
     Player:SetAttribute("Stamina", Stamina)
 end
 
@@ -4190,13 +4395,15 @@ function OnBackpackChildAdded(self)
         elseif string.find(Name, "Cash") then
             if not Config.AutoCash.Enabled then return end
             local LastTool = Tool
+
             delay(0, function()
                 Humanoid:UnequipTools()
                 self.Parent = Character
+
                 wait()
                 self:Activate()
                 wait()
-                --self:Destroy() -- should be destroyed by server but glitches sometimes?
+
                 if LastTool then
                     LastTool.Parent = Character
                 end
@@ -4211,7 +4418,13 @@ function OnCharacterDescendantAdded(self)
 
     if Name == "Bone" then
         if Player:GetAttribute("KnockedOut") then return end
-        for _, Object in ipairs(Character:GetDescendants()) do if Object:IsA("Trail") then Object:Destroy() end end
+
+        for _, Object in ipairs(Character:GetDescendants()) do 
+            if Object:IsA("Trail") then 
+                Object:Destroy() 
+            end 
+        end
+
         OnPlayerKnockedOut(Player, true)
     elseif Name == "creator" and self:IsA("ObjectValue") then
         OnCreatorValueAdded(self)
@@ -4219,13 +4432,19 @@ function OnCharacterDescendantAdded(self)
         OnBulletAdded(self)
     elseif self:IsA("Tool") then
         Tool = self
+
         if GetToolInfo(self, "IsGun") then
             SetToolChams(Tool)
             Tool:SetAttribute("Gun", true)
         elseif Name == "BoomBox" then
             Menu.BoomboxFrame.Visible = true
             Menu.BoomboxFrame.List.CanvasSize = UDim2.new()
-            for _, Object in ipairs(Menu.BoomboxFrame.List:GetChildren()) do if Object:IsA("GuiButton") then Object:Destroy() end end
+
+            for _, Object in ipairs(Menu.BoomboxFrame.List:GetChildren()) do 
+                if Object:IsA("GuiButton") then 
+                    Object:Destroy() 
+                end 
+            end
             spawn(function()
                 for _, Id in ipairs(AudioLogs) do Menu.AddAudioButton(Id) end
             end)
@@ -4234,6 +4453,7 @@ function OnCharacterDescendantAdded(self)
         Dragging = true
     elseif Name == "Dragged" then
         Dragged = true
+
         if tostring(Root) == "HumanoidRootPart" and Config.LagOnDragged.Enabled then
             Dragged = true Torso.Anchored = true Root:Destroy() Torso.Anchored = false Root = Torso -- Fuck you it's ugly with newlines
         end
@@ -4267,7 +4487,9 @@ function OnCharacterAdded(_Character)
         if Config.TeleportBypass.Enabled then
             Root.CFrame = DeathPosition
         else
-            delay(1, function() Teleport(DeathPosition) end)
+            delay(1, function() 
+                Teleport(DeathPosition) 
+            end)
         end
     end
 
@@ -4276,6 +4498,7 @@ function OnCharacterAdded(_Character)
     end
 
     CustomCharacter.Parent = Character
+
     Player:SetAttribute("AnimeGamePass", UserOwnsAsset(Player, 1082540, "GamePass") and true or false) -- just don't buy the gamepass in mid game :|
     Player:SetAttribute("Vest", UserOwnsAsset(Player, 6967243, "GamePass"))
     Player:SetAttribute("KnockOut", 0)
@@ -4306,15 +4529,19 @@ function OnCharacterAdded(_Character)
             end
         end
         SetModelDefaults(Character, Ignore)
+
         if Config.ESP.Chams.Local.Enabled then
             SetPlayerChams(Player, Config.ESP.Chams.Local.Color, Config.ESP.Chams.Local.Material, Config.ESP.Chams.Local.Reflectance, Config.ESP.Chams.Local.Transparency, true)
         end
+
         if Player.UserId == 1552377192 then
             DrawStrawHat(Player)
         end
     end
 
-    for _, Tool in ipairs(GetTools()) do OnBackpackChildAdded(Tool) end
+    for _, Tool in ipairs(GetTools()) do 
+        OnBackpackChildAdded(Tool) 
+    end
 
     if Config.God.Enabled then
         if IsOriginal then
@@ -4341,7 +4568,7 @@ function OnCharacterAdded(_Character)
 --             if AnimationId == "8587081257" or AnimationId == "376653421" or AnimationId == "458506542" or AnimationId == "1484589375" or AnimationId == "180426354" then Track:Stop() end -- Stopping the run animations
 --         end
         for _, Animation in pairs(Animations) do
-	    Animation.self = Humanoid:LoadAnimation(Animation.Animation) -- This has to be done after god mode
+	        Animation.self = Humanoid:LoadAnimation(Animation.Animation) -- This has to be done after god mode
         end
     end
 
@@ -4355,9 +4582,11 @@ function OnCharacterAdded(_Character)
             if UserOwnsAsset(Player, 1159109, "GamePass") then
                 local Boombox = Backpack:WaitForChild("BoomBox")
                 local Remote = Boombox:WaitForChild("RemoteEvent")
+
                 if Remote then
                     Boombox.Parent = Character 
                     Remote:FireServer("play", LastAudio)
+
                     pcall(function() Boombox.BoomBoxu.Entry.TextBox.Text = Id end)
                     delay(1, function() Boombox.Parent = Backpack end)
                 end
@@ -4365,7 +4594,9 @@ function OnCharacterAdded(_Character)
         end
     end
 
-    if Config.AutoSort.Enabled then SortBackpack() end
+    if Config.AutoSort.Enabled then 
+        SortBackpack() 
+    end
 
     delay(1, StarterGui.SetCore, StarterGui, "ResetButtonCallback", Events.Reset)
     Menu:FindItem("Visuals", "Hats", "ComboBox", "Hat"):SetValue("None", {"None", unpack(Humanoid:GetAccessories())})
@@ -4376,10 +4607,9 @@ function OnPlayerChatted(Type, Player, Message, Target)
 
 end
 
-
 function OnPlayerAdded(Player)
-    Menu:FindItem("Misc", "Players", "ListBox", "Target"):SetValue(SelectedTarget, Players:GetPlayers())
     if Player == Players.LocalPlayer then return end
+    Menu:FindItem("Misc", "Players", "ListBox", "Target"):SetValue(SelectedTarget, Players:GetPlayers())
 
     local ToolValue = Instance.new("ObjectValue")
     ToolValue.Name = "Tool" ToolValue.Parent = Player
@@ -4411,7 +4641,13 @@ function OnPlayerAdded(Player)
                     OnBulletAdded(self)
                 elseif Name == "Bone" then
                     if Player:GetAttribute("KnockedOut") then return end
-                    for _, Object in ipairs(Character:GetDescendants()) do if Object:IsA("Trail") then Object:Destroy() end end
+
+                    for _, Object in ipairs(Character:GetDescendants()) do 
+                        if Object:IsA("Trail") then 
+                            Object:Destroy() 
+                        end 
+                    end
+
                     OnPlayerKnockedOut(Player, false)
                 elseif self:IsA("Tool") then
                     ToolValue.Value = self
@@ -4424,9 +4660,11 @@ function OnPlayerAdded(Player)
 
             local function OnCharacterDescendantRemoving(self)
                 local Name = tostring(self)
+
                 if Name == "Bone" then
                     if Player:GetAttribute("KnockedOut") == false then return end
                     Player:SetAttribute("KnockedOut", false)
+
                     SetPlayerChams(Player)
                 elseif self:IsA("Tool") then
                     ToolValue.Value = nil
@@ -4434,16 +4672,25 @@ function OnPlayerAdded(Player)
             end
 
             delay(1, function() -- Yielding for everything to load in properly
-                if not Players:FindFirstChild(tostring(Player)) then return end
-                if Character.Parent == nil or Humanoid.Health == 0 then return end
+                if not Players:FindFirstChild(tostring(Player)) then 
+                    return 
+                end
+
+                if Character.Parent == nil or Humanoid.Health == 0 then 
+                    return 
+                end
+
                 CreateJoints(Player)
+
                 if Player.UserId == 1552377192 then
                     DrawStrawHat(Player)
                 end
+
                 local Player_ESP = AddPlayerESP(Player)
 
                 do
                     local Ignore = {}
+
                     for _, v in ipairs(Character:GetChildren()) do
                         if v:IsA("Tool") then
                             for _, v2 in ipairs(v:GetDescendants()) do
@@ -4451,6 +4698,7 @@ function OnPlayerAdded(Player)
                             end
                         end
                     end
+
                     SetModelDefaults(Character, Ignore) -- wait for character to load I guess?
                 end
             end)
@@ -4462,11 +4710,16 @@ function OnPlayerAdded(Player)
                     end
                 end)
             end
+
             Character.DescendantAdded:Connect(OnCharacterDescendantAdded)
             Character.DescendantRemoving:Connect(OnCharacterDescendantRemoving)
             Humanoid.HealthChanged:Connect(function(Health)
                 Player:SetAttribute("Health", math_round(Health, 2))
-                if Player:GetAttribute("IsAlive") == false then return end
+
+                if Player:GetAttribute("IsAlive") == false then 
+                    return 
+                end
+
                 Player:SetAttribute("IsAlive", Health > 0 and IsCharacterAlive(Character) and true or false)
             end)
 
@@ -4474,11 +4727,13 @@ function OnPlayerAdded(Player)
             HumanoidDiedEvent = Humanoid.Died:Connect(function()
                 HumanoidDiedEvent:Disconnect()
                 OnPlayerDeath(Player)
+
                 ToolValue.Value = nil
             end)
 
             Character.AncestryChanged:Connect(function(Parent)
                 if Parent then return end
+
                 OnPlayerDeath(Player)
                 ToolValue.Value = nil
             end)
@@ -4497,13 +4752,16 @@ function OnPlayerAdded(Player)
     if Player.Character then
         OnCharacterAdded(Player.Character)
         local Tool = Player.Character:FindFirstChildOfClass("Tool")
+
         if Tool then
             ToolValue.Value = Tool
+
             if GetToolInfo(Tool, "IsGun") then
                 Tool:SetAttribute("Gun", true)
             end
         end
     end
+
     LogEvent("Joined", "\"" .. tostring(Player) .. "\" has joined the game", tick())
     Player.CharacterAdded:Connect(OnCharacterAdded)
 end
@@ -4526,7 +4784,9 @@ end
 function OnPlayerKnockedOut(Player:player, Local:bool)
     Player:SetAttribute("KnockedOut", true)
     AddKnockedOutTimer(Player)
+
     local Character = Player.Character
+
     if Local then
         if Config.NoKnockOut.Enabled then ResetCharacter() end
     else
@@ -4538,17 +4798,21 @@ function OnPlayerKnockedOut(Player:player, Local:bool)
             end
         end
     end
-    Client.OnEvent({
-        GetName = function() return "player_knockout" end,
-        GetValue = function() return Player end
-    })
 end
 
 
 function OnPlayerDamaged(Victim:player, Attacker:player, Damage:number, Time:tick)
-    if typeof(Victim) ~= "Instance" or typeof(Attacker) ~= "Instance" then return end -- if not instance then ignore
-    if not Victim:IsA("Player") or not Attacker:IsA("Player") then return end -- if it's the DUMMY or a GHOST? or a buypad?
-    if Victim ~= Player and Attacker ~= Player then return end -- if it's not connected to localplayer then ignore
+    if typeof(Victim) ~= "Instance" or typeof(Attacker) ~= "Instance" then 
+        return 
+    end -- if not instance then ignore
+
+    if not Victim:IsA("Player") or not Attacker:IsA("Player") then 
+        return 
+    end -- if it's the DUMMY or a GHOST? or a buypad?
+
+    if Victim ~= Player and Attacker ~= Player then 
+        return 
+    end -- if it's not connected to localplayer then ignore
 
     -- shotty and sawed off check
     for _, Log in ipairs(DamageLogs) do
@@ -4574,6 +4838,7 @@ function OnPlayerDamaged(Victim:player, Attacker:player, Damage:number, Time:tic
 
         if Config.HitMarkers.Enabled and (Config.HitMarkers.Type == "Crosshair" or Config.HitMarkers.Type == "Crosshair + model") then
             local Cross = DrawCross(Config.HitMarkers.Size, 4)
+
             Cross:SetColor(Config.HitMarkers.Color, 1 - Config.HitMarkers.Transparency)
             Cross:SetVisible(true)
 
@@ -4585,9 +4850,9 @@ function OnPlayerDamaged(Victim:player, Attacker:player, Damage:number, Time:tic
 
             spawn(function()
                 while Cross:IsAlive() do
-                    --local Location = (Menu.ScreenSize + Vector2.new(0, 36)) / 2
                     local Location = UserInput:GetMouseLocation()
                     Cross:SetPosition(Location)
+
                     RunService.RenderStepped:Wait()
                 end
             end)
@@ -4598,16 +4863,16 @@ function OnPlayerDamaged(Victim:player, Attacker:player, Damage:number, Time:tic
         local Log = DamageLogs[1]
         local Attacker = Log.Attacker
         local Victim = Log.Victim
-        
         local HealthChangedEvent
+
         delay(0.2, function()
             HealthChangedEvent:Disconnect()
             table.remove(DamageLogs, 1)
         end)
+
         HealthChangedEvent = Victim:GetAttributeChangedSignal("Health"):Connect(function()
             local Health = math.clamp(math_round(Victim:GetAttribute("Health"), 2), 0, 100)
             local Damage = Log.Damage
-            
             
             if Attacker == Player then
                 local Color = Config.EventLogs.Colors.Hit:ToHex()
@@ -4633,14 +4898,7 @@ function OnPlayerDeath(Victim:player, Attacker:player)
     Victim:SetAttribute("IsAlive", false)
     Victim:SetAttribute("KnockedOut", false)
 
-    local Color = Config.EventLogs.Colors.Death:ToHex()
-    Client.OnEvent({
-        GetName = function() return "player_death" end,
-        GetVictim = function() return Victim end,
-        GetAttacker = function() return Attacker end -- nil
-    })
-
-    LogEvent("Death", GetRichTextColor(tostring(Victim) .. " died", Color), tick())
+    LogEvent("Death", GetRichTextColor(tostring(Victim) .. " died", Config.EventLogs.Colors.Death:ToHex()), tick())
 end
 
 
@@ -4648,10 +4906,12 @@ function OnLightingChanged(Property)
     if Config.Enviorment.Time.Enabled and Property == "TimeOfDay" then
         Lighting.TimeOfDay = Config.Enviorment.Time.Value
     end
+
     if Config.Enviorment.Ambient.Enabled then
         if Property == "Ambient" then
             Lighting.Ambient = Config.Enviorment.Ambient.Colors.Ambient
         end
+
         if Property == "OutdoorAmbient" then
             Lighting.OutdoorAmbient = Config.Enviorment.Ambient.Colors.OutdoorAmbient
         end
@@ -4665,6 +4925,7 @@ function OnCreatorValueAdded(self)
         local Attacker = Players:GetPlayerFromCharacter(self.Value)
         local Info = self:WaitForChild("Info", 10)
         local Damage = Info:FindFirstChild("Damage")
+
         if Damage then
             OnPlayerDamaged(Victim, Attacker, Damage.Value, tick())
         end
@@ -4683,12 +4944,14 @@ function OnBulletAdded(Bullet)
             Bullet.Parent = Camera
         end -- Snake didn't account for LocalTransparency so if ur in first person we can now see them again
     end)
+
     delay(15, Bullet.Destroy, Bullet)
 
     if Bullet.Parent ~= Humanoid then return end
     BulletTick = math_round(os.clock() - FireTick, 5)
 
     local Origin = Bullet.Position
+
     spawn(function()
         Bullet:GetPropertyChangedSignal("Position"):Wait()
     
@@ -4703,7 +4966,10 @@ function OnBulletAdded(Bullet)
             Time = tick()
         })
     
-        if Config.BulletImpact.Enabled then CreateBulletImpact(End, Config.BulletImpact.Color) end
+        if Config.BulletImpact.Enabled then 
+            CreateBulletImpact(End, Config.BulletImpact.Color) 
+        end
+
         if Target then
             --Console:Warn("[DEBUG] Bullet position from target: " .. tostring(End - Target:GetAttribute("Position")))
             --Console:Warn("[DEBUG] Current Aimbot Vector Velocity Amplifier (" .. tostring() .. ")")
@@ -4727,11 +4993,13 @@ function OnBulletAdded(Bullet)
         if Config.HitMarkers.Enabled and (Config.HitMarkers.Type == "Model" or Config.HitMarkers.Type == "Crosshair + model") then
             local Cross = DrawCross(Config.HitMarkers.Size, 4)
             Cross:SetColor(Config.HitMarkers.Color, 1 - Config.HitMarkers.Transparency)
+
             if Config.HitMarkers.Fade then
                 Cross:FadeOut(Cross.Destroy)
             else
                 delay(1, Cross.Destroy, Cross)
             end
+
             spawn(function()
                 while Cross:IsAlive() do
                     local Position, Visible = Camera:WorldToViewportPoint(End)
@@ -4740,6 +5008,7 @@ function OnBulletAdded(Bullet)
                     Cross:SetVisible(Visible)
                     Cross:SetSize((Distance / 100) * 1 - Config.HitMarkers.Size)
                     Cross:SetPosition(Vector2.new(Position.x, Position.y))
+
                     RunService.RenderStepped:Wait()
                 end
             end)
@@ -4751,15 +5020,17 @@ function OnBulletAdded(Bullet)
         local Trail = Bullet:WaitForChild("Trail")
         Bullet:WaitForChild("Attachment").Name = "Attachment0"
         Bullet:WaitForChild("Attachment").Name = "Attachment1"
+
         Trail.Enabled = not Config.BulletTracers.DisableTrails
         
         if Config.BulletTracers.Enabled and Config.BulletTracers.DisableTrails then -- Disable trails for bullet tracers
             local Tracer = Trail:Clone()
+            --6091341618 ; 7151778302; 7071778278; 446111271; 3517446796; 7135001284; 7151842823; 7151777149; 5864341017; 6045867277; 6091329339; 6091474388; 1246346065
+
             Tracer.Color = ColorSequence.new(Config.BulletTracers.Color, Config.BulletTracers.Color)
             Tracer.Attachment0.Position = Vector3.new(0, -0.3, 0)
             Tracer.Attachment1.Position = Vector3.new(0, 0.3, 0)
             Tracer.Transparency = NumberSequence.new(0)
-            --6091341618 ; 7151778302; 7071778278; 446111271; 3517446796; 7135001284; 7151842823; 7151777149; 5864341017; 6045867277; 6091329339; 6091474388; 1246346065
             Tracer.Texture = "rbxassetid://446111271"
             Tracer.TextureLength = 2
             Tracer.Lifetime = Config.BulletTracers.Lifetime / 1000 -- Clamped to Bullet Life
@@ -4785,6 +5056,7 @@ end
 
 function OnWorkspaceChildRemoved(self)
     local Name = tostring(self)
+
     if Name == "RandomSpawner" then
         Items[self] = nil
     end
@@ -4793,6 +5065,7 @@ end
 
 function OnGetMouseInvoke() -- Uuh but weguwarid why don't u just hook mouse.hit and mouse.target; FUCK U
     FireTick = os.clock()
+
     if Target and Target.Character and Config.Aimbot.Enabled then
         return GetAimbotCFrame(true) or Mouse.Hit, Target.Character
     end
@@ -4813,6 +5086,7 @@ function OnTagReplicateEvent(State, Data)
 
                 local Victim = Player
                 local Attacker = Players:GetPlayerFromCharacter(Value)
+
                 OnPlayerDamaged(Victim, Attacker, 0, Tick)
             end
         end
@@ -4826,6 +5100,7 @@ end
 function AimbotToggle(Action_Name, State, Input)
     if not State or State == Enum.UserInputState.Begin then
         Config.Aimbot.Enabled = not Config.Aimbot.Enabled
+
         Menu:FindItem("Combat", "Aimbot", "CheckBox", "Enabled"):SetValue(Config.Aimbot.Enabled)
         Menu.Keybinds.List.Aimbot:Update(Config.Aimbot.Enabled and "on" or "off")
         Menu.Keybinds.List.Aimbot:SetVisible(Config.Aimbot.Enabled)
@@ -4844,6 +5119,7 @@ end
 function CameraLockToggle(Action_Name, State, Input)
     if not State or State == Enum.UserInputState.Begin then
         Config.CameraLock.Enabled = not Config.CameraLock.Enabled
+
         Menu:FindItem("Combat", "Aimbot", "CheckBox", "Camera lock"):SetValue(Config.CameraLock.Enabled)
         Menu.Keybinds.List["Camera Lock"]:Update(Config.CameraLock.Enabled and "on" or "off")
         Menu.Keybinds.List["Camera Lock"]:SetVisible(Config.CameraLock.Enabled)
@@ -4854,9 +5130,11 @@ end
 function FlyToggle(Action_Name, State, Input)
     if not State or State == Enum.UserInputState.Begin then
         Config.Flight.Enabled = not Config.Flight.Enabled
+
         if Humanoid and not Config.Flight.Enabled then
             Humanoid:ChangeState(Enum.HumanoidStateType.Running)
         end
+
         Menu:FindItem("Player", "Movement", "CheckBox", "Flight"):SetValue(Config.Flight.Enabled)
         Menu.Keybinds.List.Flight:Update(Config.Flight.Enabled and "on" or "off")
         Menu.Keybinds.List.Flight:SetVisible(Config.Flight.Enabled)
@@ -4867,6 +5145,7 @@ end
 function BlinkToggle(Action_Name, State, Input)
     if not State or State == Enum.UserInputState.Begin then
         Config.Blink.Enabled = not Config.Blink.Enabled
+
         Menu:FindItem("Player", "Movement", "CheckBox", "Blink"):SetValue(Config.Blink.Enabled)
         Menu.Keybinds.List.Blink:Update(Config.Blink.Enabled and "on" or "off")
         Menu.Keybinds.List.Blink:SetVisible(Config.Blink.Enabled)
@@ -4878,6 +5157,7 @@ function FloatToggle(Action_Name, State, Input)
     if not State or State == Enum.UserInputState.Begin then
         Config.Float.Enabled = not Config.Float.Enabled
         FloatPart.CanCollide = Config.Float.Enabled
+
         Menu:FindItem("Player", "Movement", "CheckBox", "Float"):SetValue(Config.Float.Enabled)
         Menu.Keybinds.List.Float:Update(Config.Float.Enabled and "on" or "off")
         Menu.Keybinds.List.Float:SetVisible(Config.Float.Enabled)
@@ -4888,6 +5168,7 @@ end
 function NoclipToggle(Action_Name, State, Input)
     if not State or State == Enum.UserInputState.Begin then
         Config.Noclip.Enabled = not Config.Noclip.Enabled
+
         Menu:FindItem("Player", "Movement", "CheckBox", "Noclip"):SetValue(Config.Noclip.Enabled)
         Menu.Keybinds.List.Noclip:Update(Config.Noclip.Enabled and "on" or "off")
         Menu.Keybinds.List.Noclip:SetVisible(Config.Noclip.Enabled)
@@ -4899,6 +5180,7 @@ function AntiAimToggle(Action_Name, State, Input)
     if not State or State == Enum.UserInputState.Begin then
         Config.AntiAim.Enabled = not Config.AntiAim.Enabled
         UpdateAntiAim()
+
         Menu:FindItem("Player", "Anti-aim", "CheckBox", "Enabled"):SetValue(Config.AntiAim.Enabled)
         Menu.Keybinds.List["Anti Aim"]:Update(Config.AntiAim.Enabled and "on" or "off")
         Menu.Keybinds.List["Anti Aim"]:SetVisible(Config.AntiAim.Enabled)
@@ -4909,8 +5191,10 @@ end
 function CommandBarToggle(Action_Name, State, Input)
     if not State or State == Enum.UserInputState.Begin then
         local CommandBar = Menu.CommandBar
+
         CommandBar:CaptureFocus()
         CommandBar:TweenPosition(UDim2.new(0.5, -100, 0.6, -10), nil, nil, 0.2, true)
+
         delay(0, function() CommandBar.Text = "" end)
     end
 end
@@ -4931,23 +5215,8 @@ if IsOriginal then
             Connection:Disable()
         end
     end
-
-    --[[
-    -- what is das?
-    local OldHas
-    OldHas = hookfunction(TagSystem.has, function(self, ...)
-        local Arguments = {...}
-        local Key = Arguments[1]
-        if Config.NoSlow.Enabled or Config.God.Enabled then
-            if Key == "gunslow" or Key == "creatorslow" or Key == "action" or Key == "Action" then return end
-            -- CurrentSpeed = 0
-        end
-        return OldHas(self, ...)
-    end)
-    --]]
 else
-
-    local wait_hook = nil 
+    local wait_hook;
     wait_hook = hookfunction(getrenv().wait, function(constant) -- (note from xaxa) for info on why im writing getrenv()["wait"], please refer to line 69 in the source (literally not a coincidence, BLAME ELDEN)
         if not checkcaller() and Config.NoGunDelay.Enabled and (constant == 0.5 or constant == 0.25 or constant == 0.33) then 
             constant = 0
@@ -4961,13 +5230,11 @@ local Index, NewIndex, NameCall, OldFunctionHook
 
 function OnIndex(self, Key)
     local Caller = checkcaller()
+    local Name = tostring(self)
 
     if not Caller then
-        local Name = tostring(self)
-        
-        if (Name == "Stamina" or Name == "Stann" or Name == "Stam") and (Key == "Value") then
-    	    return (Config.NoSlow.Enabled or Config.God.Enabled) and 100 or
-    		    math.clamp(Player:GetAttribute("Stamina") or 0, 0, 100) -- meh?
+        if table.find({"Stamina", "Stann", "Stam"}, Name) and Key == "Value" then 
+    	    return (Config.NoSlow.Enabled or Config.God.Enabled) and 100 or math.clamp(Player:GetAttribute("Stamina") or 0, 0, 100) -- meh?
         end
     
         if not IsOriginal and (Config.NoSlow.Enabled or Config.God.Enabled) then
@@ -4980,8 +5247,13 @@ function OnIndex(self, Key)
             return {connect = function() end} -- HACKED
         end
     
-        if Name == "Namer" and Config.God.Enabled then return "Torso" end
-        if Name == "LocalScript" and Key == "Disabled" then return false end
+        if Name == "Namer" and Config.God.Enabled then 
+            return "Torso" 
+        end
+
+        if Name == "LocalScript" and Key == "Disabled" then 
+            return false 
+        end
         
         if self == Humanoid then
             if Key == "WalkSpeed" then
@@ -5005,13 +5277,17 @@ function OnIndex(self, Key)
     return Index(self, Key)
 end
 
-
 function OnNewIndex(self, Key, Value)
     local Caller = checkcaller()
-    if Caller then return NewIndex(self, Key, Value) end
+
+    if Caller then 
+        return NewIndex(self, Key, Value)
+    end 
 
     if self == Mouse and Key == "Icon" then return end
-    if IsOriginal and Key == "OnClientInvoke" and tostring(self) == "GetMouse" then Value = OnGetMouseInvoke end
+    if IsOriginal and Key == "OnClientInvoke" and tostring(self) == "GetMouse" then 
+        Value = OnGetMouseInvoke 
+    end
 
     if self == Humanoid then
         if Key == "WalkSpeed" then
@@ -5025,7 +5301,10 @@ function OnNewIndex(self, Key, Value)
             Crouching = IsCrouching
             ORIGINAL_SPEED = Value
 
-            if (Config.NoSlow.Enabled or Config.God.Enabled) and (CantMove or Hit) then return end
+            if (Config.NoSlow.Enabled or Config.God.Enabled) and (CantMove or Hit) then 
+                return 
+            end
+
             Value = (IsRunning and Config.RunSpeed.Value) or (IsCrouching and Config.CrouchSpeed.Value) or (IsWalking and Config.WalkSpeed.Value)
         end
 
@@ -5033,47 +5312,66 @@ function OnNewIndex(self, Key, Value)
             Value = (Value > 0 and Config.JumpPower.Value) or (Value == 0 and (Config.NoSlow.Enabled or Config.God.Enabled) and Config.JumpPower.Value or 0)
         end
 
-        if Key == "AutoRotate" then Value = true end
+        if (Key == "Jump" and not Value) and (Config.NoSlow.Enabled or Config.God.Enabled) then 
+            return 
+        end
 
-        if (Key == "Jump" and not Value) and (Config.NoSlow.Enabled or Config.God.Enabled) then return end
+        if Key == "AutoRotate" then 
+            Value = true 
+        end
+
         if Key == "Health" then return end
     end
 
-    if Key == "CFrame" and self:IsDescendantOf(Character) then return end
+    if Key == "CFrame" and self:IsDescendantOf(Character) then 
+        return 
+    end
+
     return NewIndex(self, Key, Value)
 end
-
 
 function OnNameCall(self, ...)
     local Arguments = {...}
     local Name = tostring(self)
-    local Caller, Method = checkcaller(), getnamecallmethod()
+    local Caller, Method = checkcaller(), (getnamecallmethod or get_namecall_method)()
 
-    if self == Player and Method == "Kick" then return end
+    if self == Player and (Method == "Kick" or Method == "kick") then 
+        return 
+    end 
 
     if Method == "FireServer" then
-        if self.Parent == ReplicatedStorage then
-            -- This is kinda retarded LOL
-            if string.find(Name, "l") and string.find(Name, "i") and #Name < 7 then return end
-        end
-        if Name == "SayMessageRequest" then
-            table.insert(ChatScheduler, Arguments[1])
-        end
-        if Name == "Input" then
-            local Key = Arguments[1]
+        if self.Parent == ReplicatedStorage then 
+            if string.find(Name, "l") and string.find(Name, "i") and #Name < 7 then 
+                return 
+            end
+        end 
 
-            if Key == "bv" or Key == "hb" or Key == "ws" or Key == "strafe" then return end
-            if Key == "ml" or Key == "moff1" then
-		        if not Caller and Menu.IsVisible then return end
-                if not Arguments[2] then Arguments[2] = {} end
-                -- MouseHit only thing required for attacking/unattacking
-                -- Server indexes mousehit.p so we can also do {p = Vector3.new()}
-                Arguments[2].mousehit = Mouse.Hit or CFrame.new()
-                Arguments[2].velo = 16 -- just incase shift is somehow true
-                
-                if Target and Config.Aimbot.Enabled then
-                    Arguments[2].mousehit = GetAimbotCFrame(true) or Mouse.Hit
+        if Name == "SayMessageRequest" then 
+            table.insert(ChatScheduler, Arguments[1])
+        end 
+
+        if Name == "Input" then 
+            local Key = Arguments[1] 
+
+            if table.find({"bv", "hb", "ws", "strafe"}, Key) then 
+                return 
+            end 
+
+            if Key == "ml" or Key == "moff1" then 
+                if not Caller and Menu.IsVisible then 
+                    return 
                 end
+
+                if not Arguments[2] then 
+                    Arguments[2] = {}
+                end 
+
+                Arguments[2].mousehit = Mouse.Hit or CFrame.new() 
+                Arguments[2].velo = 16 
+
+                if Target and Config.Aimbot.Enabled then 
+                    Arguments[2].mousehit = GetAimbotCFrame(true) or Mouse.Hit 
+                end 
 
                 if Config.AlwaysGroundHit.Enabled then
                     Arguments[2].shift = true
@@ -5082,24 +5380,30 @@ function OnNameCall(self, ...)
                 FireTick = os.clock()
             end
         end
-        if (IsPrison and Name == "Fire") or (not IsOriginal and Name == "Shoot") then
-	        if not Caller and Menu.IsVisible then return end
+
+        if (IsPrison and Name == "Fire") or (not Original and Name == "Shoot") then 
+            if not Caller and Menu.IsVisible then 
+                return 
+            end 
+
             Arguments[1] = Mouse.Hit or CFrame.new()
-            if Target and Config.Aimbot.Enabled and ((not Caller) or Arguments[2]) then -- Arguments[2] =  (AutShoot)
-                Arguments[1] = GetAimbotCFrame(true) or Mouse.Hit
-            end
+
+            if Target and Config.Aimbot.Enabled and ((not caller) or Arguments[2]) then 
+                Arguments[1] = GetAimbotCFrame(true) or Mouse.Hit 
+            end 
 
             FireTick = os.clock()
         end
 
-        if Name == "Touch1" then
-            if Config.AlwaysGroundHit.Enabled then
-                Arguments[3] = true
-            end
+        if Name == "Touch1" then 
+            if Config.AlwaysGroundHit.Enabled then 
+                Arguments[3] = true 
+            end 
         end
 
-        if not Caller and Arguments[1] == "play" and Arguments[2] then
+        if not Caller and Arguments[1] == "play" and Arguments[2] then 
             LastAudio = Arguments[2]
+
             if not table.find(AudioLogs, LastAudio) then
                 table.insert(AudioLogs, LastAudio)
                 writefile("ponyhook/Games/The Streets/Audios.dat", table.concat(AudioLogs, "\n"))
@@ -5107,7 +5411,8 @@ function OnNameCall(self, ...)
         end
     end
 
-    if Method == "Destroy" or Method == "Remove" or Method == "destroy" or Method == "remove" then
+
+    if table.find({"Destroy", "destroy", "Remove", "remove"}, Method) then 
         if FlyVelocity.Parent == self then
             FlyVelocity.Parent = nil
         end
@@ -5120,24 +5425,11 @@ function OnNameCall(self, ...)
     if not Caller then
         if self.ClassName == "AnimationTrack" then
             local AnimationId = string.gsub(self.Animation.AnimationId, "%D", "")
-            if Method == "Play" then
-                if AnimationId == "458506542" or AnimationId == "8587081257" or AnimationId == "376653421" or AnimationId == "1484589375" then
-                    if Config.Animations.Run.Enabled then
-                        local Style = Config.Animations.Run.Style
-                        self = Style == "Default" and Animations.Run.self or Style == "Style-2" and Animations.Run2.self or Animations.Run3.self
-                    end
-                    --Arguments[1] = Speed
-                end
-            end
-            if Method == "Stop" then
-                if AnimationId == "458506542" or AnimationId == "8587081257" or AnimationId == "376653421" or AnimationId == "1484589375" then
-                    if Config.Animations.Run.Enabled then -- if we are running a custom anim then lets stop it too
-                        local Style = Config.Animations.Run.Style
-                        self = Style == "Default" and Animations.Run.self or Style == "Style-2" and Animations.Run2.self or Animations.Run3.self
-                    end
-                    --Animations.Run.self:Stop()
-                    --Animations.Run2.self:Stop()
-                    --Animations.Run3.self:Stop()
+
+            if table.find({"Play", "play", "Stop", "stop"}, Method) and table.find(AnimationIds, AnimationId) then
+                if Config.Animations.Run.Enabled then
+                    local Style = Config.Animations.Run.Style
+                    self = Style == "Default" and Animations.Run.self or Style == "Style-2" and Animations.Run2.self or Animations.Run3.self
                 end
             end
         end
@@ -5145,7 +5437,6 @@ function OnNameCall(self, ...)
         if Method == "PlayerOwnsAsset" and Arguments[2] == 457667510 then
             return Player.GetAttribute(Player, "AnimeGamePass")
         end
-
 	
     	if Method == "IsA" or Method == "isA" then
             if (self == FlyVelocity or self == FlyAngularVelocity) or string.find(self.ClassName, "Body") then
@@ -5158,11 +5449,18 @@ function OnNameCall(self, ...)
 	        if Name == "Head" or Name == "Torso" then return end
             if string.find(self.ClassName, "Body") then return end
         end
-        if self == Character and (Method == "BreakJoints" or Method == "ClearAllChildren") then return end
+
+        if self == Character and (Method == "BreakJoints" or Method == "ClearAllChildren") then 
+            return 
+        end
         
         if (Method == "WaitForChild" or Method == "FindFirstChild" or Method == "findFirstChild") then
             local Key = Arguments[1]
-            if Config.NoSlow.Enabled and ((Key == "Action") or (Key == "Info" and self.ClassName ~= "Tool")) then return end -- Checks for OnHit :: Play Anim
+
+            if Config.NoSlow.Enabled and ((Key == "Action") or (Key == "Info" and self.ClassName ~= "Tool")) then
+                return 
+            end -- Checks for OnHit :: Play Anim
+
             if self == Character and Key == "HumanoidRootPart" then
                 Arguments[1] = "Torso"
             end
@@ -5276,6 +5574,7 @@ Commands.Add("reset", {"re"}, "- resets your character", RefreshCharacter)
 
 Commands.Add("car", {"bringcar"}, "[streets only] - brings a car to you", function()
     local Jeep = workspace:FindFirstChild("Jeep")
+
     if Jeep then
         local Seat = Jeep:FindFirstChild("DriveSeat", true)
         if Seat then
@@ -5301,6 +5600,7 @@ end)
 Commands.Add("goto", {"to"}, "[player] - teleports to the 'player'", function(Arguments)
     if not Arguments[1] then return end
     local Target = GetPlayer(Arguments[1])
+
     for _, Target in ipairs(Target) do
         local Root = GetRoot(Target)
         if Root then
@@ -5313,6 +5613,7 @@ end)
 Commands.Add("item", {"get"}, "[name] - if the item is found then it teleports you to the item", function(Arguments)
     local Found, Part, Price
     local Item_Name = string.lower(table.concat(Arguments, " "))
+
     for _, Item in pairs(Items) do
         if string.lower(Item:GetAttribute("Item")) == Item_Name then
             Found = true
@@ -5320,6 +5621,7 @@ Commands.Add("item", {"get"}, "[name] - if the item is found then it teleports y
             break
         end
     end
+
     if IsOriginal and not Found then BuyItem(Item_Name) end
 end)
 
@@ -5368,6 +5670,7 @@ Commands.Add("key", {"bind"}, "- [regularid please do this one]", function(Argum
     if Name and Key and Command then
         Name = string.lower(Name)
         Key = string.lower(Key)
+
         for _, v in ipairs(Enum.KeyCode:GetEnumItems()) do
             if Key == string.lower(v.Name) then Key = v break end
         end
@@ -5461,17 +5764,9 @@ Commands.Add("steal", {"st", "log"}, "([audio]/[decal]) [player] - steals the se
 end)
 
 -- Command auto-printization thingy (note from xaxa - sorry if this looks bad elden)
-table.foreach(Commands, function(Index, Value)
-    local Name, Aliases, Description = "", {}, "";
-    
-    if type(Value) == "table" and (Value.Name and Value.Aliases and Value.Description) then 
-        Name = ((type(Value.Name) == "string" and Value.Name) or "");
-        Aliases = ((type(Value.Aliases) == "table" and Value.Aliases) or {});
-        Description = ((type(Value.Description) == "string" and Value.Description) or "");
-        
-        CommandsList = CommandsList .. string.format("%s%s%s %s", Name, (#Aliases > 0 and "/" or ""), ((#Aliases > 0 and table.concat(Aliases, "/")) or ""), Description) .. "\n";
-    end
-end)
+for Index, Command in ipairs(Commands) do 
+    CommandsList = CommandsList .. string.format("%s%s%s %s", Command.Name, (#Command.Aliases > 0 and "/" or ""), ((#Command.Aliases > 0 and table.concat(Command.Aliases, "/")) or ""), Command.Description) .. "\n"
+end
 
 -- User Interface
 
@@ -6565,11 +6860,14 @@ do
     Menu.Indicators.Add("Stomp Target", "Text", 0)
     Menu.Indicators.Add("Fake Lag", "Bar", 0, 0, 15) -- 15 is 1.5 seconds
     Menu.Indicators.Add("Fake Velocity", "Text", "on")
-    --Health = false,
-    --Stamina = false,
-    --GunCooldown = false, --(Tool.Info.Cooldown) Lol
-    --FakeLag = false,
-    --AntiGroudHit = false,
+
+    --[[
+        Health = false
+        Stamina = false
+        GunCooldown = false --(Tool.Info.Cooldown) Lol
+        FakeLag = false
+        AntiGroudHit = false
+    ]]
 
     Menu.Keybinds.Add("Aimbot", Config.Aimbot.Enabled and "on" or "off")
     Menu.Keybinds.Add("Camera Lock", Config.CameraLock.Enabled and "on" or "off")
@@ -6691,7 +6989,9 @@ function Initialize()
     UpdateSkybox()
     OnCharacterAdded(Character) -- needs to yield
 
-    for _, Player in ipairs(Players:GetPlayers()) do OnPlayerAdded(Player) end
+    for _, Player in ipairs(Players:GetPlayers()) do 
+        OnPlayerAdded(Player) 
+    end
 
     for Name, Pad in pairs(GetBuyPads()) do
         local Part = Pad.Part
@@ -6705,18 +7005,14 @@ function Initialize()
                 Player = nil
                 return
             end
+
             if Debounce or not Player then return end
             Debounce = true
 
             local Color = Config.EventLogs.Colors.Buy:ToHex()
             local Message = string.format("%s bought a %s for %s", GetRichTextColor(tostring(Player), Color), GetRichTextColor(Name, Color), GetRichTextColor("$" .. Price, Color))
-            Client.OnEvent({
-                GetName = function() return "item_buy" end,
-                GetPlayer = function() return Player end,
-                GetPad = function() return Pad end
-            })
+
             LogEvent("Buy", Message, tick())
-            --delay(0.2, function() Debounce = false Player = nil end)
         end)
         Part.Touched:Connect(function(Part)
             if tostring(Part.BrickColor) == "Bright red" then return end
@@ -7014,11 +7310,14 @@ function Initialize()
                 RunService.Heartbeat:Wait()
                 if not Config.ClickSpam.Enabled then coroutine.yield() end
                 if Ping > 500 then continue end
+                
                 for _, Player in ipairs(Players:GetPlayers()) do
                     if not Player.Character then continue end
+                    
                     for _, Tool in ipairs(GetTools(Player)) do
                         local Click = Tool:FindFirstChild("Click")
                         if not Click then continue end
+                        
                         Click:FireServer()
                     end
                 end
@@ -7032,6 +7331,7 @@ function Initialize()
             wait(0.2)
             if not Config.KnockDoors.Enabled then coroutine.yield() end
             if Ping > 500 then continue end
+            
             for _, Door in ipairs(Doors) do
                 if IsDoorOpen(Door) then continue end
                 Door.Knock.ClickDetector.RemoteEvent:FireServer()
@@ -7042,15 +7342,19 @@ function Initialize()
     CreateThread("Attach", function()
         while true do
             if not Config.Attach.Enabled then coroutine.yield() end
+            
             if Character then
                 local RightArm = Character:FindFirstChild("Right Arm")
                 local _Root = GetRoot(Target)
+                
                 if RightArm and Tool and _Root and Humanoid then
                     Tool.Grip = (RightArm.CFrame * CFrame.new(0, -1, 0, 1, 0, 0, 0, 0, 1, 0, -1, 0)):ToObjectSpace(_Root.CFrame):Inverse()
                     Humanoid:EquipTool(Tool)
                 end
+                
                 wait((Config.Attach.RefreshRate or 0) / 1000)
             end
+            
             RunService.Heartbeat:Wait()
         end
     end)
@@ -7058,10 +7362,12 @@ function Initialize()
     CreateThread("ChatSpam", function()
         while true do
             if not Spamming then coroutine.yield() end
+            
             pcall(function()
                 local Messages = string.split(readfile("ponyhook/Games/The Streets/Spam.dat"), "\n")
                 Chat(string.gsub(Messages[math.random(1, #Messages)], "%c", ""))
             end)
+            
             wait(3.5)
         end
     end)
@@ -7070,6 +7376,7 @@ function Initialize()
         while true do
             if not Config.InfiniteForceField.Enabled then coroutine.yield() end
             RefreshCharacter()
+            
             wait(5)
         end
     end)
@@ -7141,6 +7448,7 @@ function Initialize()
     CreateThread("FakeVelocity", function()
         while true do
             RunService.Stepped:Wait()
+            
             if Config.AntiAim.Enabled and Config.AntiAim.Type == "Velocity" then
                 SetCharacterServerVelocity(Vector3.new(100, 100, 100) * math.random(-10, 10), Vector3.new(100, 100, 100) * math.random(-10, 10))
             else
@@ -7156,6 +7464,7 @@ function Initialize()
     CreateThread("VersionCheck", function()
         while true do
             wait(60)
+            
             local Version = get_script_version()
             if Version ~= script_version then
                 local Message = "Your version of the script is outdated, rejoin to get the latest build"
@@ -7167,49 +7476,6 @@ function Initialize()
     for _, Thread in pairs(Threads) do
         Thread.Continue()
     end
-
-    -- Global setup
-
-    -- Also u can use GetAttribute
-
-    getgenv().Client = {}
-    Client.ESP = ESP
-    Client.Menu = Menu
-    Client.Config = Config
-
-    Client.Chat = Chat
-    Client.Attack = Attack
-    Client.Stomp = Stomp
-    Client.Drag = Drag
-    Client.Teleport = Teleport
-    Client.SetHat = SetHat
-    Client.SetHatColor = SetHatColor
-    Client.SetClanTag = SetClanTag
-    Client.PlaySoundExploit = PlaySoundExploit
-    Client.PlayAnimationServer = PlayAnimationServer
-    Client.BuyItem = BuyItem
-    Client.SetCharacterServerCFrame = SetCharacterServerCFrame
-    Client.SetCharacterServerVelocity = SetCharacterServerVelocity
-    
-    Client.GetPing = function() return Ping, SendPing, ReceivePing end
-    Client.GetTarget = function() return Target end
-    Client.GetPlayer = GetPlayer
-    Client.UserOwnsAsset = UserOwnsAsset
-    Client.IsBehindAWall = IsBehindAWall
-    Client.IsCharacterAlive = IsCharacterAlive
-
-    Client.OnEvent = function(Event)
-
-    end
-
-    Client.GetCurrentVersion = function() return script_version end
-
-    Client.Debug = {}
-    Client.Debug.get_gc = function() return gcinfo() end
-    Client.Debug.get_tables = function() return {Config = Config, Items = Items, Seats = Seats, Doors = Doors, Windows = Windows, Drawn = Drawn, Timers = Timers, DamageLogs = DamageLogs, AudioLogs = AudioLogs, Animations = Animations} end
-    Client.Debug.get_drawn = function() return Drawn, ESP_Drawn end
-    Client.Debug.get_threads = function() return Threads end
-
 
     RefreshMenu()
     Menu:SetVisible(true)
@@ -7236,6 +7502,7 @@ Menu.CommandBar.FocusLost:Connect(OnCommandBarFocusLost)
 workspace.ChildAdded:Connect(OnWorkspaceChildAdded)
 workspace.ChildRemoved:Connect(OnWorkspaceChildRemoved)
 Lighting.Changed:Connect(OnLightingChanged)
+
 if IsOriginal then
     Character:WaitForChild("GetMouse").OnClientInvoke = OnGetMouseInvoke
     ReplicatedStorage:WaitForChild("TagReplicate").OnClientEvent:Connect(OnTagReplicateEvent)
