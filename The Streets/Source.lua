@@ -87,7 +87,7 @@ if _G.PonyHook then
     return messagebox("Error 0x3; Script is already running", "ponyhook.cc", 0)
 end
 
-local Player = Players.LocalPlayer or not Players:GetPropertyChangedSignal("LocalPlayer"):Wait() and Players.LocalPlayer
+local Player = Players.LocalPlayer
 local Mouse = Player:GetMouse()
 local Character = Player.Character or Player.CharacterAdded:Wait()
 local Backpack = Player:WaitForChild("Backpack")
