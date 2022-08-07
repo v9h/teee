@@ -403,6 +403,12 @@ local function UpdateSelected(Frame: Instance, Item: Item, Offset: UDim2)
 end
 
 
+local function GetTab(Tab_Name: string): Tab
+    assert(Tab_Name, "NO TAB_NAME GIVEN")
+    return Tabs[Tab_Name]
+end
+
+
 local function ChangeTab(Tab_Name: string)
     assert(Tabs[Tab_Name], "Tab \"" .. tostring(Tab_Name) .. "\" does not exist!")
     for _, Tab in pairs(Tabs) do
@@ -418,12 +424,6 @@ local function ChangeTab(Tab_Name: string)
     SelectedTab = Tab
     UpdateSelected()
     UpdateSelectedTabLines(Tab)
-end
-
-
-local function GetTab(Tab_Name: string): Tab
-    assert(Tab_Name, "NO TAB_NAME GIVEN")
-    return Tabs[Tab_Name]
 end
 
 
