@@ -36,21 +36,17 @@ local Stats = game:GetService("Stats")
 local Debris = game:GetService("Debris")
 local Players = game:GetService("Players")
 local CoreGui = game:GetService("CoreGui")
-local Physics = game:GetService("PhysicsService")
 local Lighting = game:GetService("Lighting")
 local UserInput = game:GetService("UserInputService")
 local RunService = game:GetService("RunService")
 local StarterGui = game:GetService("StarterGui")
 local Marketplace = game:GetService("MarketplaceService")
-local TextService = game:GetService("TextService")
 local VirtualUser = game:GetService("VirtualUser")
 local HttpService = game:GetService("HttpService")
 local TweenService = game:GetService("TweenService")
 local SoundService = game:GetService("SoundService")
-local NetworkClient = game:GetService("NetworkClient")
 local ScriptContext = game:GetService("ScriptContext")
 local ContextAction = game:GetService("ContextActionService")
-local InsertService = game:GetService("InsertService")
 local TeleportService = game:GetService("TeleportService")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
@@ -58,9 +54,9 @@ if not import then return messagebox("Error 0x5; Something went wrong with initi
 
 local ESP
 local Menu
+local Raycast
 local Console
 local Commands
-local CommandsList = ""
 local ToolData
 local DoorData
 
@@ -68,12 +64,13 @@ local DoorData
 
 spawn(function() ESP = import("ESP") end)
 spawn(function() Menu = import("Menu") end)
+--spawn(function() Raycast = import("Raycast") end)
 spawn(function() Console = import("Console") end)
 spawn(function() Commands = import("Commands") end)
 spawn(function() ToolData = import("Tool Data") end)
 spawn(function() DoorData = import("Door Data") end)
 
-while not ESP or not Menu or not Console or not Commands or not ToolData or not DoorData do wait() end -- waiting for the modules to load...
+while not ESP or not Menu --[[or not Raycast]] or not Console or not Commands or not ToolData or not DoorData do wait() end -- waiting for the modules to load...
 getgenv().import = nil  -- won't be used anymore
 
 local IsOriginal = game.PlaceId == 455366377 and true
@@ -90,11 +87,8 @@ end
 local Player = Players.LocalPlayer
 local Mouse = Player:GetMouse()
 local Character = Player.Character or Player.CharacterAdded:Wait()
+local Head, Root, Torso, Humanoid
 local Backpack = Player:WaitForChild("Backpack")
-local Humanoid = Character:WaitForChild("Humanoid")
-local Head = Character:WaitForChild("Head")
-local Torso = Character:WaitForChild("Torso")
-local Root = Humanoid.RootPart
 local Tool = Character:FindFirstChildOfClass("Tool")
 local PlayerGui, ChatFrame = Player:WaitForChild("PlayerGui"), nil
 local HUD = PlayerGui and PlayerGui:WaitForChild("HUD")
@@ -103,6 +97,7 @@ local Camera = workspace.CurrentCamera
 local TagSystem = IsOriginal and require(ReplicatedStorage:WaitForChild("TagSystem")) -- "creator" || "creatorslow" || "gunslow" || "action" || "Action" || "KO" || "Dragged" || "Dragging" || "reloading" || "equipedgun" || yes with 1 p he's retarded
 local PostMessage = require(Player:WaitForChild("PlayerScripts", 1/0):WaitForChild("ChatScript", 1/0):WaitForChild("ChatMain", 1/0)).MessagePosted
 local AnimationIds = {"458506542", "8587081257", "376653421", "1484589375"}
+local CommandsList = ""
 
 MessageEvent = Instance.new("BindableEvent")
 
@@ -1301,7 +1296,7 @@ end
 
 function GetStompTarget()
     if Character and Root then
-        local Ray = streets_raycast(Root.Position, Root.Position - Vector3.new(0, 2, 0), 3, Character)
+        local Ray = Raycast.streets(Root.Position, Root.Position - Vector3.new(0, 2, 0), 3, Character)
 
         if Ray and Ray.Parent then
             local Humanoid = Ray.Parent:FindFirstChild("Humanoid")
@@ -1771,7 +1766,7 @@ function IsBehindAWall(Part, Part2, Blacklist)
     table.insert(Blacklist, Character)
 
     local CF = CFrame.new(Part.Position, Part2.Position)
-    local Hit = Raycast(CF.Position, CF.LookVector * (Part.Position - Part2.Position).Magnitude, Blacklist)
+    local Hit = Raycast.new(CF.Position, CF.LookVector * (Part.Position - Part2.Position).Magnitude, Blacklist)
 
     if Hit then
         local HitPart = Hit.Instance
@@ -3371,10 +3366,13 @@ function GiveToolsPlayer(Target: Player)
 end
 
 
-function Attack(CF)
+function Attack(CF: CFrame)
     local CF = Target and Config.Aimbot.Enabled and GetAimbotCFrame(true) or CF
 
     if not Tool then return end
+    -- if AttackCooldown then return end
+    -- AttackCooldown = true
+    -- delay(0.1, function() AttackCooldown = false end)
 
     if IsOriginal then
         -- Tool.CD is disabled for reg
@@ -3481,7 +3479,7 @@ function CanPlayerAttackVictim(Player, Victim, Range)
 
         if Root and vRoot then
             if (vRoot - (Root.Position + (Root.CFrame.LookVector * Range / 2))).Magnitude < Range then
-                local Hit = streets_raycast(Root.Position, TargetRoot.Position, 5, Character)
+                local Hit = Raycast.streets(Root.Position, TargetRoot.Position, 5, Character)
 
                 if Hit == nil or Hit.Anchored == false then
                     return true
@@ -3491,19 +3489,6 @@ function CanPlayerAttackVictim(Player, Victim, Range)
     end
 
     return false
-end
-
-
-function streets_raycast(Start, End, Distance, Ignore)
-    return workspace:FindPartOnRay(Ray.new(Start, CFrame.new(Start, End).LookVector * Distance), Ignore)
-end
-
-function Raycast(Position, Position_2, Blacklist)
-    local RayParams = RaycastParams.new()
-    RayParams.FilterType = Enum.RaycastFilterType.Blacklist
-    RayParams.FilterDescendantsInstances = Blacklist
-
-    return workspace:Raycast(Position, Position_2, RayParams)
 end
 
 
@@ -4975,7 +4960,7 @@ function OnBulletAdded(Bullet)
         end
     
         -- TagSystem doesn't log Client damaged Player, so we have to raycast our bullets
-        local Result = Raycast(Origin, Direction * Distance, {Camera, Character}) -- shouldn't this be done before the position change?
+        local Result = Raycast.new(Origin, Direction * Distance, {Camera, Character}) -- shouldn't this be done before the position change?
         local InterSection = Result and Result.Position or Origin + Direction
         local Distance = (Origin - InterSection).Magnitude
         local Part = Result and Result.Instance
@@ -6393,7 +6378,7 @@ do
     Menu.Slider("Visuals", "Hats", "Hat color rate", 0, 5, Config.HatChanger.Speed, "s", 1, function(Value)
         Config.HatChanger.Speed = Value
     end)
-    Menu.ComboBox("Visuals", "Hats", "Hat", "None", {"None", unpack(Humanoid:GetAccessories())}, function(Hat)
+    Menu.ComboBox("Visuals", "Hats", "Hat", "None", {"None", {}}, function(Hat)
         SetHat(Hat)
     end)
     Menu.ColorPicker("Visuals", "Hats", "Hat color", Config.HatChanger.Color, 0, function(Color)
@@ -6898,6 +6883,8 @@ function Initialize()
         ChatFrame.Visible = Config.Interface.Chat.Enabled
     end)
 
+
+    OnCharacterAdded(Character) -- needs to yield
     --[[
         427729412, -- JUMP
         376654657, -- DIVE
@@ -6986,7 +6973,6 @@ function Initialize()
     Events.Reset.Event:Connect(ResetCharacter)
 
     UpdateSkybox()
-    OnCharacterAdded(Character) -- needs to yield
 
     for _, Player in ipairs(Players:GetPlayers()) do 
         OnPlayerAdded(Player) 

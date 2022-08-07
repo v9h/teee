@@ -5,6 +5,8 @@
 -- // I think something was wrong with the keybinds/indicators tweening
 -- // Menu Effects (OnHover, OnClick)
 
+local Settings = {}
+
 
 local Menu = {}
 local Tabs = {}
@@ -79,7 +81,7 @@ Menu.MinSize = Vector2.new(300, 400)
 Menu.MaxSize = Vector2.new(800, 750)
 
 
-function AddEventListener(self, Update:Function)
+local function AddEventListener(self: GuiObject, Update: any)
     table.insert(EventObjects, {
         self = self,
         Update = Update
@@ -87,7 +89,7 @@ function AddEventListener(self, Update:Function)
 end
 
 
-function CreateCorner(Parent:Instance, Pixels:number)
+local function CreateCorner(Parent: Instance, Pixels: number): UICorner
     local UICorner = Instance.new("UICorner")
     UICorner.Name = "Corner"
     UICorner.Parent = Parent
@@ -95,7 +97,7 @@ function CreateCorner(Parent:Instance, Pixels:number)
 end
 
 
-function CreateStroke(Parent:Instance, Color:Color3, Thickness:number, Transparency:number)
+local function CreateStroke(Parent: Instance, Color: Color3, Thickness: number, Transparency: number): UIStroke
     local UIStroke = Instance.new("UIStroke")
     UIStroke.Name = "Stroke"
     UIStroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
@@ -109,7 +111,7 @@ function CreateStroke(Parent:Instance, Color:Color3, Thickness:number, Transpare
 end 
 
 
-function CreateLine(Parent:Instance, Size:UDim2, Position:UDim2, Color:Color3)
+local function CreateLine(Parent: Instance, Size: UDim2, Position: UDim2, Color: Color3): Frame
     local Line = Instance.new("Frame")
     Line.Name = "Line"
     Line.BackgroundColor3 = typeof(Color) == "Color3" and Color or Menu.Accent
@@ -121,11 +123,12 @@ function CreateLine(Parent:Instance, Size:UDim2, Position:UDim2, Color:Color3)
     if Line.BackgroundColor3 == Menu.Accent then
         AddEventListener(Line, function() Line.BackgroundColor3 = Menu.Accent end)
     end
+
     return Line
 end
 
 
-function CreateLabel(Parent:Instance, Name:string, Text:string, Size:UDim2, Position:UDim2)
+local function CreateLabel(Parent: Instance, Name: string, Text: string, Size: UDim2, Position: UDim2): TextLabel
     local Label = Instance.new("TextLabel")
     Label.Name = Name
     Label.BackgroundTransparency = 1
@@ -141,12 +144,12 @@ function CreateLabel(Parent:Instance, Name:string, Text:string, Size:UDim2, Posi
 end
 
 
-function SetDraggable(self)
+local function SetDraggable(self: GuiObject)
     table.insert(Draggables, self)
     local DragOrigin
     local GuiOrigin
 
-    self.InputBegan:Connect(function(Input, Process)
+    self.InputBegan:Connect(function(Input: InputObject, Process: boolean)
         if (not Dragging.Gui and not Dragging.True) and (Input.UserInputType == Enum.UserInputType.MouseButton1) then
             for _, v in ipairs(Draggables) do
                 v.ZIndex = 1
@@ -159,7 +162,7 @@ function SetDraggable(self)
         end
     end)
 
-    UserInput.InputChanged:Connect(function(Input, Process)
+    UserInput.InputChanged:Connect(function(Input: InputObject, Process: boolean)
         if Dragging.Gui ~= self then return end
         if not (UserInput:IsMouseButtonPressed(Enum.UserInputType.MouseButton1)) then
             Dragging = {Gui = nil, True = false}
@@ -327,58 +330,16 @@ SelectedTabLines.Bottom = CreateLine(TabIndex_Frame, UDim2.new(), UDim2.new(0, 0
 SelectedTabLines.Bottom2 = CreateLine(TabIndex_Frame, UDim2.new(), UDim2.new(), Color3.new())
 
 
-function ChangeTab(Tab_Name:string)
-    assert(Tabs[Tab_Name], "Tab \"" .. tostring(Tab_Name) .. "\" does not exist!")
-    for _, Tab in pairs(Tabs) do
-        Tab.self.Visible = false
-        Tab.Button.BackgroundColor3 = Menu.ItemColor
-        Tab.Button.TextColor3 = Color3.fromRGB(205, 205, 205)
+local function GetDictionaryLength(Dictionary: table)
+    local Length = 0
+    for _ in pairs(Dictionary) do
+        Length += 1
     end
-    local Tab = GetTab(Tab_Name)
-    Tab.self.Visible = true
-    Tab.Button.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
-    Tab.Button.TextColor3 = Color3.new(1, 1, 1)
-
-    SelectedTab = Tab
-    UpdateSelected()
-    UpdateSelectedTabLines(Tab)
+    return Length
 end
 
 
-function UpdateTabs()
-    for _, Tab in pairs(Tabs) do
-        Tab.Button.Size = UDim2.new(1 / GetDictionaryLength(Tabs), 0, 1, 0)
-        Tab.Button.Position = UDim2.new((1 / GetDictionaryLength(Tabs)) * (Tab.Index - 1), 0, 0, 0)
-    end
-    UpdateSelectedTabLines(SelectedTab)
-end
-
-
-function UpdateSelected(Frame:Instance, Item:Item, Offset:UDim2)
-    local Selected_Frame = Selected.Frame
-    if Selected_Frame then
-        Selected_Frame.Visible = false
-        Selected_Frame.Parent = nil
-    end
-
-    Selected = {}
-
-    if Frame then
-        if Selected_Frame == Frame then return end
-        Selected = {
-            Frame = Frame,
-            Item = Item,
-            Offset = Offset
-        }
-
-        Frame.ZIndex = 3
-        Frame.Visible = true
-        Frame.Parent = Menu.Screen
-    end
-end
-
-
-function UpdateSelectedTabLines(Tab:Tab)
+local function UpdateSelectedTabLines(Tab: Tab)
     if not Tab then return end
 
     if (Tab.Button.AbsolutePosition.X > Tab.self.AbsolutePosition.X) then
@@ -409,41 +370,83 @@ function UpdateSelectedTabLines(Tab:Tab)
 end
 
 
-function GetTab(Tab_Name:string)
+local function UpdateTabs()
+    for _, Tab in pairs(Tabs) do
+        Tab.Button.Size = UDim2.new(1 / GetDictionaryLength(Tabs), 0, 1, 0)
+        Tab.Button.Position = UDim2.new((1 / GetDictionaryLength(Tabs)) * (Tab.Index - 1), 0, 0, 0)
+    end
+    UpdateSelectedTabLines(SelectedTab)
+end
+
+
+local function UpdateSelected(Frame: Instance, Item: Item, Offset: UDim2)
+    local Selected_Frame = Selected.Frame
+    if Selected_Frame then
+        Selected_Frame.Visible = false
+        Selected_Frame.Parent = nil
+    end
+
+    Selected = {}
+
+    if Frame then
+        if Selected_Frame == Frame then return end
+        Selected = {
+            Frame = Frame,
+            Item = Item,
+            Offset = Offset
+        }
+
+        Frame.ZIndex = 3
+        Frame.Visible = true
+        Frame.Parent = Menu.Screen
+    end
+end
+
+
+local function ChangeTab(Tab_Name: string)
+    assert(Tabs[Tab_Name], "Tab \"" .. tostring(Tab_Name) .. "\" does not exist!")
+    for _, Tab in pairs(Tabs) do
+        Tab.self.Visible = false
+        Tab.Button.BackgroundColor3 = Menu.ItemColor
+        Tab.Button.TextColor3 = Color3.fromRGB(205, 205, 205)
+    end
+    local Tab = GetTab(Tab_Name)
+    Tab.self.Visible = true
+    Tab.Button.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
+    Tab.Button.TextColor3 = Color3.new(1, 1, 1)
+
+    SelectedTab = Tab
+    UpdateSelected()
+    UpdateSelectedTabLines(Tab)
+end
+
+
+local function GetTab(Tab_Name: string): Tab
     assert(Tab_Name, "NO TAB_NAME GIVEN")
     return Tabs[Tab_Name]
 end
 
 
-function GetContainer(Tab_Name:string, Container_Name:string)
+local function GetContainer(Tab_Name: string, Container_Name: string): Container
     assert(Tab_Name, "NO TAB_NAME GIVEN")
     assert(Container_Name, "NO CONTAINER NAME GIVEN")
     return GetTab(Tab_Name)[Container_Name]
 end
 
 
-function GetDictionaryLength(Dictionary:table)
-    local Length = 0
-    for _ in pairs(Dictionary) do
-        Length += 1
-    end
-    return Length
-end
-
-
-function CheckItemIndex(Item_Index:number, Method:string)
+local function CheckItemIndex(Item_Index: number, Method: string)
     assert(typeof(Item_Index) == "number", "invalid argument #1 to '" .. Method .. "' (number expected, got " .. typeof(Item_Index) .. ")")
     assert(Item_Index <= #Items and Item_Index > 0, "invalid argument #1 to '" .. Method .. "' (index out of range")
 end
 
 
-function Menu:GetItem(Index:number)
+function Menu:GetItem(Index: number): Item
     CheckItemIndex(Index, "GetItem")
     return Items[Index]
 end
 
 
-function Menu:FindItem(Tab_Name:string, Container_Name:string, Class_Name:string, Name:string)
+function Menu:FindItem(Tab_Name: string, Container_Name: string, Class_Name: string, Name: string): Item
     local Result
     for Index, Item in ipairs(Items) do
         if Item.Tab == Tab_Name and Item.Container == Container_Name then
@@ -462,12 +465,12 @@ function Menu:FindItem(Tab_Name:string, Container_Name:string, Class_Name:string
 end
 
 
-function Menu:SetTitle(Name:string)
+function Menu:SetTitle(Name: string)
     Title_Label.Text = tostring(Name)
 end
 
 
-function Menu:SetIcon(Icon:string)
+function Menu:SetIcon(Icon: string)
     if typeof(Icon) == "string" or typeof(Icon) == "number" then
         Title_Label.Position = UDim2.fromOffset(20, 0)
         Title_Label.Size = UDim2.new(1, -40, 0, 15)
@@ -482,7 +485,7 @@ function Menu:SetIcon(Icon:string)
 end
 
 
-function Menu:SetSize(Size:Vector2)
+function Menu:SetSize(Size: Vector2)
     local Size = typeof(Size) == "Vector2" and Size or typeof(Size) == "UDim2" and Vector2.new(Size.X, Size.Y) or Menu.MinSize
     local X = Size.X
     local Y = Size.Y
@@ -499,7 +502,7 @@ function Menu:SetSize(Size:Vector2)
 end
 
 
-function Menu:SetVisible(Visible:boolean)
+function Menu:SetVisible(Visible: boolean)
     local Visible = typeof(Visible) == "boolean" and Visible or false
     Menu_Frame.Visible = Visible
     Menu.IsVisible = Visible
@@ -509,13 +512,13 @@ function Menu:SetVisible(Visible:boolean)
 end
 
 
-function Menu:SetTab(Tab_Name:string)
+function Menu:SetTab(Tab_Name: string)
     ChangeTab(Tab_Name)
 end
 
 
 -- this function should be private
-function Menu:SetToolTip(Enabled:boolean, Content:string, Item:Instance)
+function Menu:SetToolTip(Enabled: boolean, Content: string, Item: Instance)
     ToolTip = {
         Enabled = Enabled,
         Content = Content,
@@ -526,14 +529,14 @@ function Menu:SetToolTip(Enabled:boolean, Content:string, Item:Instance)
 end
 
 
-function Menu.Line(Parent:Instance, Size:UDim2, Position:UDim2)
+function Menu.Line(Parent: Instance, Size: UDim2, Position: UDim2): Line
     local Line = {self = CreateLine(Parent, Size, Position)}
     Line.Class = "Line"
     return Line
 end
 
 
-function Menu.Tab(Tab_Name:string)
+function Menu.Tab(Tab_Name: string): Tab
     assert(Tab_Name and typeof(Tab_Name) == "string", "TAB_NAME REQUIRED")
     if Tabs[Tab_Name] then return error("TAB_NAME '" .. tostring(Tab_Name) .. "' ALREADY EXISTS") end
     local Frame = Instance.new("Frame")
@@ -544,7 +547,7 @@ function Menu.Tab(Tab_Name:string)
     Tab.Index = GetDictionaryLength(Tabs) + 1
 
 
-    local function CreateSide(Side:string)
+    local function CreateSide(Side: string)
         local Frame = Instance.new("ScrollingFrame")
         local ListLayout = Instance.new("UIListLayout")
 
@@ -607,7 +610,7 @@ function Menu.Tab(Tab_Name:string)
 end
 
 
-function Menu.Container(Tab_Name:string, Container_Name:string, Side:string)
+function Menu.Container(Tab_Name: string, Container_Name: string, Side: string): Container
     local Tab = GetTab(Tab_Name)
     assert(typeof(Tab_Name) == "string", "TAB_NAME REQUIRED")
     if Tab[Container_Name] then return error("CONTAINER_NAME '" .. tostring(Container_Name) .. "' ALREADY EXISTS") end
@@ -621,11 +624,11 @@ function Menu.Container(Tab_Name:string, Container_Name:string, Side:string)
     Container.Class = "Container"
     Container.Visible = true
 
-    function Container:SetLabel(Name:string)
+    function Container:SetLabel(Name: string)
         Label.Text = tostring(Name)
     end
 
-    function Container:SetVisible(Visible:boolean)
+    function Container:SetVisible(Visible: boolean)
         if Visible == true then
             if not Frame.Visible then
                 Frame.Visible = true
@@ -641,7 +644,7 @@ function Menu.Container(Tab_Name:string, Container_Name:string, Side:string)
         end
     end
 
-    function Container:UpdateSize(Height:float, Item:gui_object)
+    function Container:UpdateSize(Height: float, Item: gui_object)
         Container.Height += Height
         Frame.Size += UDim2.fromOffset(0, Height)
         Tab.self[Side].CanvasSize += UDim2.fromOffset(0, Height)
@@ -662,7 +665,7 @@ function Menu.Container(Tab_Name:string, Container_Name:string, Side:string)
         end
     end
 
-    function Container:GetHeight()
+    function Container:GetHeight(): number
         return Container.Height
     end
 
@@ -681,7 +684,7 @@ function Menu.Container(Tab_Name:string, Container_Name:string, Side:string)
 end
 
 
-function Menu.Label(Tab_Name:string, Container_Name:string, Name:string, ToolTip:string)
+function Menu.Label(Tab_Name: string, Container_Name: string, Name: string, ToolTip: string): Label
     local Container = GetContainer(Tab_Name, Container_Name)
     local GuiLabel = CreateLabel(Container.self, "Label", Name, nil, UDim2.fromOffset(20, Container.GetHeight()))
 
@@ -703,11 +706,11 @@ function Menu.Label(Tab_Name:string, Container_Name:string, Name:string, ToolTip
     Label.Tab = Tab_Name
     Label.Container = Container_Name
 
-    function Label:SetLabel(Name:string)
+    function Label:SetLabel(Name: string)
         GuiLabel.Text = tostring(Name)
     end
 
-    function Label:SetVisible(Visible:boolean)
+    function Label:SetVisible(Visible: boolean)
         if Visible then
             if not GuiLabel.Visible then
                 GuiLabel.Visible = true
@@ -727,7 +730,7 @@ function Menu.Label(Tab_Name:string, Container_Name:string, Name:string, ToolTip
 end
 
 
-function Menu.Button(Tab_Name:string, Container_Name:string, Name:string, Callback:Function, ToolTip:string)
+function Menu.Button(Tab_Name: string, Container_Name: string, Name: string, Callback: any, ToolTip: string): Button
     local Container = GetContainer(Tab_Name, Container_Name)
     local GuiButton = Instance.new("TextButton")
 
@@ -740,11 +743,11 @@ function Menu.Button(Tab_Name:string, Container_Name:string, Name:string, Callba
     Button.Callback = typeof(Callback) == "function" and Callback or function() end
 
     
-    function Button:SetLabel(Name:string)
+    function Button:SetLabel(Name: string)
         GuiButton.Text = tostring(Name)
     end
 
-    function Button:SetVisible(Visible:boolean)
+    function Button:SetVisible(Visible: boolean)
         if Visible then
             if not GuiButton.Visible then
                 GuiButton.Visible = true
@@ -794,7 +797,7 @@ function Menu.Button(Tab_Name:string, Container_Name:string, Name:string, Callba
 end
 
 
-function Menu.TextBox(Tab_Name:string, Container_Name:string, Name:string, Value:string, Callback:Function, ToolTip:string)
+function Menu.TextBox(Tab_Name: string, Container_Name: string, Name: string, Value: string, Callback: any, ToolTip: string): TextBox
     local Container = GetContainer(Tab_Name, Container_Name)
     local Label = CreateLabel(Container.self, "TextBox", Name, nil, UDim2.fromOffset(20, Container.GetHeight()))
     local GuiTextBox = Instance.new("TextBox")
@@ -809,11 +812,11 @@ function Menu.TextBox(Tab_Name:string, Container_Name:string, Name:string, Value
     TextBox.Callback = typeof(Callback) == "function" and Callback or function() end
 
 
-    function TextBox:SetLabel(Name:string)
+    function TextBox:SetLabel(Name: string)
         Label.Text = tostring(Name)
     end
 
-    function TextBox:SetVisible(Visible:boolean)
+    function TextBox:SetVisible(Visible: boolean)
         if Visible then
             if not Label.Visible then
                 Label.Visible = true
@@ -827,11 +830,11 @@ function Menu.TextBox(Tab_Name:string, Container_Name:string, Name:string, Value
         end
     end
 
-    function TextBox:GetValue()
+    function TextBox:GetValue(): string
         return TextBox.Value
     end
 
-    function TextBox:SetValue(Value:string)
+    function TextBox:SetValue(Value: string)
         TextBox.Value = tostring(Value)
         GuiTextBox.Text = TextBox.Value
     end
@@ -876,7 +879,7 @@ function Menu.TextBox(Tab_Name:string, Container_Name:string, Name:string, Value
 end
 
 
-function Menu.CheckBox(Tab_Name:string, Container_Name:string, Name:string, Boolean:boolean, Callback:Function, ToolTip:string)
+function Menu.CheckBox(Tab_Name: string, Container_Name: string, Name: string, Boolean: boolean, Callback: any, ToolTip: string): CheckBox
     local Container = GetContainer(Tab_Name, Container_Name)
     local Label = CreateLabel(Container.self, "CheckBox", Name, nil, UDim2.fromOffset(20, Container.GetHeight()))
     local Button = Instance.new("TextButton")
@@ -891,16 +894,16 @@ function Menu.CheckBox(Tab_Name:string, Container_Name:string, Name:string, Bool
     CheckBox.Callback = typeof(Callback) == "function" and Callback or function() end
 
 
-    function CheckBox:Update(Value:boolean)
+    function CheckBox:Update(Value: boolean)
         CheckBox.Value = typeof(Value) == "boolean" and Value
         Button.BackgroundColor3 = CheckBox.Value and Menu.Accent or Menu.ItemColor
     end
 
-    function CheckBox:SetLabel(Name:string)
+    function CheckBox:SetLabel(Name: string)
         Label.Text = tostring(Name)
     end
 
-    function CheckBox:SetVisible(Visible:boolean)
+    function CheckBox:SetVisible(Visible: boolean)
         if Visible then
             if not Label.Visible then
                 Label.Visible = true
@@ -914,11 +917,11 @@ function Menu.CheckBox(Tab_Name:string, Container_Name:string, Name:string, Bool
         end
     end
 
-    function CheckBox:GetValue()
+    function CheckBox:GetValue(): boolean
         return CheckBox.Value
     end
 
-    function CheckBox:SetValue(Value:boolean)
+    function CheckBox:SetValue(Value: boolean)
         CheckBox:Update(Value)
     end
 
@@ -955,7 +958,7 @@ function Menu.CheckBox(Tab_Name:string, Container_Name:string, Name:string, Bool
 end
 
 
-function Menu.Hotkey(Tab_Name:string, Container_Name:string, Name:string, Key:EnumItem, Callback:Function, ToolTip:string)
+function Menu.Hotkey(Tab_Name: string, Container_Name: string, Name: string, Key:EnumItem, Callback: any, ToolTip: string): Hotkey
     local Container = GetContainer(Tab_Name, Container_Name)
     local Label = CreateLabel(Container.self, "Hotkey", Name, nil, UDim2.fromOffset(20, Container.GetHeight()))
     local Button = Instance.new("TextButton")
@@ -975,7 +978,7 @@ function Menu.Hotkey(Tab_Name:string, Container_Name:string, Name:string, Key:En
     Hotkey.Mode = "Toggle"
 
 
-    function Hotkey:Update(Input, Mode:string)
+    function Hotkey:Update(Input: EnumItem, Mode: string)
         if Input then
             Button.Text = string.format("[%s]", Input.Name)
         else
@@ -986,11 +989,11 @@ function Menu.Hotkey(Tab_Name:string, Container_Name:string, Name:string, Key:En
         Hotkey.Editing = false
     end
 
-    function Hotkey:SetLabel(Name:string)
+    function Hotkey:SetLabel(Name: string)
         Label.Text = tostring(Name)
     end
 
-    function Hotkey:SetVisible(Visible:boolean)
+    function Hotkey:SetVisible(Visible: boolean)
         if Visible then
             if not Label.Visible then
                 Label.Visible = true
@@ -1004,11 +1007,11 @@ function Menu.Hotkey(Tab_Name:string, Container_Name:string, Name:string, Key:En
         end
     end
 
-    function Hotkey:GetValue()
+    function Hotkey:GetValue(): EnumItem--, string
         return Hotkey.Key, Hotkey.Mode
     end
 
-    function Hotkey:SetValue(Key:EnumItem, Mode:string)
+    function Hotkey:SetValue(Key:EnumItem, Mode: string)
         Hotkey:Update(Key, Mode)
     end
 
@@ -1127,7 +1130,7 @@ function Menu.Hotkey(Tab_Name:string, Container_Name:string, Name:string, Key:En
 end
 
 
-function Menu.Slider(Tab_Name:string, Container_Name:string, Name:string, Min:number, Max:number, Value:number, Unit:string, Scale:number, Callback:Function, ToolTip:string)
+function Menu.Slider(Tab_Name: string, Container_Name: string, Name: string, Min: number, Max: number, Value: number, Unit: string, Scale: number, Callback: any, ToolTip: string): Slider
     local Container = GetContainer(Tab_Name, Container_Name)
     local Label = CreateLabel(Container.self, "Slider", Name, UDim2.new(1, -10, 0, 15), UDim2.fromOffset(20, Container.GetHeight()))
     local Button = Instance.new("TextButton")
@@ -1149,7 +1152,7 @@ function Menu.Slider(Tab_Name:string, Container_Name:string, Name:string, Min:nu
     Slider.Callback = typeof(Callback) == "function" and Callback or function() end
 
 
-    local function UpdateSlider(Percentage:float)
+    local function UpdateSlider(Percentage: number)
         local Percentage = typeof(Percentage == "number") and math.clamp(Percentage, 0, 1) or 0
         local Value = Slider.Min + ((Slider.Max - Slider.Min) * Percentage)
         local Scale = (10 ^ Slider.Scale)
@@ -1161,15 +1164,15 @@ function Menu.Slider(Tab_Name:string, Container_Name:string, Name:string, Min:nu
     end
 
 
-    function Slider:Update(Percentage:number)
+    function Slider:Update(Percentage: number)
         UpdateSlider(Percentage)
     end
 
-    function Slider:SetLabel(Name:string)
+    function Slider:SetLabel(Name: string)
         Label.Text = tostring(Name)
     end
 
-    function Slider:SetVisible(Visible:boolean)
+    function Slider:SetVisible(Visible: boolean)
         if Visible then
             if not Label.Visible then
                 Label.Visible = true
@@ -1183,11 +1186,11 @@ function Menu.Slider(Tab_Name:string, Container_Name:string, Name:string, Min:nu
         end
     end
 
-    function Slider:GetValue()
+    function Slider:GetValue(): number
         return Slider.Value
     end
 
-    function Slider:SetValue(Value:number)
+    function Slider:SetValue(Value: number)
         Slider.Value = typeof(Value) == "number" and math.clamp(Value, Slider.Min, Slider.Max) or Slider.Min
         local Percentage = (Slider.Value - Slider.Min) / (Slider.Max - Slider.Min)
         Slider:Update(Percentage)
@@ -1251,7 +1254,7 @@ function Menu.Slider(Tab_Name:string, Container_Name:string, Name:string, Min:nu
     ValueLabel.TextSize = 14
     ValueLabel.Parent = ValueBar
 
-    Button.InputBegan:Connect(function(Input, Process)
+    Button.InputBegan:Connect(function(Input: InputObject, Process: boolean)
         if (not Dragging.Gui and not Dragging.True) and (Input.UserInputType == Enum.UserInputType.MouseButton1) then
             Dragging = {Gui = Button, True = true}
             local InputPosition = Vector2.new(Input.Position.X, Input.Position.Y)
@@ -1261,7 +1264,7 @@ function Menu.Slider(Tab_Name:string, Container_Name:string, Name:string, Min:nu
         end
     end)
 
-    UserInput.InputChanged:Connect(function(Input, Process)
+    UserInput.InputChanged:Connect(function(Input: InputObject, Process: boolean)
         if Dragging.Gui ~= Button then return end
         if not (UserInput:IsMouseButtonPressed(Enum.UserInputType.MouseButton1)) then
             Dragging = {Gui = nil, True = false}
@@ -1283,7 +1286,7 @@ function Menu.Slider(Tab_Name:string, Container_Name:string, Name:string, Min:nu
 end
 
 
-function Menu.ColorPicker(Tab_Name:string, Container_Name:string, Name:string, Color:Color3, Alpha:number, Callback:Function, ToolTip:string)
+function Menu.ColorPicker(Tab_Name: string, Container_Name: string, Name: string, Color: Color3, Alpha: number, Callback: any, ToolTip: string): ColorPicker
     local Container = GetContainer(Tab_Name, Container_Name)
     local Label = CreateLabel(Container.self, "ColorPicker", Name, UDim2.new(1, -10, 0, 15), UDim2.fromOffset(20, Container.GetHeight()))
     local Button = Instance.new("TextButton")
@@ -1332,11 +1335,11 @@ function Menu.ColorPicker(Tab_Name:string, Container_Name:string, Name:string, C
         UpdateColor()
     end
 
-    function ColorPicker:SetLabel(Name:string)
+    function ColorPicker:SetLabel(Name: string)
         Label.Text = tostring(Name)
     end
 
-    function ColorPicker:SetVisible(Visible:boolean)
+    function ColorPicker:SetVisible(Visible: boolean)
         if Visible then
             if not Label.Visible then
                 Label.Visible = true
@@ -1350,13 +1353,13 @@ function Menu.ColorPicker(Tab_Name:string, Container_Name:string, Name:string, C
         end
     end
 
-    function ColorPicker:SetValue(Color:Color3, Alpha:number)
+    function ColorPicker:SetValue(Color: Color3, Alpha: number)
         ColorPicker.Color, ColorPicker.Alpha = typeof(Color) == "Color3" and Color or Color3.new(), typeof(Alpha) == "number" and Alpha or 0
         ColorPicker.Hue, ColorPicker.Saturation[1], ColorPicker.Saturation[2] = ColorPicker.Color:ToHSV()
         ColorPicker:Update()
     end
 
-    function ColorPicker:GetValue()
+    function ColorPicker:GetValue(): Color3--, number
         return ColorPicker.Color, ColorPicker.Alpha
     end
 
@@ -1493,7 +1496,7 @@ function Menu.ColorPicker(Tab_Name:string, Container_Name:string, Name:string, C
     AlphaColorGradient.Rotation = -90
     AlphaColorGradient.Parent = Alpha
 
-    local function UpdateSaturation(PercentageX, PercentageY)
+    local function UpdateSaturation(PercentageX: number, PercentageY: number)
         local PercentageX = typeof(PercentageX == "number") and math.clamp(PercentageX, 0, 1) or 0
         local PercentageY = typeof(PercentageY == "number") and math.clamp(PercentageY, 0, 1) or 0
         ColorPicker.Saturation[1] = PercentageX
@@ -1501,19 +1504,19 @@ function Menu.ColorPicker(Tab_Name:string, Container_Name:string, Name:string, C
         ColorPicker:Update()
     end
 
-    local function UpdateAlpha(Percentage)
+    local function UpdateAlpha(Percentage: number)
         local Percentage = typeof(Percentage == "number") and math.clamp(Percentage, 0, 1) or 0
         ColorPicker.Alpha = Percentage
         ColorPicker:Update()
     end
 
-    local function UpdateHue(Percentage)
+    local function UpdateHue(Percentage: number)
         local Percentage = typeof(Percentage == "number") and math.clamp(Percentage, 0, 1) or 0
         ColorPicker.Hue = Percentage
         ColorPicker:Update()
     end
 
-    Saturation.InputBegan:Connect(function(Input, Process)
+    Saturation.InputBegan:Connect(function(Input: InputObject, Process: boolean)
         if (not Dragging.Gui and not Dragging.True) and (Input.UserInputType == Enum.UserInputType.MouseButton1) then
             Dragging = {Gui = Saturation, True = true}
             local InputPosition = Vector2.new(Input.Position.X, Input.Position.Y)
@@ -1522,7 +1525,7 @@ function Menu.ColorPicker(Tab_Name:string, Container_Name:string, Name:string, C
         end
     end)
 
-    Alpha.InputBegan:Connect(function(Input, Process)
+    Alpha.InputBegan:Connect(function(Input: InputObject, Process: boolean)
         if (not Dragging.Gui and not Dragging.True) and (Input.UserInputType == Enum.UserInputType.MouseButton1) then
             Dragging = {Gui = Alpha, True = true}
             local InputPosition = Vector2.new(Input.Position.X, Input.Position.Y)
@@ -1531,7 +1534,7 @@ function Menu.ColorPicker(Tab_Name:string, Container_Name:string, Name:string, C
         end
     end)
 
-    Hue.InputBegan:Connect(function(Input, Process)
+    Hue.InputBegan:Connect(function(Input: InputObject, Process: boolean)
         if (not Dragging.Gui and not Dragging.True) and (Input.UserInputType == Enum.UserInputType.MouseButton1) then
             Dragging = {Gui = Hue, True = true}
             local InputPosition = Vector2.new(Input.Position.X, Input.Position.Y)
@@ -1540,7 +1543,7 @@ function Menu.ColorPicker(Tab_Name:string, Container_Name:string, Name:string, C
         end
     end)
 
-    UserInput.InputChanged:Connect(function(Input, Process)
+    UserInput.InputChanged:Connect(function(Input: InputObject, Process: boolean)
         if (Dragging.Gui ~= Saturation and Dragging.Gui ~= Alpha and Dragging.Gui ~= Hue) then return end
         if not (UserInput:IsMouseButtonPressed(Enum.UserInputType.MouseButton1)) then
             Dragging = {Gui = nil, True = false}
@@ -1573,7 +1576,7 @@ function Menu.ColorPicker(Tab_Name:string, Container_Name:string, Name:string, C
 end
 
 
-function Menu.ComboBox(Tab_Name:string, Container_Name:string, Name:string, Value:string, Value_Items:table, Callback:Function, ToolTip:string)
+function Menu.ComboBox(Tab_Name: string, Container_Name: string, Name: string, Value: string, Value_Items: table, Callback: any, ToolTip: string): ComboBox
     local Container = GetContainer(Tab_Name, Container_Name)
     local Label = CreateLabel(Container.self, "ComboBox", Name, UDim2.new(1, -10, 0, 15), UDim2.fromOffset(20, Container.GetHeight()))
     local Button = Instance.new("TextButton")
@@ -1591,13 +1594,13 @@ function Menu.ComboBox(Tab_Name:string, Container_Name:string, Name:string, Valu
     ComboBox.Value = typeof(Value) == "string" and Value or ""
     ComboBox.Items = typeof(Value_Items) == "table" and Value_Items or {}
 
-    local function UpdateValue(Value)
+    local function UpdateValue(Value: string)
         ComboBox.Value = tostring(Value)
         Button.Text = ComboBox.Value or "[...]"
     end
 
     local ItemObjects = {}
-    local function AddItem(Name)
+    local function AddItem(Name: string)
         local Button = Instance.new("TextButton")
         Button.BackgroundColor3 = Menu.ItemColor
         Button.BorderColor3 = Color3.new()
@@ -1637,7 +1640,7 @@ function Menu.ComboBox(Tab_Name:string, Container_Name:string, Name:string, Valu
     end
 
 
-    function ComboBox:Update(Value, Items)
+    function ComboBox:Update(Value: string, Items: any)
         UpdateValue(Value)
         if typeof(Items) == "table" then
             for _, Button in ipairs(ItemObjects) do
@@ -1657,11 +1660,11 @@ function Menu.ComboBox(Tab_Name:string, Container_Name:string, Name:string, Valu
         end
     end
 
-    function ComboBox:SetLabel(Name:string)
+    function ComboBox:SetLabel(Name: string)
         Label.Text = tostring(Name)
     end
 
-    function ComboBox:SetVisible(Visible:boolean)
+    function ComboBox:SetVisible(Visible: boolean)
         if Visible then
             if not Label.Visible then
                 Label.Visible = true
@@ -1675,11 +1678,11 @@ function Menu.ComboBox(Tab_Name:string, Container_Name:string, Name:string, Valu
         end
     end
 
-    function ComboBox:GetValue()
+    function ComboBox:GetValue(): table
         return ComboBox.Value
     end
 
-    function ComboBox:SetValue(Value, Items)
+    function ComboBox:SetValue(Value: string, Items: any)
         if typeof(Items) == "table" then
             ComboBox.Items = Items
         end
@@ -1754,7 +1757,7 @@ function Menu.ComboBox(Tab_Name:string, Container_Name:string, Name:string, Valu
 end
 
 
-function Menu.MultiSelect(Tab_Name:string, Container_Name:string, Name:string, Value_Items:table, Callback:Function, ToolTip:string)
+function Menu.MultiSelect(Tab_Name: string, Container_Name: string, Name: string, Value_Items: table, Callback: any, ToolTip: string): MultiSelect
     local Container = GetContainer(Tab_Name, Container_Name)
     local Label = CreateLabel(Container.self, "MultiSelect", Name, UDim2.new(1, -10, 0, 15), UDim2.fromOffset(20, Container.GetHeight()))
     local Button = Instance.new("TextButton")
@@ -1773,7 +1776,7 @@ function Menu.MultiSelect(Tab_Name:string, Container_Name:string, Name:string, V
     MultiSelect.Value = {}
 
 
-    local function GetSelectedItems()
+    local function GetSelectedItems(): table
         local Selected = {}
         for k, v in pairs(MultiSelect.Items) do
             if v == true then table.insert(Selected, k) end
@@ -1787,7 +1790,7 @@ function Menu.MultiSelect(Tab_Name:string, Container_Name:string, Name:string, V
     end
 
     local ItemObjects = {}
-    local function AddItem(Name:string, Checked:boolean)
+    local function AddItem(Name: string, Checked: boolean)
         local Button = Instance.new("TextButton")
         Button.BackgroundColor3 = Menu.ItemColor
         Button.BorderColor3 = Color3.new()
@@ -1817,7 +1820,7 @@ function Menu.MultiSelect(Tab_Name:string, Container_Name:string, Name:string, V
     end
 
 
-    function MultiSelect:Update(Value)
+    function MultiSelect:Update(Value: any)
         if typeof(Value) == "table" then
             MultiSelect.Items = Value
             UpdateValue()
@@ -1841,11 +1844,11 @@ function Menu.MultiSelect(Tab_Name:string, Container_Name:string, Name:string, V
         end
     end
 
-    function MultiSelect:SetLabel(Name:string)
+    function MultiSelect:SetLabel(Name: string)
         Label.Text = tostring(Name)
     end
 
-    function MultiSelect:SetVisible(Visible:boolean)
+    function MultiSelect:SetVisible(Visible: boolean)
         if Visible then
             if not Label.Visible then
                 Label.Visible = true
@@ -1859,11 +1862,11 @@ function Menu.MultiSelect(Tab_Name:string, Container_Name:string, Name:string, V
         end
     end
 
-    function MultiSelect:GetValue()
+    function MultiSelect:GetValue(): table
         return MultiSelect.Items
     end
 
-    function MultiSelect:SetValue(Value)
+    function MultiSelect:SetValue(Value: any)
         MultiSelect:Update(Value)
     end
 
@@ -1933,7 +1936,7 @@ function Menu.MultiSelect(Tab_Name:string, Container_Name:string, Name:string, V
 end
 
 
-function Menu.ListBox(Tab_Name:string, Container_Name:string, Name:string, Multi:boolean, Value_Items:table, Callback:Function, ToolTip:string)
+function Menu.ListBox(Tab_Name: string, Container_Name: string, Name: string, Multi: boolean, Value_Items: table, Callback: any, ToolTip: string): ListBox
     local Container = GetContainer(Tab_Name, Container_Name)
     local List = Instance.new("ScrollingFrame")
     local ListLayout = Instance.new("UIListLayout")
@@ -1951,7 +1954,7 @@ function Menu.ListBox(Tab_Name:string, Container_Name:string, Name:string, Multi
 
     local ItemObjects = {}
 
-    local function GetSelectedItems()
+    local function GetSelectedItems(): table
         local Selected = {}
         for k, v in pairs(ListBox.Items) do
             if v == true then table.insert(Selected, k) end
@@ -1959,7 +1962,7 @@ function Menu.ListBox(Tab_Name:string, Container_Name:string, Name:string, Multi
         return Selected
     end
 
-    local function UpdateValue(Value)
+    local function UpdateValue(Value: any)
         if ListBox.Method == "Default" then
             ListBox.Value = tostring(Value)
         else
@@ -1967,7 +1970,7 @@ function Menu.ListBox(Tab_Name:string, Container_Name:string, Name:string, Multi
         end
     end
 
-    local function AddItem(Name:string, Checked:boolean)
+    local function AddItem(Name: string, Checked: boolean)
         local Button = Instance.new("TextButton")
         Button.BackgroundColor3 = Menu.ItemColor
         Button.BorderColor3 = Color3.new()
@@ -2031,7 +2034,7 @@ function Menu.ListBox(Tab_Name:string, Container_Name:string, Name:string, Multi
     end
 
 
-    function ListBox:Update(Value, Items)
+    function ListBox:Update(Value: string, Items: any)
         if ListBox.Method == "Default" then
             UpdateValue(Value)
         end
@@ -2071,7 +2074,7 @@ function Menu.ListBox(Tab_Name:string, Container_Name:string, Name:string, Multi
         end
     end
 
-    function ListBox:SetVisible(Visible:boolean)
+    function ListBox:SetVisible(Visible: boolean)
         if Visible then
             if not List.Visible then
                 List.Visible = true
@@ -2085,7 +2088,7 @@ function Menu.ListBox(Tab_Name:string, Container_Name:string, Name:string, Multi
         end
     end
 
-    function ListBox:SetValue(Value, Items)
+    function ListBox:SetValue(Value: string, Items: any)
         if ListBox.Method == "Default" then
             if typeof(Items) == "table" then
                 ListBox.Items = Items
@@ -2096,7 +2099,7 @@ function Menu.ListBox(Tab_Name:string, Container_Name:string, Name:string, Multi
         end
     end
 
-    function ListBox:GetValue()
+    function ListBox:GetValue(): table
         return ListBox.Value
     end
 
@@ -2140,7 +2143,7 @@ function Menu.ListBox(Tab_Name:string, Container_Name:string, Name:string, Multi
 end
 
 
-function Menu.Notify(Content:string, Delay:number)
+function Menu.Notify(Content: string, Delay: number)
     assert(typeof(Content) == "string", "missing argument #1, (string expected got " .. typeof(Content) .. ")")
     local Delay = typeof(Delay) == "number" and Delay or 3
 
@@ -2164,7 +2167,7 @@ function Menu.Notify(Content:string, Delay:number)
     Text.ZIndex = 4
     Text.Parent = Notifications_Frame
 
-    local function CustomTweenOffset(Offset)
+    local function CustomTweenOffset(Offset: number)
         spawn(function()
             local Steps = 33
             for i = 1, Steps do
@@ -2211,7 +2214,7 @@ function Menu.Notify(Content:string, Delay:number)
 end
 
 
-function Menu.Prompt(Message:string, Callback:Function, ...)
+function Menu.Prompt(Message: string, Callback: any, ...)
     do
         local Prompt = Menu.Screen:FindFirstChild("Prompt")
         if Prompt then Prompt:Destroy() end
@@ -2266,7 +2269,7 @@ function Menu.Prompt(Message:string, Callback:Function, ...)
 end
 
 
-function Menu.Spectators()
+function Menu.Spectators(): Spectators
     local Frame = Instance.new("Frame")
     local Title = Instance.new("TextLabel")
     local List = Instance.new("Frame")
@@ -2317,7 +2320,7 @@ function Menu.Spectators()
     end
 
 
-    function Spectators.Add(Name:string, Icon:string)
+    function Spectators.Add(Name: string, Icon: string)
         Spectators.Remove(Name)
         local Object = Instance.new("Frame")
         local NameLabel = Instance.new("TextLabel")
@@ -2353,7 +2356,7 @@ function Menu.Spectators()
     end
 
 
-    function Spectators.Remove(Name:string)
+    function Spectators.Remove(Name: string)
         if Spectators.List[Name] then
             Spectators.List[Name].self:Destroy()
             Spectators.List[Name] = nil
@@ -2362,7 +2365,7 @@ function Menu.Spectators()
     end
 
 
-    function Spectators:SetVisible(Visible:boolean)
+    function Spectators:SetVisible(Visible: boolean)
         Spectators.self.Visible = Visible
     end
 
@@ -2371,7 +2374,7 @@ function Menu.Spectators()
 end
 
 
-function Menu.Keybinds()
+function Menu.Keybinds(): Keybinds
     local Frame = Instance.new("Frame")
     local Title = Instance.new("TextLabel")
     local List = Instance.new("Frame")
@@ -2422,7 +2425,7 @@ function Menu.Keybinds()
         Keybinds.self.List:TweenSize(UDim2.fromOffset(240, math.clamp(Height, 10, 5000)), nil, nil, 0.3, true)
     end
 
-    function Keybinds.Add(Name:string, State:string)
+    function Keybinds.Add(Name: string, State: string): Keybind
         Keybinds.Remove(Name)
         local Object = Instance.new("Frame")
         local NameLabel = Instance.new("TextLabel")
@@ -2458,11 +2461,11 @@ function Menu.Keybinds()
         StateLabel.Parent = Object
 
         
-        function Keybind:Update(State:string)
+        function Keybind:Update(State: string)
             StateLabel.Text = "[" .. tostring(State) .. "]"
         end
 
-        function Keybind:SetVisible(Visible:boolean)
+        function Keybind:SetVisible(Visible: boolean)
             if Visible then
                 if not Object.Visible then
                     Object.Visible = true
@@ -2482,7 +2485,7 @@ function Menu.Keybinds()
         return Keybind
     end
 
-    function Keybinds.Remove(Name:string)
+    function Keybinds.Remove(Name: string)
         if Keybinds.List[Name] then
             Keybinds.List[Name].self:Destroy()
             Keybinds.List[Name] = nil
@@ -2490,7 +2493,7 @@ function Menu.Keybinds()
         UpdateFrameSize()
     end
 
-    function Keybinds:SetVisible(Visible:boolean)
+    function Keybinds:SetVisible(Visible: boolean)
         Keybinds.self.Visible = Visible
     end
 
@@ -2498,7 +2501,7 @@ function Menu.Keybinds()
 end
 
 
-function Menu.Indicators()
+function Menu.Indicators(): Indicators
     local Frame = Instance.new("Frame")
     local Title = Instance.new("TextLabel")
     local List = Instance.new("Frame")
@@ -2549,7 +2552,7 @@ function Menu.Indicators()
         Indicators.self.List:TweenSize(UDim2.fromOffset(240, math.clamp(Height, 10, 5000)), nil, nil, 0.3, true)
     end
 
-    function Indicators.Add(Name:string, Type:string, Value:string, ...)
+    function Indicators.Add(Name: string, Type: string, Value: string, ...): Indicator
         Indicators.Remove(Name)
         local Object = Instance.new("Frame")
         local NameLabel = Instance.new("TextLabel")
@@ -2611,7 +2614,7 @@ function Menu.Indicators()
         end
 
 
-        function Indicator:Update(Value:string, ...)
+        function Indicator:Update(Value: string, ...)
             if Indicators.List[Name] then
                 if Type == "Text" then
                     Indicator.Value = Value
@@ -2630,7 +2633,7 @@ function Menu.Indicators()
         end
 
 
-        function Indicator:SetVisible(Visible:boolean)
+        function Indicator:SetVisible(Visible: boolean)
             if Visible then
                 if not Object.Visible then
                     Object.Visible = true
@@ -2651,7 +2654,7 @@ function Menu.Indicators()
     end
 
 
-    function Indicators.Remove(Name:string)
+    function Indicators.Remove(Name: string)
         if Indicators.List[Name] then
             Indicators.List[Name].self:Destroy()
             Indicators.List[Name] = nil
@@ -2660,7 +2663,7 @@ function Menu.Indicators()
     end
 
 
-    function Indicators:SetVisible(Visible:boolean)
+    function Indicators:SetVisible(Visible: boolean)
         Indicators.self.Visible = Visible
     end
 
@@ -2669,7 +2672,7 @@ function Menu.Indicators()
 end
 
 
-function Menu.Watermark()
+function Menu.Watermark(): Watermark
     local Watermark = {}
     Watermark.Frame = Instance.new("Frame")
     Watermark.Title = Instance.new("TextLabel")
@@ -2698,11 +2701,11 @@ function Menu.Watermark()
     Watermark.Title.RichText = true
     Watermark.Title.Parent = Watermark.Frame
 
-    function Watermark:Update(Text:string)
+    function Watermark:Update(Text: string)
         Watermark.Title.Text = tostring(Text)
     end
 
-    function Watermark:SetVisible(Visible:boolean)
+    function Watermark:SetVisible(Visible: boolean)
         Watermark.Frame.Visible = Visible
     end
 
@@ -2710,13 +2713,13 @@ function Menu.Watermark()
 end
 
 
-UserInput.InputBegan:Connect(function(Input, Process) end)
-UserInput.InputEnded:Connect(function(Input)
+UserInput.InputBegan:Connect(function(Input: InputObject, Process: boolean) end)
+UserInput.InputEnded:Connect(function(Input: InputObject)
     if (Input.UserInputType == Enum.UserInputType.MouseButton1) then
         Dragging = {Gui = nil, True = false}
     end
 end)
-RunService.RenderStepped:Connect(function(Step)
+RunService.RenderStepped:Connect(function(Step: number)
     local Menu_Frame = Menu.Screen.Menu
     Menu_Frame.Position = UDim2.fromOffset(
         math.clamp(Menu_Frame.AbsolutePosition.X,   0, math.clamp(Menu.ScreenSize.X - Menu_Frame.AbsoluteSize.X, 0, Menu.ScreenSize.X    )),
