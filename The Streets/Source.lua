@@ -3378,8 +3378,7 @@ function Attack(CF)
 
     if IsOriginal then
         -- Tool.CD is disabled for reg
-        if TagSystem.has("reloading") then return end
-	    --if TagSystem.has("gunslow") then return end
+        if TagSystem.has(Character, "reloading") then return end
 
         local Arguments = {
             shift = UserInput:IsKeyDown(Enum.KeyCode.LeftShift),
