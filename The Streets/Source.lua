@@ -64,13 +64,13 @@ local DoorData
 
 spawn(function() ESP = import("ESP") end)
 spawn(function() Menu = import("Menu") end)
---spawn(function() Raycast = import("Raycast") end)
+spawn(function() Raycast = import("Raycast") end)
 spawn(function() Console = import("Console") end)
 spawn(function() Commands = import("Commands") end)
 spawn(function() ToolData = import("Tool Data") end)
 spawn(function() DoorData = import("Door Data") end)
 
-while not ESP or not Menu --[[or not Raycast]] or not Console or not Commands or not ToolData or not DoorData do wait() end -- waiting for the modules to load...
+while not ESP or not Menu or not Raycast or not Console or not Commands or not ToolData or not DoorData do wait() end -- waiting for the modules to load...
 getgenv().import = nil  -- won't be used anymore
 
 local IsOriginal = game.PlaceId == 455366377 and true
