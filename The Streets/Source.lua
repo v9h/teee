@@ -8,18 +8,18 @@
 
 -- Variables
 
+if not game:IsLoaded() then 
+    game.Loaded:Wait() 
+end
+
+local Time = os.clock()
+
 -- Original values maybe different for some remakes but I'm too lazy to add support for that
 local ORIGINAL_GRAVITY = workspace.Gravity
 
 local ORIGINAL_SPEED = 0 -- if this gets read first before write then umm :rainbow_dash_idk_3:
 local ORIGINAL_HIPHEIGHT = 2
 local ORIGINAL_JUMPPOWER = game:GetService("StarterPlayer").CharacterJumpPower
-
-local Time = os.clock()
-
-if not game:IsLoaded() then 
-    game.Loaded:Wait() 
-end
 
 local wait = task.wait
 local delay = task.delay
@@ -5211,7 +5211,7 @@ local Index, NewIndex, NameCall, OldFunctionHook
 
 function OnIndex(self: Instance, Key: any)
     local Caller = checkcaller()
-    local Name = self.Name
+    local Name = tostring(self)
 
     if not Caller then
         if table.find({"Stamina", "Stann", "Stam"}, Name) and Key == "Value" then 
