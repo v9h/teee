@@ -1308,7 +1308,7 @@ function GetStompTarget()
 end
 
 
-function GetPlayer(Name)
+function GetPlayer(Name: string): table
     local Matches = {}
     local Name = string.gsub(string.lower(tostring(Name)), "%s", "")
     local PlayersTable = Players:GetPlayers()
@@ -1324,7 +1324,7 @@ function GetPlayer(Name)
     end
 
     for _, Player in ipairs(PlayersTable) do
-        if Name == string.sub(string.lower(tostring(Player)), 1, #Name) then
+        if Name == string.sub(string.lower(Player.Name), 1, #Name) then
             table.insert(Matches, Player)
         end
     end
@@ -1359,7 +1359,7 @@ function GetLimbs(Player)
         local Blacklist = {"RightHand", "LeftHand", "RightFoot"}
 
         for _, v in ipairs(Character:GetChildren()) do
-            if table.find(Blacklist, tostring(v)) then continue end
+            if table.find(Blacklist, v.Name) then continue end
             local Limb = Humanoid:GetLimb(v)
 
             if Limb ~= Enum.Limb.Unknown then
@@ -1486,9 +1486,9 @@ function GetTools(_Player, Type)
 end
 
 
-function GetToolInfo(self, Property) -- Maybe use attributes to log ammo;
-    if self then
-        local Tool_Name = tostring(self)
+function GetToolInfo(self: Tool, Property: string): any -- Maybe use attributes to log ammo;
+    if typeof(self) == "Instance" then
+        local Tool_Name = self.Name
         if Property then
             if Property == "Ammo" then
                 local Ammo = self:FindFirstChild("Ammo")
@@ -1514,7 +1514,7 @@ function GetToolInfo(self, Property) -- Maybe use attributes to log ammo;
                 return
             elseif Property == "IsGun" then
                 local Guns = {"Glock", "Uzi", "Shotty", "Sawed Off"}
-                return table.find(Guns, tostring(self)) and true or false
+                return table.find(Guns, Tool_Name) and true or false
             end
         end
 
@@ -1603,8 +1603,8 @@ do
         return Name
     end
 
-    local function add_to_pad_list(ItemName, self)
-        local Name = string.lower(tostring(self))
+    local function add_to_pad_list(ItemName: string, self: Instance)
+        local Name = string.lower(self.Name)
 
         if Name == "bought!" then
             local Event
@@ -1838,18 +1838,18 @@ function IsInCar()
     return false
 end
 
-function IsOnSeat(_Player, Seat)
+function IsOnSeat(_Player: Player, Seat: Seat): boolean
     local Player = _Player or Player
 
     if Seat then
         local Occupant = Seat.Occupant
-        if Occupant and tostring(Occupant.Parent) == tostring(Player) then return true end
+        if Occupant and tostring(Occupant.Parent) == Player.Name then return true end
     end
 
     return false
 end
 
-function IsSeated(_Player, Seat)
+function IsSeated(_Player: Player, Seat: Seat): boolean
     local Player = _Player or Player
     for _, Seat in pairs(Seats) do
         local Seated = IsOnSeat(Seat)
@@ -1859,7 +1859,7 @@ function IsSeated(_Player, Seat)
     return false
 end
 
-function IsCharacterAlive(Character)
+function IsCharacterAlive(Character: Model): boolean
     if typeof(Character) == "Instance" and Character:IsA("Model") then
         local CurrentParent = Character.Parent
         return (IsOriginal and CurrentParent == workspace.Live) or (not IsOriginal and CurrentParent == workspace)
@@ -1868,7 +1868,7 @@ function IsCharacterAlive(Character)
     return false
 end
 
-function UserOwnsAsset(_Player, AssetId, AssetType)
+function UserOwnsAsset(_Player: Player, AssetId: string, AssetType: string): boolean
     --https://inventory.roblox.com/docs#!/Inventory/get_v1_users_userId_items_itemType_itemTargetId
     -- AssetType : "GamePass", "Asset", "Badge", "Bundle"
     local Player = _Player or Player
@@ -1887,7 +1887,7 @@ function UserOwnsAsset(_Player, AssetId, AssetType)
 end
 
 
-function TeleportToPlace(Place_Id, Job_Id)
+function TeleportToPlace(Place_Id: number, Job_Id: string)
     if Job_Id then
         TeleportService:TeleportToPlaceInstance(Place_Id, Job_Id)
 
@@ -1902,7 +1902,7 @@ function TeleportToPlace(Place_Id, Job_Id)
 end
 
 
-function Teleport(Destination)
+function Teleport(Destination): Tween
     Teleporting = false
 
     local Event
@@ -1936,7 +1936,7 @@ function Teleport(Destination)
 end
 
 
-function Chat(Message)
+function Chat(Message: string)
     Message = tostring(Message)
     ReplicatedStorage.DefaultChatSystemChatEvents.SayMessageRequest:FireServer(Message, "All")
     --Players:Chat(Message)
@@ -2095,7 +2095,7 @@ function SetHat(Name)
 
         if Handle then
             Stank:FireServer("rep", {
-                typ = {Value = tostring(Hat)}
+                typ = {Value = Hat.Name}
             }) -- Server does WhiteDecal.Parent = Character:FindFirstChild(A.typ.Value).Handle [a is the second argument], every player has a whitedecal instance
         else
             Stank:FireServer("ren")
@@ -2206,8 +2206,8 @@ function SetTimer(Name, Time)
 end
 
 
-function AddKnockedOutTimer(Player)
-    local Name = tostring(Player)
+function AddKnockedOutTimer(Player: Player)
+    local Name = Player.Name
     local Timer = SetTimer(Name, 15)
     if not Timer then return end -- if already running the timer for this state
 
@@ -2242,7 +2242,7 @@ function AddFirstPersonEventListeners()
 
     if Character and Config.FirstPerson.Enabled then
         for _, Object in ipairs(Character:GetChildren()) do
-            if Object:IsA("BasePart") and string.find(tostring(Object), "Arm") then
+            if Object:IsA("BasePart") and string.find(Object.Name, "Arm") then
                 Object.LocalTransparencyModifier = 0
 
                 table.insert(Events.FirstPerson, Object:GetPropertyChangedSignal("LocalTransparencyModifier"):Connect(function()
@@ -2277,7 +2277,7 @@ function AddItem(Spawn)
 
                     local Distance = math_round(_Player:DistanceFromCharacter(Part.Position), 2) -- DISTANCE FROM LOCAL PLAYER
                     local Color = Config.EventLogs.Colors["Picked up"]:ToHex()
-                    local Message = string.format("%s picked up a %s from %s", GetRichTextColor(tostring(Player), Color), GetRichTextColor(Name, Color),
+                    local Message = string.format("%s picked up a %s from %s", GetRichTextColor(Player.Name, Color), GetRichTextColor(Name, Color),
 
                     GetRichTextColor(Distance, Color) .. " studs away")
                     LogEvent("Picked up", Message, tick())
@@ -2295,7 +2295,7 @@ function AddItem(Spawn)
 
     for _, v in ipairs(Spawn:GetDescendants()) do
         for k2, v2 in pairs(ToolData) do
-            local Name = tostring(v)
+            local Name = v.Name
             local ClassName = v.ClassName
 
             if ClassName == "Sound" then
@@ -2554,7 +2554,7 @@ function UpdateESP()
 
             if v.Name.Visible then
                 v.Name.Offset = ESP_Name.Offset
-                local Name = Admin and Admin.Tag or ESP_Name.Type == "User" and tostring(Player) or Player.DisplayName
+                local Name = Admin and Admin.Tag or ESP_Name.Type == "User" and Player.Name or Player.DisplayName
                 v.Name:SetText(Name, FONT, FONT_SIZE, FONT_COLOR, FONT_TRANSPARENCY, true)
             end
             
@@ -2910,7 +2910,7 @@ function BuyItem(Item_Name:string)
     for _, v in ipairs(Items) do
         if string.find(string.lower(v), Item_Name) then
             for _, v2 in ipairs(workspace:GetChildren()) do
-                local Name = string.lower(tostring(v2))
+                local Name = string.lower(v2.Name)
 
                 if string.find(Name, " | ") and string.find(Name, Item_Name) then
                     pcall(function()
@@ -3169,7 +3169,7 @@ function SortBackpack()
         if not v then continue end
 
         for _, Tool in ipairs(Tools) do
-            if tostring(Tool) == k then 
+            if Tool.Name == k then 
                 Tool.Parent = Backpack 
             end
         end
@@ -3404,7 +3404,7 @@ function Attack(CF: CFrame)
 end
 
 
-function Stomp(Amount)
+function Stomp(Amount: number)
     local Amount = typeof(Amount) == "number" and Amount or 1
 
     if IsOriginal then
@@ -3472,7 +3472,7 @@ end
 ]]
 
 
-function CanPlayerAttackVictim(Player, Victim, Range)
+function CanPlayerAttackVictim(Player: Player, Victim: Player, Range: number): boolean
     if Player:GetAttribute("IsAlive") and Victim:GetAttribute("IsAlive") then
         local Root = GetRoot(Player)
         local vRoot = GetRoot(Victim)
@@ -3492,7 +3492,7 @@ function CanPlayerAttackVictim(Player, Victim, Range)
 end
 
 
-function GripTool(Tool, Grip_CFrame)
+function GripTool(Tool: Tool, Grip_CFrame: CFrame): Weld
     local Arm = Character:FindFirstChild("Right Arm")
     local Handle = Tool:FindFirstChild("Handle")
     if not Arm or not Handle then return end
@@ -3501,7 +3501,7 @@ function GripTool(Tool, Grip_CFrame)
 end
 
 
-function CreateJoint(Name, Part, CF)
+function CreateJoint(Name: string, Part: BasePart, CF: CFrame)
     local Attachment = Instance.new("Attachment")
     Attachment.Name = Name
     Attachment.CFrame = CF
@@ -3511,7 +3511,7 @@ function CreateJoint(Name, Part, CF)
 end
 
 
-function Weld(Name, Part, Part2, CF, CF2)
+function Weld(Name: string, Part: BasePart, Part2: BasePart, CF: CFrame, CF2: CFrame): Weld
     local Grip = Instance.new("Weld")
     Grip.Name = Name
     Grip.Part0 = Part
@@ -3524,7 +3524,7 @@ function Weld(Name, Part, Part2, CF, CF2)
 end
 
 
-function CreateJoints(Player)
+function CreateJoints(Player: Player)
     local Limbs, Success = GetLimbs(Player)
 
     if Success then
@@ -3544,7 +3544,7 @@ function CreateJoints(Player)
 end
 
 
-function ResyncPlayer(Player)
+function ResyncPlayer(Player: Player)
     -- offset HumRoot > Torso :: GetANimations
     local Humanoid = Player and Player.Character and Player.Character:FindFirstChild("Humanoid")
     if Humanoid then
@@ -3794,9 +3794,7 @@ function Heartbeat(Step) -- after phys :: after heartbeat comes network stepped
             local Foods, HealCount = {}, 0
 
             for _, Tool in ipairs(GetTools()) do
-                local Tool_Name = tostring(Tool)
-
-                if Tool_Name == "Burger" or Tool_Name == "Chicken" then
+                if Tool.Name == "Burger" or Tool.Name == "Chicken" then
                     table.insert(Foods, Tool)
                 end
             end
@@ -3807,7 +3805,7 @@ function Heartbeat(Step) -- after phys :: after heartbeat comes network stepped
 
                 local FoodsToEat = {}
                 for _, Food in ipairs(Foods) do
-                    local FoodHealth = GetToolInfo(tostring(Food)).Health
+                    local FoodHealth = GetToolInfo(Food.Name).Health
                     if Player:GetAttribute("Health") + HealCount + FoodHealth < 110 then
                         HealCount += FoodHealth
                         table.insert(FoodsToEat, Food)
@@ -3851,21 +3849,19 @@ function Heartbeat(Step) -- after phys :: after heartbeat comes network stepped
             Animations.Gun3.self:Stop()
 
             if Tool then
-                local Tool_Name = tostring(Tool)
-
-                if (Tool_Name == "Glock" and Config.Animations.Glock.Enabled and Config.Animations.Glock.Style ~= "Default") or (Tool_Name == "Uzi" and Config.Animations.Uzi.Enabled and Config.Animations.Uzi.Style ~= "Default") then
+                if (Tool.Name == "Glock" and Config.Animations.Glock.Enabled and Config.Animations.Glock.Style ~= "Default") or (Tool.Name == "Uzi" and Config.Animations.Uzi.Enabled and Config.Animations.Uzi.Style ~= "Default") then
                     if AnimationId == "503285264" then 
                         Track:Stop() 
                     end
-                elseif (Tool_Name == "Shotty" and Config.Animations.Shotty.Enabled and Config.Animations.Shotty.Style ~= "Default") or (Tool_Name == "Sawed Off" and Config.Animations["Sawed Off"].Enabled and Config.Animations["Sawed Off"].Style ~= "Default") then
+                elseif (Tool.Name == "Shotty" and Config.Animations.Shotty.Enabled and Config.Animations.Shotty.Style ~= "Default") or (Tool.Name == "Sawed Off" and Config.Animations["Sawed Off"].Enabled and Config.Animations["Sawed Off"].Style ~= "Default") then
                     if AnimationId == "889390949" then 
                         Track:Stop() 
                     end
                 end
 
-                if (Tool_Name == "Glock" or Tool_Name == "Uzi") then
-                    if Config.Animations[Tool_Name].Enabled then
-                        local Style = Config.Animations[Tool_Name].Style
+                if (Tool.Name == "Glock" or Tool.Name == "Uzi") then
+                    if Config.Animations[Tool.Name].Enabled then
+                        local Style = Config.Animations[Tool.Name].Style
 
                         if Style == "Style-2" then
                             Animations.Gun.self:Play()
@@ -3873,9 +3869,9 @@ function Heartbeat(Step) -- after phys :: after heartbeat comes network stepped
                             Animations.Gun3.self:Play()
                         end
                     end
-                elseif (Tool_Name == "Shotty" or Tool_Name == "Sawed Off") then
-                    if Config.Animations[Tool_Name].Enabled then
-                        local Style = Config.Animations[Tool_Name].Style
+                elseif (Tool.Name == "Shotty" or Tool.Name == "Sawed Off") then
+                    if Config.Animations[Tool.Name].Enabled then
+                        local Style = Config.Animations[Tool.Name].Style
 
                         if Style == "Style-2" then
                             Animations.Gun.self:Play()
@@ -3903,7 +3899,7 @@ function Heartbeat(Step) -- after phys :: after heartbeat comes network stepped
 end
 
 
-function Stepped(_, Step) -- before phys
+function Stepped(_, Step: number) -- before phys
     UpdateESP()
 
     if Root and Humanoid then
@@ -4133,7 +4129,7 @@ function Stepped(_, Step) -- before phys
 end
 
 
-function RenderStepped(Step)
+function RenderStepped(Step: number)
     UpdateFieldOfViewCircle() -- Has check if visible anyway
     UpdateAimbotIndicator()
 
@@ -4192,7 +4188,7 @@ function RenderStepped(Step)
     end
 
     if Config.BrickTrajectory.Enabled then
-        if Tool and tostring(Tool) == "Brick" then
+        if Tool and Tool.Name == "Brick" then
             local Points = GetBrickTrajectoryPoints(Tool)
             if typeof(Points) == "table" and #Points > 0 then
                 BrickTrajectory = ESP.Trajectory(Points)
@@ -4271,7 +4267,7 @@ function OnInput(Input, Process)
         if Object and Config.DoorMenu.Enabled then
             local Door = Object:FindFirstAncestor("Door")
 
-            if Door and tostring(Object) == "Door" then
+            if Door and Object.Name == "Door" then
                 local Distance = Player:DistanceFromCharacter(Object.Position)
                 if Distance < 8 and not Menu.Screen:FindFirstChild("DoorMenu") then
                     ShowDoorMenu(Door)
@@ -4352,18 +4348,19 @@ function OnStaminaChanged(Stamina)
 end
 
 
-function OnBackpackChildAdded(self)
+function OnBackpackChildAdded(self: Instance)
     if self:IsA("Tool") then
+        local Name = self.Name
+
         if self == Tool then
             Tool = nil
         end
 
-        local Name = tostring(self)
         if GetToolInfo(self, "IsGun") then
             if not self:GetAttribute("Gun") then
                 delay(0.1, function()
                     SetToolChams(self)
-                    if tostring(self) == "Glock" or tostring(self) == "Uzi" then
+                    if Name == "Glock" or Name == "Uzi" then
                         local Handle = self:FindFirstChild("Handle")
                         local Barrel = self:FindFirstChild("Barrel")
 
@@ -4397,8 +4394,8 @@ function OnBackpackChildAdded(self)
 end
 
 
-function OnCharacterDescendantAdded(self)
-    local Name = tostring(self)
+function OnCharacterDescendantAdded(self: Instance)
+    local Name = self.Name
 
     if Name == "Bone" then
         if Player:GetAttribute("KnockedOut") then return end
@@ -4445,8 +4442,8 @@ function OnCharacterDescendantAdded(self)
 end
 
 
-function OnCharacterDescendantRemoving(self)
-    local Name = tostring(self)
+function OnCharacterDescendantRemoving(self: Instance)
+    local Name = self.Name
 
     if Name == "Bone" then
         Player:SetAttribute("KnockedOut", false)
@@ -4458,7 +4455,7 @@ function OnCharacterDescendantRemoving(self)
 end
 
 
-function OnCharacterAdded(_Character)
+function OnCharacterAdded(_Character: Model)
     Tool = nil
     Character = _Character
     HUD = PlayerGui:WaitForChild("HUD")
@@ -4616,8 +4613,8 @@ function OnPlayerAdded(Player)
             Player:SetAttribute("RootPoint", RootPoint)
 
 
-            local function OnCharacterDescendantAdded(self)
-                local Name = tostring(self)
+            local function OnCharacterDescendantAdded(self: Instance)
+                local Name = self.Name
 
                 if Name == "creator" and self:IsA("ObjectValue") then
                     OnCreatorValueAdded(self)
@@ -4642,8 +4639,8 @@ function OnPlayerAdded(Player)
             end
 
 
-            local function OnCharacterDescendantRemoving(self)
-                local Name = tostring(self)
+            local function OnCharacterDescendantRemoving(self: Instance)
+                local Name = self.Name
 
                 if Name == "Bone" then
                     if Player:GetAttribute("KnockedOut") == false then return end
@@ -4656,7 +4653,7 @@ function OnPlayerAdded(Player)
             end
 
             delay(1, function() -- Yielding for everything to load in properly
-                if not Players:FindFirstChild(tostring(Player)) then 
+                if not Players:FindFirstChild(Player.Name) then 
                     return 
                 end
 
@@ -4746,7 +4743,7 @@ function OnPlayerAdded(Player)
         end
     end
 
-    LogEvent("Joined", "\"" .. tostring(Player) .. "\" has joined the game", tick())
+    LogEvent("Joined", "\"" .. Player.Name .. "\" has joined the game", tick())
     Player.CharacterAdded:Connect(OnCharacterAdded)
 end
 
@@ -4878,15 +4875,15 @@ function OnPlayerDamaged(Victim:player, Attacker:player, Damage:number, Time:tic
 end
 
 
-function OnPlayerDeath(Victim:player, Attacker:player)
+function OnPlayerDeath(Victim: Player, Attacker: Player)
     Victim:SetAttribute("IsAlive", false)
     Victim:SetAttribute("KnockedOut", false)
 
-    LogEvent("Death", GetRichTextColor(tostring(Victim) .. " died", Config.EventLogs.Colors.Death:ToHex()), tick())
+    LogEvent("Death", GetRichTextColor(Victim.Name .. " died", Config.EventLogs.Colors.Death:ToHex()), tick())
 end
 
 
-function OnLightingChanged(Property)
+function OnLightingChanged(Property: string)
     if Config.Enviorment.Time.Enabled and Property == "TimeOfDay" then
         Lighting.TimeOfDay = Config.Enviorment.Time.Value
     end
@@ -5025,8 +5022,8 @@ function OnBulletAdded(Bullet)
 end
 
 
-function OnWorkspaceChildAdded(self)
-    local Name = tostring(self)
+function OnWorkspaceChildAdded(self: Instance)
+    local Name = self.Name
     
     if Name == "RandomSpawner" then
         delay(0, AddItem, self)
@@ -5038,8 +5035,8 @@ function OnWorkspaceChildAdded(self)
 end
 
 
-function OnWorkspaceChildRemoved(self)
-    local Name = tostring(self)
+function OnWorkspaceChildRemoved(self: Instance)
+    local Name = self.Name
 
     if Name == "RandomSpawner" then
         Items[self] = nil
@@ -5047,7 +5044,7 @@ function OnWorkspaceChildRemoved(self)
 end
 
 
-function OnGetMouseInvoke() -- Uuh but weguwarid why don't u just hook mouse.hit and mouse.target; FUCK U
+function OnGetMouseInvoke(): any -- Uuh but weguwarid why don't u just hook mouse.hit and mouse.target; FUCK U
     FireTick = os.clock()
 
     if Target and Target.Character and Config.Aimbot.Enabled then
@@ -5212,9 +5209,9 @@ end
 
 local Index, NewIndex, NameCall, OldFunctionHook
 
-function OnIndex(self, Key)
+function OnIndex(self: Instance, Key: any)
     local Caller = checkcaller()
-    local Name = tostring(self)
+    local Name = self.Name
 
     if not Caller then
         if table.find({"Stamina", "Stann", "Stam"}, Name) and Key == "Value" then 
@@ -5261,7 +5258,7 @@ function OnIndex(self, Key)
     return Index(self, Key)
 end
 
-function OnNewIndex(self, Key, Value)
+function OnNewIndex(self: Instance, Key: any, Value: any)
     local Caller = checkcaller()
 
     if Caller then 
@@ -5269,7 +5266,7 @@ function OnNewIndex(self, Key, Value)
     end 
 
     if self == Mouse and Key == "Icon" then return end
-    if IsOriginal and Key == "OnClientInvoke" and tostring(self) == "GetMouse" then 
+    if IsOriginal and Key == "OnClientInvoke" and self.Name == "GetMouse" then 
         Value = OnGetMouseInvoke 
     end
 
@@ -5314,9 +5311,9 @@ function OnNewIndex(self, Key, Value)
     return NewIndex(self, Key, Value)
 end
 
-function OnNameCall(self, ...)
+function OnNameCall(self: Instance, ...)
     local Arguments = {...}
-    local Name = tostring(self)
+    local Name = self.Name
     local Caller, Method = checkcaller(), (getnamecallmethod or get_namecall_method)()
 
     if self == Player and (Method == "Kick" or Method == "kick") then 
@@ -5613,7 +5610,7 @@ Commands.Add("play", {}, "[id] - mass plays the selected 'id'", function(Argumen
     local Audio = Arguments[1]
     local Remotes = {}
     for _, Tool in ipairs(GetTools()) do
-        if tostring(Tool) == "BoomBox" then
+        if Tool.Name == "BoomBox" then
             Tool.Parent = Character
             local Remote = Tool:FindFirstChildWhichIsA("RemoteEvent", true)
             if Remote then table.insert(Remotes, Remote) end
@@ -5713,7 +5710,7 @@ Commands.Add("steal", {"st", "log"}, "([audio]/[decal]) [player] - steals the se
         local Tools = GetTools(Target)
         if Tools then
             for _, Tool in ipairs(Tools) do
-                if tostring(Tool) == "BoomBox" then
+                if Tool.Name == "BoomBox" then
                     local sound = Tool:FindFirstChildWhichIsA("Sound", true)
                     local sound_id = sound and sound.SoundId
                     if sound_id then
@@ -5725,10 +5722,10 @@ Commands.Add("steal", {"st", "log"}, "([audio]/[decal]) [player] - steals the se
             end
 
             local Color = Config.EventLogs.Colors.Error:ToHex()
-            return Menu.Notify(GetRichTextColor("no audio from player '" .. tostring(Target) .. "' found", Color))
+            return Menu.Notify(GetRichTextColor("no audio from player '" .. Target.Name .. "' found", Color))
         end
     elseif asset_type == "decal" or asset_type == "spray" then
-        local spray_part = workspace:FindFirstChild(tostring(Target) .. "Spray")
+        local spray_part = workspace:FindFirstChild(Target.Name .. "Spray")
         if spray_part then
             local decal = spray_part:WaitForChild("Decal")
             local decal_id = string.match(decal.Texture, "%d+")
@@ -5738,7 +5735,7 @@ Commands.Add("steal", {"st", "log"}, "([audio]/[decal]) [player] - steals the se
             return Menu.Notify(GetRichTextColor("set decal_id rbxassetid://'" .. decal_id .. "' to your clipboard", Color))
         else
             local Color = Config.EventLogs.Colors.Error:ToHex()
-            return Menu.Notify(GetRichTextColor("no decal from player '" .. tostring(Target) .. "' found", Color))
+            return Menu.Notify(GetRichTextColor("no decal from player '" .. Target.Name .. "' found", Color))
         end
         -- sign check?
     else
@@ -5775,7 +5772,7 @@ do
                     PlayerGui.BoomBoxu.Entry.TextBox.Text = Id
                     LastAudio = Id
                     for _, Object in ipairs(Character:GetChildren()) do
-                        if tostring(Object) == "BoomBox" then Object.RemoteEvent:FireServer("play", Id) end
+                        if Object.Name == "BoomBox" then Object.RemoteEvent:FireServer("play", Id) end
                     end
                 end)
             end)
@@ -6572,7 +6569,7 @@ do
     Menu.ListBox("Misc", "Players", "Target", false, Players:GetPlayers(), function(Player_Name)
         local Player = GetPlayer(Player_Name)[1]
         if not Player then return end
-        SelectedTarget = tostring(Player)
+        SelectedTarget = Player.Name
 
         local Whitelist = table.find(UserTable.Whitelisted, tostring(Player.UserId)) and true or false
         local Owner = table.find(UserTable.Owners, tostring(Player.UserId)) and true or false
@@ -6602,7 +6599,7 @@ do
             Threads.Attach.Continue()
         else
             for _, Tool in ipairs(GetTools()) do
-                local ToolInfo = GetToolInfo(tostring(Tool))
+                local ToolInfo = GetToolInfo(Tool.Name)
                 if ToolInfo then
                     Tool.Grip = ToolInfo.Grip
                 end
@@ -6995,7 +6992,7 @@ function Initialize()
             Debounce = true
 
             local Color = Config.EventLogs.Colors.Buy:ToHex()
-            local Message = string.format("%s bought a %s for %s", GetRichTextColor(tostring(Player), Color), GetRichTextColor(Name, Color), GetRichTextColor("$" .. Price, Color))
+            local Message = string.format("%s bought a %s for %s", GetRichTextColor(Player.Name, Color), GetRichTextColor(Name, Color), GetRichTextColor("$" .. Price, Color))
 
             LogEvent("Buy", Message, tick())
         end)
@@ -7009,7 +7006,7 @@ function Initialize()
     for _, v in ipairs(workspace:GetChildren()) do OnWorkspaceChildAdded(v) end
 
     for _, self in ipairs(workspace:GetDescendants()) do
-        local Name = tostring(self)
+        local Name = self.Name
         local ClassName = self.ClassName
 
         if (Name == "Door" or Name == "Window") and self:FindFirstChild("RemoteEvent", true) then
