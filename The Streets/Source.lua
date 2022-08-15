@@ -96,8 +96,6 @@ local Camera = workspace.CurrentCamera
 
 local TagSystem = IsOriginal and require(ReplicatedStorage:WaitForChild("TagSystem")) -- "creator" || "creatorslow" || "gunslow" || "action" || "Action" || "KO" || "Dragged" || "Dragging" || "reloading" || "equipedgun" || yes with 1 p he's retarded
 local PostMessage = require(Player:WaitForChild("PlayerScripts", 1/0):WaitForChild("ChatScript", 1/0):WaitForChild("ChatMain", 1/0)).MessagePosted
-local AnimationIds = {"458506542", "8587081257", "376653421", "1484589375"}
-local CommandsList = ""
 
 MessageEvent = Instance.new("BindableEvent")
 
@@ -645,7 +643,7 @@ local Animations = {}
 local AudioLogs = isfile("ponyhook/Games/The Streets/Audios.dat") and string.split(readfile("ponyhook/Games/The Streets/Audios.dat"), "\n") or {}
 local BulletLogs = {}
 local DamageLogs = {} -- debounce
-local ChatScheduler = {}
+local AnimationIds = {"458506542", "8587081257", "376653421", "1484589375"}
 
 local BuyPart
 local Target
@@ -664,6 +662,7 @@ local FakeLagVisualizer = ESP.Skeleton()
 local AimbotIndicator
 local FieldOfViewCircle
 
+local CommandsList = ""
 local script_version = get_script_version()
 
 local Ping = 0
@@ -682,6 +681,7 @@ local Crouching = false
 local BarsFading = false
 local Teleporting = false
 local GivingTools = false
+local CommandBarHidden = false
 local RefreshingCharacter = false
 
 local DeathPosition = CFrame.new()
@@ -731,8 +731,8 @@ end
 
 -- Functions
 
-function SaveConfig(Name)
-    local function Iterate(Table)
+function SaveConfig(Name: string)
+    local function Iterate(Table: table)
         for k, v in pairs(Table) do
             local Type = typeof(v)
             if Type == "table" then
@@ -755,7 +755,7 @@ function SaveConfig(Name)
         end
     end
     
-    local function table_clone(Original)
+    local function table_clone(Original: table)
         local Clone = {}
         
         for k, v in pairs(Original) do
@@ -778,8 +778,8 @@ function SaveConfig(Name)
 end
 
 
-function LoadConfig(Name)
-    local function Iterate(Table)
+function LoadConfig(Name: string)
+    local function Iterate(Table: table)
         for k, v in pairs(Table) do
             local Type = typeof(v)
 
@@ -811,7 +811,7 @@ function LoadConfig(Name)
         end
     end
 
-    local function DeepPatch(Original, Copy)
+    local function DeepPatch(Original: table, Copy: table)
         for k, v in pairs(Original) do
             if typeof(Copy[k]) == "nil" then
                 Copy[k] = v
@@ -2422,6 +2422,41 @@ function AddItemESP(Item)
 end
 
 
+function UpdatePlayersInfo(Step: number)
+    for _, _Player in ipairs(Players:GetPlayers()) do -- 34 players; 4 attribute changes for each player; 34*4=136changes every step; 136*60 = 8160 changes every second
+        local LastPosition = _Player:GetAttribute("Position")
+        if not LastPosition then continue end
+
+        local _Root = GetRoot(_Player)
+
+        if _Root then
+            local Position = _Root.Position
+
+            if Player ~= _Player then -- local player has custom thing
+                _Player:SetAttribute("Stamina", GetStamina(_Player) or 0)
+
+                -- local player's character should already be blacklisted
+                -- _Root.Parent is the Target Character we need to filter that so we don't get false positives
+                _Player:SetAttribute("BehindWall", (IsBehindAWall(Root, _Root, {_Root.Parent})))
+            end
+
+            _Player:SetAttribute("Distance", math_round(Player:DistanceFromCharacter(Position), 2))
+            _Player:SetAttribute("Velocity", (Position - LastPosition) / Step)
+            _Player:SetAttribute("Position", Position)
+        else
+            _Player:SetAttribute("Distance", 0)
+            _Player:SetAttribute("Velocity", Vector3.new())
+            _Player:SetAttribute("Position", Vector3.new())
+
+            if Player ~= _Player then
+                _Player:SetAttribute("Stamina", 0)
+                _Player:SetAttribute("BehindWall", false)
+            end
+        end
+    end
+end
+
+
 function UpdateESP()
     local ESP = Config.ESP
     local ESP_Enabled = ESP.Enabled
@@ -2760,7 +2795,7 @@ function UpdateESP()
 end
 
 
-function UpdateInterface(Fade)
+function UpdateInterface(Fade: boolean)
     if typeof(HUD) ~= "Instance" then return end
 
     local Bars = {HUD:FindFirstChild("HP"), HUD:FindFirstChild("KO"), HUD:FindFirstChild("Stam")}
@@ -2855,6 +2890,81 @@ function UpdateAntiAim()
     end
 end
 
+
+function UpdatePlayerFlyState()
+    if Config.Flight.Enabled then
+        local LookVector = Camera.CFrame.LookVector
+        local Car = IsInCar()
+
+        FlyVelocity.Parent = Root
+        FlyAngularVelocity.Parent = Root
+        -- Root.AssemblyLinearVelocity = Vector3.new()
+
+        if Car then
+            local Root = Car.Chassis
+            Car.PrimaryPart = Root
+
+            Root.CanCollide = false
+            Car:PivotTo(CFrame.new(Root.Position, Root.Position + LookVector))
+
+            if not UserInput:GetFocusedTextBox() then
+                if UserInput:IsKeyDown(Enum.KeyCode.W) then
+                    Car:PivotTo(Root.CFrame + LookVector * Config.Flight.Speed)
+                end
+                if UserInput:IsKeyDown(Enum.KeyCode.A) then
+                    Car:PivotTo(Root.CFrame * CFrame.new(-Config.Flight.Speed, 0, 0))
+                end
+                if UserInput:IsKeyDown(Enum.KeyCode.S) then
+                    Car:PivotTo(Root.CFrame - LookVector * Config.Flight.Speed)
+                end
+                if UserInput:IsKeyDown(Enum.KeyCode.D) then
+                    Car:PivotTo(Root.CFrame * CFrame.new(Config.Flight.Speed, 0, 0))
+                end
+            end
+        else
+            Humanoid:ChangeState(Enum.HumanoidStateType.Running)
+            Humanoid:ChangeState(Enum.HumanoidStateType.RunningNoPhysics)
+
+            Root.CFrame = Config.Flight.Rotation and CFrame.new(Root.Position, Root.Position + LookVector) or CFrame.new(Root.Position, Root.Position + LookVector * Vector3.new(1, 0, 1))
+            
+            local Velocity = Player:GetAttribute("Velocity")
+            firesignal(Humanoid.Running, Velocity.Magnitude / 10)
+
+            if not UserInput:GetFocusedTextBox() then
+                if UserInput:IsKeyDown(Enum.KeyCode.W) then
+                    Root.CFrame += LookVector * Config.Flight.Speed
+                end
+
+                if UserInput:IsKeyDown(Enum.KeyCode.S) then
+                    Root.CFrame -= LookVector * Config.Flight.Speed
+                end
+
+                if UserInput:IsKeyDown(Enum.KeyCode.A) then
+                    if Config.Flight.Rotation or Config.Flipped.Enabled then
+                        Root.CFrame += (Humanoid.MoveDirection * Config.Flight.Speed)
+                    else
+                        Root.CFrame *= CFrame.new(-Config.Flight.Speed, 0, 0)
+                    end
+                end
+
+                if UserInput:IsKeyDown(Enum.KeyCode.D) then
+                    if Config.Flight.Rotation or Config.Flipped.Enabled then
+                        Root.CFrame += (Humanoid.MoveDirection * Config.Flight.Speed)
+                    else
+                        Root.CFrame *= CFrame.new(Config.Flight.Speed, 0, 0)
+                    end
+                end
+            end
+
+        end
+    else
+        -- Unfly
+        FlyVelocity.Parent = nil
+        FlyAngularVelocity.Parent = nil
+    end
+end
+
+
 function UpdateFieldOfViewCircle()
     FieldOfViewCircle.Visible = Config.Interface.FieldOfViewCircle.Enabled
 
@@ -2868,6 +2978,7 @@ function UpdateFieldOfViewCircle()
         FieldOfViewCircle.Filled = Config.Interface.FieldOfViewCircle.Filled
     end
 end
+
 
 function UpdateAimbotIndicator()
     if (Config.Aimbot.Visualize and Config.Aimbot.Enabled) then
@@ -2884,7 +2995,8 @@ function UpdateAimbotIndicator()
     end
 end
 
-function BindKey(Name, Mode, Key, Command, Arguments)
+
+function BindKey(Name: string, Mode: string, Key, Command, Arguments)
     if Mode == "Add" then
         Config.Keybinds.Commands[Name] = {
             Key,
@@ -2896,13 +3008,15 @@ function BindKey(Name, Mode, Key, Command, Arguments)
     end
 end
 
-function LogEvent(Flag, Message, Time:tick)
+
+function LogEvent(Flag: string, Message: string, Time: number)
     if Config.EventLogs.Enabled and Config.EventLogs.Flags[Flag] then
         Menu.Notify(Message, 8)
     end
 end
 
-function BuyItem(Item_Name:string)
+
+function BuyItem(Item_Name: string)
     local Item_Name = string.lower(Item_Name)
     local Items = {"Uzi", "Glock", "Sawed Off", "Pipe", "Machete", "Golf Club", "Bat", "Bottle", "Spray", "Burger", "Chicken", "Drink", "Ammo"}
 
@@ -2954,7 +3068,7 @@ function BuyItem(Item_Name:string)
 end
 
 
-function CreateBulletImpact(Position, Color, Material)
+function CreateBulletImpact(Position: Vector3, Color: Color3, Material: EnumItem): Part
     local Impact = Instance.new("Part")
     Impact.Anchored = true
     Impact.CanCollide = false
@@ -2971,7 +3085,7 @@ end
 
 
 
-function DrawLine(Color, Transparency, From, To)
+function DrawLine(Color: Color3, Transparency: number, From: Vector2, To: Vector2): Line
     local Line = Drawing.new("Line")
     Line.Color = Color or Color3.new(1, 1, 1)
     Line.Transparency = Transparency or 1
@@ -2984,7 +3098,7 @@ function DrawLine(Color, Transparency, From, To)
 end
 
 
-function DrawCross(Size, Offset)
+function DrawCross(Size: number, Offset: number): Cross
     local Cross = {}
     local Lines = {DrawLine(), DrawLine(), DrawLine(), DrawLine()}
 
@@ -2993,17 +3107,17 @@ function DrawCross(Size, Offset)
     Cross.Size = typeof(Size) == "number" and Size or 20
     Cross.Offset = typeof(Offset) == "number" and Offset or 4
 
-    function Cross:SetSize(Size)
+    function Cross:SetSize(Size: number)
         assert(typeof(Size) == "number", "Size must be a number")
         Cross.Size = Size
     end
 
-    function Cross:SetOffset(Offset)
+    function Cross:SetOffset(Offset: number)
         assert(typeof(Offset) == "number", "Offset must be a number")
         Cross.Offset = Offset
     end
     
-    function Cross:SetPosition(Position)
+    function Cross:SetPosition(Position: Vector2)
         if not Cross.Alive then return error("CROSS IS DEAD") end
 
         -- until I figure out a better way to do this and yes I need it to work by the angle to make it spin
@@ -3030,12 +3144,12 @@ function DrawCross(Size, Offset)
         end
     end
 
-    function Cross:Rotate(Angle)
+    function Cross:Rotate(Angle: number)
         if not Cross.Alive then return error("CROSS IS DEAD") end
         Cross.Angle = not Cross.Angle
     end
 
-    function Cross:SetColor(Color, Transparency)
+    function Cross:SetColor(Color: Color3, Transparency: number)
         if not Cross.Alive then return error("CROSS IS DEAD") end
 
         Cross.Color = typeof(Color) == "Color3" and Color or Cross.Color
@@ -3047,7 +3161,7 @@ function DrawCross(Size, Offset)
         end
     end
     
-    function Cross:SetVisible(Visible)
+    function Cross:SetVisible(Visible: boolean)
         if not Cross.Alive then return error("CROSS IS DEAD") end
 
         for _, Line in ipairs(Lines) do
@@ -3055,7 +3169,7 @@ function DrawCross(Size, Offset)
         end
     end
 
-    function Cross:FadeIn(Callback)
+    function Cross:FadeIn(Callback: any)
         if not Cross.Alive then return error("CROSS IS DEAD") end
 
         spawn(function()
@@ -3072,7 +3186,7 @@ function DrawCross(Size, Offset)
         end)
     end
 
-    function Cross:FadeOut(Callback)
+    function Cross:FadeOut(Callback: any)
         if not Cross.Alive then return error("CROSS IS DEAD") end
 
         spawn(function()
@@ -3108,7 +3222,7 @@ end
 
 
 -- Thanks to f6oor
-function DrawStrawHat(Player)
+function DrawStrawHat(Player: Player): table
     local Head = Player and Player.Character and Player.Character:FindFirstChild("Head")
     if not Head then return end
     
@@ -3141,7 +3255,7 @@ function DrawStrawHat(Player)
 end
 
 
-function PlaySound(SoundId, Volume)
+function PlaySound(SoundId: string, Volume: number)
     assert(SoundId, "Missing SoundId")
 
     local Sound = Instance.new("Sound")
@@ -3207,7 +3321,7 @@ function TeleportBypass()
 end
 
 
-function PlayAnimationServer(Animation: instance)
+function PlayAnimationServer(Animation: Instance)
     Backpack.ServerTraits.Finish:FireServer({
         Finish = Animation
     })
@@ -3232,7 +3346,7 @@ function EnableInfiniteStamina(Value: number)
 end
 
 
-function PlaySoundExploit(Sound)
+function PlaySoundExploit(Sound: Instance)
     if IsOriginal or not Sound then return end
 
     spawn(function()
@@ -3501,7 +3615,7 @@ function GripTool(Tool: Tool, Grip_CFrame: CFrame): Weld
 end
 
 
-function CreateJoint(Name: string, Part: BasePart, CF: CFrame)
+function CreateJoint(Name: string, Part: BasePart, CF: CFrame): Attachment
     local Attachment = Instance.new("Attachment")
     Attachment.Name = Name
     Attachment.CFrame = CF
@@ -3572,7 +3686,7 @@ function ResyncPlayer(Player: Player)
 end
 
 
-function ShowDoorMenu(self) -- I hate this shitty code
+function ShowDoorMenu(self: Instance) -- I hate this shitty code
     local Lock = self:FindFirstChild("Lock").ClickDetector.RemoteEvent
     local Locker = self:FindFirstChild("Locker")
     local Click = self:FindFirstChild("Click").ClickDetector.RemoteEvent
@@ -3645,14 +3759,9 @@ function ShowDoorMenu(self) -- I hate this shitty code
     end)
 end
 
-function Heartbeat(Step) -- after phys :: after heartbeat comes network stepped
+function Heartbeat(Step: number) -- after phys :: after heartbeat comes network stepped
     Camera = workspace.CurrentCamera
-    if UserInput:GetFocusedTextBox() ~= Menu.CommandBar then OnCommandBarFocusLost() end
-
-    for i, v in ipairs(ChatScheduler) do
-        table.remove(ChatScheduler, i)
-        spawn(OnChatted, v)
-    end
+    if not CommandBarHidden then OnCommandBarFocusLost() end
 
     local SelectedTarget = GetSelectedTarget()
     Target = TargetLock and SelectedTarget or GetTarget()
@@ -3685,37 +3794,7 @@ function Heartbeat(Step) -- after phys :: after heartbeat comes network stepped
         end
     end
 
-    for _, _Player in ipairs(Players:GetPlayers()) do -- 34 players; 4 attribute changes for each player; 34*4=136changes every step; 136*60 = 8160 changes every second
-        local LastPosition = _Player:GetAttribute("Position")
-        if not LastPosition then continue end
-
-        local _Root = GetRoot(_Player)
-
-        if _Root then
-            local Position = _Root.Position
-
-            if Player ~= _Player then -- local player has custom thing
-                _Player:SetAttribute("Stamina", GetStamina(_Player) or 0)
-
-                -- local player's character should already be blacklisted
-                -- _Root.Parent is the Target Character we need to filter that so we don't get false positives
-                _Player:SetAttribute("BehindWall", (IsBehindAWall(Root, _Root, {_Root.Parent})))
-            end
-
-            _Player:SetAttribute("Distance", math_round(Player:DistanceFromCharacter(Position), 2))
-            _Player:SetAttribute("Velocity", (Position - LastPosition) / Step)
-            _Player:SetAttribute("Position", Position)
-        else
-            _Player:SetAttribute("Distance", 0)
-            _Player:SetAttribute("Velocity", Vector3.new())
-            _Player:SetAttribute("Position", Vector3.new())
-
-            if Player ~= _Player then
-                _Player:SetAttribute("Stamina", 0)
-                _Player:SetAttribute("BehindWall", false)
-            end
-        end
-    end
+    UpdatePlayersInfo(Step)
 
     --if Config.AutoAttack.Enabled then
         
@@ -3920,76 +3999,7 @@ function Stepped(_, Step: number) -- before phys
         end
 
         if Player:GetAttribute("Health") > 0 and Player:GetAttribute("IsAlive") then
-            if Config.Flight.Enabled then
-                local LookVector = Camera.CFrame.LookVector
-                local Car = IsInCar()
-
-                FlyVelocity.Parent = Root
-                FlyAngularVelocity.Parent = Root
-                -- Root.AssemblyLinearVelocity = Vector3.new()
-
-                if Car then
-                    local Root = Car.Chassis
-                    Car.PrimaryPart = Root
-
-                    Root.CanCollide = false
-                    Car:PivotTo(CFrame.new(Root.Position, Root.Position + LookVector))
-
-                    if not UserInput:GetFocusedTextBox() then
-                        if UserInput:IsKeyDown(Enum.KeyCode.W) then
-                            Car:PivotTo(Root.CFrame + LookVector * Config.Flight.Speed)
-                        end
-                        if UserInput:IsKeyDown(Enum.KeyCode.A) then
-                            Car:PivotTo(Root.CFrame * CFrame.new(-Config.Flight.Speed, 0, 0))
-                        end
-                        if UserInput:IsKeyDown(Enum.KeyCode.S) then
-                            Car:PivotTo(Root.CFrame - LookVector * Config.Flight.Speed)
-                        end
-                        if UserInput:IsKeyDown(Enum.KeyCode.D) then
-                            Car:PivotTo(Root.CFrame * CFrame.new(Config.Flight.Speed, 0, 0))
-                        end
-                    end
-                else
-                    Humanoid:ChangeState(Enum.HumanoidStateType.Running)
-                    Humanoid:ChangeState(Enum.HumanoidStateType.RunningNoPhysics)
-
-                    Root.CFrame = Config.Flight.Rotation and CFrame.new(Root.Position, Root.Position + LookVector) or CFrame.new(Root.Position, Root.Position + LookVector * Vector3.new(1, 0, 1))
-                    
-                    local Velocity = Player:GetAttribute("Velocity")
-                    firesignal(Humanoid.Running, Velocity.Magnitude / 10)
-
-                    if not UserInput:GetFocusedTextBox() then
-                        if UserInput:IsKeyDown(Enum.KeyCode.W) then
-                            Root.CFrame += LookVector * Config.Flight.Speed
-                        end
-
-                        if UserInput:IsKeyDown(Enum.KeyCode.S) then
-                            Root.CFrame -= LookVector * Config.Flight.Speed
-                        end
-
-                        if UserInput:IsKeyDown(Enum.KeyCode.A) then
-                            if Config.Flight.Rotation or Config.Flipped.Enabled then
-                                Root.CFrame += (Humanoid.MoveDirection * Config.Flight.Speed)
-                            else
-                                Root.CFrame *= CFrame.new(-Config.Flight.Speed, 0, 0)
-                            end
-                        end
-
-                        if UserInput:IsKeyDown(Enum.KeyCode.D) then
-                            if Config.Flight.Rotation or Config.Flipped.Enabled then
-                                Root.CFrame += (Humanoid.MoveDirection * Config.Flight.Speed)
-                            else
-                                Root.CFrame *= CFrame.new(Config.Flight.Speed, 0, 0)
-                            end
-                        end
-                    end
-
-                end
-            else
-                -- Unfly
-                FlyVelocity.Parent = nil
-                FlyAngularVelocity.Parent = nil
-            end
+            UpdatePlayerFlyState()
 
             if Config.Noclip.Enabled then
                 local Head = Character:FindFirstChild("Head")
@@ -4199,7 +4209,7 @@ function RenderStepped(Step: number)
 end
 
 
-function OnInput(Input, Process)
+function OnInput(Input: InputObject, Process: boolean)
     local Object = Mouse.Target
     local Key = Input.KeyCode
     local Input = Input.UserInputType
@@ -4278,7 +4288,7 @@ function OnInput(Input, Process)
 end
 
 
-function OnInputEnded(Input, Process)
+function OnInputEnded(Input: InputObject, Process: boolean)
     local Key = Input.KeyCode
     local Input = Input.UserInputType
 
@@ -4287,22 +4297,30 @@ function OnInputEnded(Input, Process)
     end
 end
 
-function OnChatted(Message)
+
+function OnChatted(Message: string)
     Commands.Check(Message, string.char(Config.Prefix.Value))
 end
+
 
 function OnIdle()
     VirtualUser:CaptureController()
     VirtualUser:ClickButton2(Vector2.new())
 end
 
-function OnCommandBarFocusLost(CheckCommand)
+
+function OnCommandBarFocusLost()
     local CommandBar = Menu.CommandBar
+
     CommandBar:ReleaseFocus()
-    CommandBar:TweenPosition(UDim2.new(0.5, -100, 1, 5), nil, nil, 0.2, true)
+    CommandBar:TweenPosition(UDim2.new(0.5, -100, 1, 5), nil, nil, 0.2, true, function()
+        CommandBarHidden = true
+    end)
+
     local Success, Result = pcall(function()
         Commands.Check(CommandBar.Text)
     end)
+
     if not Success then
         Console:Error("[COMMAND ERROR] " .. Result)
     end
@@ -4317,7 +4335,7 @@ function OnDeath()
 end
 
 
-function OnStateChange(Old, New)
+function OnStateChange(Old: EnumItem, New: EnumItem)
     if (not Player:GetAttribute("KnockedOut") and Config.AntiGroundHit.Enabled) then
         if New == Enum.HumanoidStateType.FallingDown then
             Humanoid:ChangeState(Enum.HumanoidStateType.Running)
@@ -4330,7 +4348,7 @@ function OnStateChange(Old, New)
 end
 
 
-function OnHealthChange(Health)
+function OnHealthChange(Health: number)
     if Health < Player:GetAttribute("Health") then -- if current health is less than last time then we give player the health_tick attribute
         Player:SetAttribute("HealthTick", os.clock())
     end
@@ -4339,7 +4357,7 @@ function OnHealthChange(Health)
 end
 
 
-function OnStaminaChanged(Stamina)
+function OnStaminaChanged(Stamina: number)
     if Stamina < Player:GetAttribute("Stamina") then -- if current stamina is less than last time then we give player the stamina_tick attribute
         Player:SetAttribute("StaminaTick", os.clock())
     end
@@ -4584,18 +4602,14 @@ function OnCharacterAdded(_Character: Model)
 end
 
 
-function OnPlayerChatted(Type, Player, Message, Target)
-
-end
-
-function OnPlayerAdded(Player)
+function OnPlayerAdded(Player: Player)
     if Player == Players.LocalPlayer then return end
     Menu:FindItem("Misc", "Players", "ListBox", "Target"):SetValue(SelectedTarget, Players:GetPlayers())
 
     local ToolValue = Instance.new("ObjectValue")
     ToolValue.Name = "Tool" ToolValue.Parent = Player
 
-    local function OnCharacterAdded(Character)
+    local function OnCharacterAdded(Character: Model)
         spawn(function()
             local Backpack = Player:WaitForChild("Backpack")
             local Humanoid = Character:WaitForChild("Humanoid")
@@ -4748,7 +4762,7 @@ function OnPlayerAdded(Player)
 end
 
 
-function OnPlayerRemoving(Player)
+function OnPlayerRemoving(Player: Player)
     Menu:FindItem("Misc", "Players", "ListBox", "Target"):SetValue(SelectedTarget, Players:GetPlayers())
     LogEvent("Left", "\"" .. tostring(Player) .. "\" has left the game", tick())
 
@@ -4762,7 +4776,7 @@ function OnPlayerRemoving(Player)
 end
 
 
-function OnPlayerKnockedOut(Player:player, Local:bool)
+function OnPlayerKnockedOut(Player: Player, Local: boolean)
     Player:SetAttribute("KnockedOut", true)
     AddKnockedOutTimer(Player)
 
@@ -4782,7 +4796,7 @@ function OnPlayerKnockedOut(Player:player, Local:bool)
 end
 
 
-function OnPlayerDamaged(Victim:player, Attacker:player, Damage:number, Time:tick)
+function OnPlayerDamaged(Victim: Player, Attacker: Player, Damage: number, Time: number)
     if typeof(Victim) ~= "Instance" or typeof(Attacker) ~= "Instance" then 
         return 
     end -- if not instance then ignore
@@ -4900,7 +4914,7 @@ function OnLightingChanged(Property: string)
 end
 
 
-function OnCreatorValueAdded(self)
+function OnCreatorValueAdded(self: Instance)
     spawn(function()
         local Victim = Players:GetPlayerFromCharacter(self.Parent.Parent) -- Parented in humanoid
         local Attacker = Players:GetPlayerFromCharacter(self.Value)
@@ -4914,7 +4928,7 @@ function OnCreatorValueAdded(self)
 end
 
 
-function OnBulletAdded(Bullet)
+function OnBulletAdded(Bullet: Instance)
     if Bullet.Parent == nil then
     	Bullet.AncestryChanged:Wait()
     	return OnBulletAdded(Bullet)
@@ -5075,6 +5089,13 @@ function OnTagReplicateEvent(State, Data)
 end
 
 
+function OnNewMessageEvent(Data: table)
+    if Data.SpeakerUserId == Player.UserId then
+        OnChatted(Data.Message)
+    end
+end
+
+
 -- Key bind toggles
 
 
@@ -5169,12 +5190,15 @@ function AntiAimToggle(Action_Name, State, Input)
 end
 
 
-function CommandBarToggle(Action_Name, State, Input)
+function CommandBarToggle(Action_Name: string, State: EnumItem, Input)
     if not State or State == Enum.UserInputState.Begin then
         local CommandBar = Menu.CommandBar
 
+        CommandBarHidden = false
         CommandBar:CaptureFocus()
-        CommandBar:TweenPosition(UDim2.new(0.5, -100, 0.6, -10), nil, nil, 0.2, true)
+        CommandBar:TweenPosition(UDim2.new(0.5, -100, 0.6, -10), nil, nil, 0.2, true, function()
+            CommandBarHidden = false
+        end)
 
         delay(0, function() CommandBar.Text = "" end)
     end
@@ -5325,10 +5349,6 @@ function OnNameCall(self: Instance, ...)
             if string.find(Name, "l") and string.find(Name, "i") and #Name < 7 then 
                 return 
             end
-        end 
-
-        if Name == "SayMessageRequest" then 
-            table.insert(ChatScheduler, Arguments[1])
         end 
 
         if Name == "Input" then 
@@ -7477,7 +7497,6 @@ UserInput.InputBegan:Connect(OnInput)
 UserInput.InputEnded:Connect(OnInputEnded)
 Player.Idled:Connect(OnIdle)
 Player.CharacterAppearanceLoaded:Connect(OnCharacterAdded)
-Players.PlayerChatted:Connect(OnPlayerChatted)
 Players.PlayerAdded:Connect(OnPlayerAdded)
 Players.PlayerRemoving:Connect(OnPlayerRemoving)
 Menu.CommandBar.FocusLost:Connect(OnCommandBarFocusLost)
@@ -7489,3 +7508,4 @@ if IsOriginal then
     Character:WaitForChild("GetMouse").OnClientInvoke = OnGetMouseInvoke
     ReplicatedStorage:WaitForChild("TagReplicate").OnClientEvent:Connect(OnTagReplicateEvent)
 end
+ReplicatedStorage:WaitForChild("DefaultChatSystemChatEvents"):WaitForChild("OnNewMessage").OnClientEvent:Connect(OnNewMessageEvent)
