@@ -27,9 +27,6 @@ local spawn = task.spawn
 local request = request or syn and syn.request or http and http.request
 local get_custom_asset = getcustomasset or syn and getsynasset
 local queue_on_teleport = queue_on_teleport or syn and syn.queue_on_teleport
-
-local math_round = function(Number, Scale) return tonumber(string.format("%." .. Scale .. "f", Number)) end
-local messagebox = messagebox or message_box
 local get_script_version = function() return "1.0.0" end
 
 local Stats = game:GetService("Stats")
@@ -54,21 +51,25 @@ if not import then return messagebox("Error 0x5; Something went wrong with initi
 
 local ESP
 local Menu
+local Utils
 local Raycast
 local Console
 local Commands
 local ToolData
 local DoorData
+local TimerClass
 
 -- Importing the modules and yielding until they are loaded
 
 spawn(function() ESP = import("ESP") end)
 spawn(function() Menu = import("Menu") end)
+spawn(function() Utils = import("Utils") end)
 spawn(function() Raycast = import("Raycast") end)
 spawn(function() Console = import("Console") end)
 spawn(function() Commands = import("Commands") end)
 spawn(function() ToolData = import("Tool Data") end)
 spawn(function() DoorData = import("Door Data") end)
+spawn(function() TimerClass = import("TimerClass") end)
 
 while not ESP or not Menu or not Raycast or not Console or not Commands or not ToolData or not DoorData do wait() end -- waiting for the modules to load...
 getgenv().import = nil  -- won't be used anymore
@@ -637,7 +638,6 @@ local Items = {}
 local Seats = {}
 local Doors = {}
 local Drawn = {}
-local Timers = {}
 local Windows = {}
 local Animations = {}
 local AudioLogs = isfile("ponyhook/Games/The Streets/Audios.dat") and string.split(readfile("ponyhook/Games/The Streets/Audios.dat"), "\n") or {}
@@ -754,22 +754,9 @@ function SaveConfig(Name: string)
             end
         end
     end
-    
-    local function table_clone(Original: table)
-        local Clone = {}
-        
-        for k, v in pairs(Original) do
-            if typeof(v) == "table" then
-                v = table_clone(v)
-            end
-            Clone[k] = v
-        end
-        
-        return Clone
-    end
 
     local ConfigFile = "ponyhook/Games/The Streets/Configs/" .. Name .. ".cfg"
-    local config_clone = table_clone(Config)
+    local config_clone = Utils.table_clone(Config)
 
     Iterate(config_clone)
     writefile(ConfigFile, HttpService:JSONEncode(config_clone))
@@ -1163,11 +1150,11 @@ function RefreshMenu()
 end
 
 
-function GetFolders(Directory)
+function GetFolders(Directory: string): table
     local Folders = {}
     local Names = {}
 
-    local function Recurse(Directory)
+    local function Recurse(Directory: string)
         for _, File in ipairs(listfiles(Directory)) do
             if isfolder(File) then
                 table.insert(Folders, File)
@@ -1181,11 +1168,11 @@ function GetFolders(Directory)
 end
 
 
-function GetFiles(Directory)
+function GetFiles(Directory: string): table
     local Files = {}
     local Names = {}
 
-    local function Recurse(Directory)
+    local function Recurse(Directory: string)
         for _, File in ipairs(listfiles(Directory)) do
             if isfile(File) then
                 table.insert(Files, File)
@@ -1201,66 +1188,12 @@ function GetFiles(Directory)
 end
 
 
-function get_clipboard()
-    while not iswindowactive() do wait() end
-
-    local text_box = Instance.new("TextBox")
-    text_box.Parent = CoreGui
-
-    text_box:CaptureFocus()
-
-    keypress(0x11)
-    keypress(0x44)
-
-    wait()
-
-    keyrelease(0x11)
-    keyrelease(0x44)
-
-    text_box:ReleaseFocus()
-
-    local clipboard = text_box.Text
-    text_box:Destroy()
-
-    return clipboard
-end
-
-function set_clipboard(text)
-    while not iswindowactive() do wait() end
-
-    local text_box = Instance.new("TextBox")
-    text_box.Parent = CoreGui
-
-    text_box.Text = text
-    text_box:CaptureFocus()
-    keypress(0x11)
-    keypress(0x43)
-
-    wait()
-
-    keyrelease(0x11)
-    keyrelease(0x43)
-
-    text_box:ReleaseFocus()
-    text_box:Destroy()
-end
-
-function GetRichTextColor(Text, Color)
-    if typeof(Color) == "string" then
-        return string.format("<font color = '#%s'>", Color) .. Text .. "</font>"
-    end
-    
-    if typeof(Color) == "Color3" then
-        local R, G, B = math_round(Color.R * 255, 2), math_round(Color.G * 255, 2), math_round(Color.B * 255, 2)
-        return string.format("<font color = 'rgb(%s)'>", R .. G .. B) .. Text .. "</font>"
-    end
-end
-
-function GetSelectedTarget()
+function GetSelectedTarget(): Player
     return Players:FindFirstChild(SelectedTarget or "")
 end
 
-function GetTarget()
+
+function GetTarget(): Player
     if not Root then return end
 
     local Selected
@@ -1294,7 +1227,7 @@ function GetTarget()
 end
 
 
-function GetStompTarget()
+function GetStompTarget(): Model
     if Character and Root then
         local Ray = Raycast.streets(Root.Position, Root.Position - Vector3.new(0, 2, 0), 3, Character)
 
@@ -1341,7 +1274,7 @@ function GetPlayer(Name: string): table
 end
 
 
-function GetRoot(Player)
+function GetRoot(Player: Player): Part
     local Character = Player and Player.Character
     local Humanoid = Character and Character:FindFirstChild("Humanoid")
 
@@ -1349,7 +1282,7 @@ function GetRoot(Player)
 end
 
 
-function GetLimbs(Player)
+function GetLimbs(Player: Player): table
     local Character = Player and Player.Character
     local Humanoid = Character and Character:FindFirstChild("Humanoid")
 
@@ -1375,7 +1308,7 @@ function GetLimbs(Player)
 end
 
 
-function GetAnimation(Name)
+function GetAnimation(Name: string): Animation
     if typeof(Name) == "string" then
         if tonumber(Name) == nil then
             return Animations[Name].self
@@ -1390,7 +1323,7 @@ function GetAnimation(Name)
 end
 
 
-function GetStamina(_Player)
+function GetStamina(_Player: Player): number
     local Player = _Player or Player
     local Stamina = 100
     local StaminaInstance
@@ -1412,11 +1345,11 @@ function GetStamina(_Player)
         end
     end
 
-    return math_round(Stamina, 2)
+    return Utils.math_round(Stamina, 2)
 end
 
 
-function GetClanModel()
+function GetClanModel(): Model
     local Model
 
     if Character then
@@ -1434,7 +1367,7 @@ function GetClanModel()
 end
 
 
-function GetAimbotCFrame(Randomize)
+function GetAimbotCFrame(Randomize: boolean): CFrame
     local Character = Target and Target.Character
 
     local HitPart = Character and (Character.FindFirstChild(Character, Config.Aimbot.HitBox) or Character.FindFirstChildWhichIsA(Character, "BasePart"))
@@ -1453,7 +1386,7 @@ function GetAimbotCFrame(Randomize)
 end
 
 
-function GetTools(_Player, Type)
+function GetTools(_Player: Player, Type: string): table
     local Player = _Player or Player
     local Character = Player.Character
     local Backpack = Player:FindFirstChild("Backpack")
@@ -1522,7 +1455,7 @@ function GetToolInfo(self: Tool, Property: string): any -- Maybe use attributes 
     end
 end
 
-function GetModelParts(Model, Ignore)
+function GetModelParts(Model: Model, Ignore: table): table
     local Parts = {}
 
     for _, v in ipairs(Model:GetDescendants()) do
@@ -1538,7 +1471,7 @@ function GetModelParts(Model, Ignore)
 end
 
 
-function GetCash()
+function GetCash(): number
     local Cash
     local CashLabel = HUD and HUD:FindFirstChild("Cash")
 
@@ -1576,7 +1509,7 @@ do
         Start = os.clock()
     end)
 
-    function GetFrameRate()
+    function GetFrameRate(): number
         return FPS
     end
 end
@@ -1585,7 +1518,7 @@ end
 do
     local Buyers = {}
 
-    local function get_name(Name, Count)
+    local function get_name(Name: string, Count: number): string
         if Buyers[Name] then
             if Count then
                 local temp = Name .. Count
@@ -1629,17 +1562,17 @@ do
         end
     end
 
-    function GetBuyPads()
+    function GetBuyPads(): table
         return Buyers
     end
 end
 
-function GetItem(Name)
+function GetItem(Name: string): Part--, number
     local Item = GetBuyPads()[string.lower(Name)]
     return Item.Part, Item.Price
 end
 
-function GetBrickTrajectoryPoints(Brick)
+function GetBrickTrajectoryPoints(Brick: Tool): table
     local Handle = Brick:FindFirstChild("Handle")
     if not Handle then return end
 
@@ -1709,7 +1642,7 @@ function GetBrickTrajectoryPoints(Brick)
 end
 
 
-function GetHitPoints(Target)
+function GetHitPoints(Target: Player): table
     local Points = {}
     local tCharacter = Target.Character
 
@@ -1739,7 +1672,7 @@ function GetHitPoints(Target)
 end
 
 
-function GetAssetInfo(AssetId)
+function GetAssetInfo(AssetId: number): table
     local AssetId = tonumber(AssetId)
     if not AssetId then return end
 
@@ -1758,7 +1691,7 @@ function GetAssetInfo(AssetId)
 end
 
 
-function IsBehindAWall(Part, Part2, Blacklist)
+function IsBehindAWall(Part: BasePart, Part2: BasePart, Blacklist: table): boolean--, Instance?
     if not Part or not Part2 then return end
 
     local Blacklist = typeof(Blacklist) == "table" and Blacklist or {}
@@ -1783,7 +1716,7 @@ function IsBehindAWall(Part, Part2, Blacklist)
 end
 
 
-function IsDoorOpen(Door)
+function IsDoorOpen(Door: Model): boolean
     local Vector = Door.WoodPart.Position
 
     for _, OpenVector in pairs(DoorData.Doors.Open) do
@@ -1799,7 +1732,7 @@ function IsDoorOpen(Door)
     end
 end
 
-function IsWindowOpen(Window)
+function IsWindowOpen(Window: Model): boolean
     local Vector = Window.Move.Click.Position
 
     for _, OpenVector in pairs(DoorData.Windows.Open) do
@@ -1815,7 +1748,7 @@ function IsWindowOpen(Window)
     end
 end
 
-function IsInCar()
+function IsInCar(): boolean
     local Jeep = workspace:FindFirstChild("Jeep")
 
     if Jeep then
@@ -1944,7 +1877,7 @@ function Chat(Message: string)
 end
 
 
-function SetAnimation(Name, Id)
+function SetAnimation(Name: string, Id: string)
     local Animation = Instance.new("Animation")
     Animation.AnimationId = "rbxassetid://" .. Id
     Animations[Name] = {
@@ -2160,74 +2093,25 @@ do
 end
 
 
-function SetTimer(Name, Time)
-    if Timers[Name] then return end -- Timer already exists
-    local Timer = {
-        Name = Name,
-        Time = Time
-    }
-
-    local Thread = {self = nil, Running = true}
-
-    
-    function Timer:Set(Time)
-        local Time = typeof(Time) == "number" and Time or 0
-        Timer.Time = math_round(Time, 2)
-    end
-
-    function Timer:Get()
-        return math_round(Timer.Time, 2)
-    end
-
-    function Timer:Start()
-        local Tick = os.clock()
-        Thread.self = coroutine.create(function()
-            while true do
-                if not Thread.Running then coroutine.yield() end
-                Timer:Set(os.clock() - Tick)
-                wait()
-            end
-        end)
-        coroutine.resume(Thread.self)
-
-        function Timer:Start()
-            return error("Timer is already running")
-        end
-    end
-
-    function Timer:Destroy()
-        Thread.Running = false
-        Timer.Time = 0
-        Timers[Name] = nil
-    end
-
-    Timers[Name] = Timer
-    return Timer
-end
-
-
 function AddKnockedOutTimer(Player: Player)
-    local Name = Player.Name
-    local Timer = SetTimer(Name, 15)
-    if not Timer then return end -- if already running the timer for this state
+    if Player:GetAttribute("KnockOutTimerActive") then return end
 
     local Character = Player.Character
     local Humanoid = Character and Character:FindFirstChild("Humanoid")
-    local Health = Player:GetAttribute("Health")
-    local IsAlive = Player:GetAttribute("IsAlive")
     
-    if IsAlive and Character and Humanoid then
-        spawn(function()
-            local DownTime = 15 -- it's 30 when ko is less than hp but only on prison; and I can't check players ko value on prison so deal with it; well actually I can check my ko value but still DEAL with it
-            
-            Timer:Start()
-            while (DownTime > Timer:Get()) and (Player and Player:GetAttribute("IsAlive")) do
-                Player:SetAttribute("KnockOut", 15 - Timer:Get())
-                wait()
+    if Player:GetAttribute("IsAlive") and Character and Humanoid then
+        local Timer = TimerClass.new()
+        local DownTime = 15 -- it's 30 when ko is less than hp but only on prison; and I can't check players ko value on prison so deal with it; well actually I can check my ko value but still DEAL with it
+        
+        Player:SetAttribute("KnockOutTimerActive", true)
+        Timer:Start(function()
+            if (DownTime > Timer.Time) and (Player and Player:GetAttribute("IsAlive")) then
+                Player:SetAttribute("KnockOut", DownTime - Timer.Time)
+            else
+                Timer:Destroy()
+                Player:SetAttribute("KnockOut", 0)
+                Player:SetAttribute("KnockOutTimerActive", nil)
             end
-
-            Player:SetAttribute("KnockOut", 0)
-            Timer:Destroy()
         end)
     end
 end
@@ -2254,7 +2138,7 @@ function AddFirstPersonEventListeners()
 end
 
 
-function AddItem(Spawn)
+function AddItem(Spawn: Instance)
     -- This Code is kinda ASS but whatever
     local function Set(Spawn, Name)
         Spawn:SetAttribute("Item", Name)
@@ -2275,11 +2159,11 @@ function AddItem(Spawn)
                     Touched:Disconnect()
                     Event:Disconnect()
 
-                    local Distance = math_round(_Player:DistanceFromCharacter(Part.Position), 2) -- DISTANCE FROM LOCAL PLAYER
+                    local Distance = Utils.math_round(_Player:DistanceFromCharacter(Part.Position), 2) -- DISTANCE FROM LOCAL PLAYER
                     local Color = Config.EventLogs.Colors["Picked up"]:ToHex()
-                    local Message = string.format("%s picked up a %s from %s", GetRichTextColor(Player.Name, Color), GetRichTextColor(Name, Color),
+                    local Message = string.format("%s picked up a %s from %s", Utils.GetRichTextColor(Player.Name, Color), Utils.GetRichTextColor(Name, Color),
 
-                    GetRichTextColor(Distance, Color) .. " studs away")
+                    Utils.GetRichTextColor(Distance, Color) .. " studs away")
                     LogEvent("Picked up", Message, tick())
                 end)
 
@@ -2312,7 +2196,7 @@ function AddItem(Spawn)
 end
 
 
-function AddPlayerESP(_Player)
+function AddPlayerESP(_Player: Player)
     if typeof(_Player) == "Instance" and _Player:IsA("Player") and _Player ~= Player then
     else
         return
@@ -2392,7 +2276,7 @@ function AddPlayerESP(_Player)
 end
 
 
-function AddItemESP(Item)
+function AddItemESP(Item: Instance)
     local Item_ESP
 
     local function Destroy_ESP()
@@ -2440,7 +2324,7 @@ function UpdatePlayersInfo(Step: number)
                 _Player:SetAttribute("BehindWall", (IsBehindAWall(Root, _Root, {_Root.Parent})))
             end
 
-            _Player:SetAttribute("Distance", math_round(Player:DistanceFromCharacter(Position), 2))
+            _Player:SetAttribute("Distance", Utils.math_round(Player:DistanceFromCharacter(Position), 2))
             _Player:SetAttribute("Velocity", (Position - LastPosition) / Step)
             _Player:SetAttribute("Position", Position)
         else
@@ -2681,7 +2565,7 @@ function UpdateESP()
             if v.Velocity.Visible then
                 v.Velocity.Offset = Vector2.new(0, GET_FONT_PUSH())
                 local Velocity = Player:GetAttribute("Velocity") or Vector3.new()
-                Velocity = tostring(math_round(Velocity.Magnitude, 2))
+                Velocity = tostring(Utils.math_round(Velocity.Magnitude, 2))
                 v.Velocity:SetText(string.format("Velocity: [%s u/s]", Velocity), FONT, FONT_SIZE, FONT_COLOR, FONT_TRANSPARENCY, true)
             end
 
@@ -3038,12 +2922,12 @@ function BuyItem(Item_Name: string)
 
             if not Part then
                 local Color = Config.EventLogs.Colors.Error:ToHex()
-                return Menu.Notify(GetRichTextColor("Item '" .. Item_Name .. "' was not found", Color))
+                return Menu.Notify(Utils.GetRichTextColor("Item '" .. Item_Name .. "' was not found", Color))
             end
 
             if Price > GetCash() then
                 local Color = Config.EventLogs.Colors.Error:ToHex()
-                return Menu.Notify(GetRichTextColor("Not enough cash...", Color))
+                return Menu.Notify(Utils.GetRichTextColor("Not enough cash...", Color))
             end
 
             if Part then
@@ -3378,9 +3262,9 @@ function RefreshCharacter()
     SortBackpack()
     if EquippedTool then EquippedTool.Parent = Character end
 
-    HUD.Parent = CoreGui
-    ScreenGui.Parent = CoreGui
-    Script.Parent = CoreGui
+    if HUD then HUD.Parent = CoreGui end
+    if ScreenGui then ScreenGui.Parent = CoreGui end
+    if Script then Script.Parent = CoreGui end
 
     Player.Character = nil
     Player.Character = Character
@@ -3884,7 +3768,7 @@ function Heartbeat(Step: number) -- after phys :: after heartbeat comes network 
 
                 local FoodsToEat = {}
                 for _, Food in ipairs(Foods) do
-                    local FoodHealth = GetToolInfo(Food.Name).Health
+                    local FoodHealth = GetToolInfo(Food).Health
                     if Player:GetAttribute("Health") + HealCount + FoodHealth < 110 then
                         HealCount += FoodHealth
                         table.insert(FoodsToEat, Food)
@@ -3965,9 +3849,9 @@ function Heartbeat(Step: number) -- after phys :: after heartbeat comes network 
         end
     end
 
-    Ping = math_round(Stats.PerformanceStats.Ping:GetValue(), 2)
-    SendPing = math_round(Stats.PerformanceStats.NetworkSent:GetValue(), 2)
-    ReceivePing = math_round(Stats.PerformanceStats.NetworkReceived:GetValue(), 2)
+    Ping = Utils.math_round(Stats.PerformanceStats.Ping:GetValue(), 2)
+    SendPing = Utils.math_round(Stats.PerformanceStats.NetworkSent:GetValue(), 2)
+    ReceivePing = Utils.math_round(Stats.PerformanceStats.NetworkReceived:GetValue(), 2)
 
     do
         local Stamina = GetStamina()
@@ -4150,7 +4034,7 @@ function RenderStepped(Step: number)
     local Timer = Player:GetAttribute("KnockOut") or 0
     if Timer > 0 then
         Menu.Indicators.List["Knocked Out"]:SetVisible(true)
-        Menu.Indicators.List["Knocked Out"]:Update(math_round(Timer, 2), 0, 15)
+        Menu.Indicators.List["Knocked Out"]:Update(Utils.math_round(Timer, 2), 0, 15)
     else
         Menu.Indicators.List["Knocked Out"]:SetVisible(false)
     end
@@ -4353,7 +4237,7 @@ function OnHealthChange(Health: number)
         Player:SetAttribute("HealthTick", os.clock())
     end
 
-    Player:SetAttribute("Health", math_round(Health, 2))
+    Player:SetAttribute("Health", Utils.math_round(Health, 2))
 end
 
 
@@ -4502,9 +4386,9 @@ function OnCharacterAdded(_Character: Model)
     Player:SetAttribute("Vest", UserOwnsAsset(Player, 6967243, "GamePass"))
     Player:SetAttribute("KnockOut", 0)
     Player:SetAttribute("Position", Root.Position)
-    Player:SetAttribute("Health", math_round(Humanoid.Health, 2))
+    Player:SetAttribute("Health", Utils.math_round(Humanoid.Health, 2))
     Player:SetAttribute("IsAlive", true)
-    Player:SetAttribute("Stamina", math_round(GetStamina(), 2))
+    Player:SetAttribute("Stamina", Utils.math_round(GetStamina(), 2))
     Player:SetAttribute("RootPoint", Root and Root.Position)
 
     TeleportBypass()
@@ -4620,7 +4504,7 @@ function OnPlayerAdded(Player: Player)
             local RootPoint = SpawnPoint -- I think I can do somethings with this rootpoint if they have tpbypass on (PRISON)
 
             Player:SetAttribute("Vest", UserOwnsAsset(Player, 6967243, "GamePass"))
-            Player:SetAttribute("Health", math_round(Humanoid.Health, 2))
+            Player:SetAttribute("Health", Utils.math_round(Humanoid.Health, 2))
             Player:SetAttribute("IsAlive", true)
             Player:SetAttribute("KnockOut", 0)
             Player:SetAttribute("Position", RootPoint)
@@ -4709,7 +4593,7 @@ function OnPlayerAdded(Player: Player)
             Character.DescendantAdded:Connect(OnCharacterDescendantAdded)
             Character.DescendantRemoving:Connect(OnCharacterDescendantRemoving)
             Humanoid.HealthChanged:Connect(function(Health)
-                Player:SetAttribute("Health", math_round(Health, 2))
+                Player:SetAttribute("Health", Utils.math_round(Health, 2))
 
                 if Player:GetAttribute("IsAlive") == false then 
                     return 
@@ -4866,20 +4750,20 @@ function OnPlayerDamaged(Victim: Player, Attacker: Player, Damage: number, Time:
         end)
 
         HealthChangedEvent = Victim:GetAttributeChangedSignal("Health"):Connect(function()
-            local Health = math.clamp(math_round(Victim:GetAttribute("Health"), 2), 0, 100)
+            local Health = math.clamp(Utils.math_round(Victim:GetAttribute("Health"), 2), 0, 100)
             local Damage = Log.Damage
             
             if Attacker == Player then
                 local Color = Config.EventLogs.Colors.Hit:ToHex()
             
-                LogEvent("Damage", string.format("Damaged %s for %s (%s health remaining)", GetRichTextColor(tostring(Victim), Color),
-                    GetRichTextColor(Damage, Color), GetRichTextColor(Health, Color)
+                LogEvent("Damage", string.format("Damaged %s for %s (%s health remaining)", Utils.GetRichTextColor(tostring(Victim), Color),
+                    Utils.GetRichTextColor(Damage, Color), Utils.GetRichTextColor(Health, Color)
                 ))
             elseif Victim == Player then
                 local Color = Config.EventLogs.Colors.Miss:ToHex()
                 
-                LogEvent("Damage", string.format("%s damaged you for %s (%s health remaining)", GetRichTextColor(tostring(Attacker), Color),
-                    GetRichTextColor(Damage, Color), GetRichTextColor(Health, Color)
+                LogEvent("Damage", string.format("%s damaged you for %s (%s health remaining)", Utils.GetRichTextColor(tostring(Attacker), Color),
+                    Utils.GetRichTextColor(Damage, Color), Utils.GetRichTextColor(Health, Color)
                 ))
             end
             
@@ -4893,7 +4777,7 @@ function OnPlayerDeath(Victim: Player, Attacker: Player)
     Victim:SetAttribute("IsAlive", false)
     Victim:SetAttribute("KnockedOut", false)
 
-    LogEvent("Death", GetRichTextColor(Victim.Name .. " died", Config.EventLogs.Colors.Death:ToHex()), tick())
+    LogEvent("Death", Utils.GetRichTextColor(Victim.Name .. " died", Config.EventLogs.Colors.Death:ToHex()), tick())
 end
 
 
@@ -4943,7 +4827,7 @@ function OnBulletAdded(Bullet: Instance)
     delay(15, Bullet.Destroy, Bullet)
 
     if Bullet.Parent ~= Humanoid then return end
-    BulletTick = math_round(os.clock() - FireTick, 5)
+    BulletTick = Utils.math_round(os.clock() - FireTick, 5)
 
     local Origin = Bullet.Position
 
@@ -5723,7 +5607,7 @@ Commands.Add("steal", {"st", "log"}, "([audio]/[decal]) [player] - steals the se
     local Target = GetPlayer(player_name)[1]
     if not Target then
         local Color = Config.EventLogs.Colors.Error:ToHex()
-        return Menu.Notify(GetRichTextColor("player_name for argument[2] expeceted", Color))
+        return Menu.Notify(Utils.GetRichTextColor("player_name for argument[2] expeceted", Color))
     end
 
     if asset_type == "audio" or asset_type == "sound" or asset_type == "radio" or asset_type == "boombox" then
@@ -5736,13 +5620,13 @@ Commands.Add("steal", {"st", "log"}, "([audio]/[decal]) [player] - steals the se
                     if sound_id then
                         setclipboard(sound_id)
                         local Color = Config.EventLogs.Colors.Success:ToHex()
-                        return Menu.Notify(GetRichTextColor("set audio_id rbxassetid://'" .. sound_id .. "' to your clipboard", Color))
+                        return Menu.Notify(Utils.GetRichTextColor("set audio_id rbxassetid://'" .. sound_id .. "' to your clipboard", Color))
                     end
                 end
             end
 
             local Color = Config.EventLogs.Colors.Error:ToHex()
-            return Menu.Notify(GetRichTextColor("no audio from player '" .. Target.Name .. "' found", Color))
+            return Menu.Notify(Utils.GetRichTextColor("no audio from player '" .. Target.Name .. "' found", Color))
         end
     elseif asset_type == "decal" or asset_type == "spray" then
         local spray_part = workspace:FindFirstChild(Target.Name .. "Spray")
@@ -5752,15 +5636,15 @@ Commands.Add("steal", {"st", "log"}, "([audio]/[decal]) [player] - steals the se
             if not IsOriginal then decal_id += 1 end
             setclipboard(decal_id)
             local Color = Config.EventLogs.Colors.Success:ToHex()
-            return Menu.Notify(GetRichTextColor("set decal_id rbxassetid://'" .. decal_id .. "' to your clipboard", Color))
+            return Menu.Notify(Utils.GetRichTextColor("set decal_id rbxassetid://'" .. decal_id .. "' to your clipboard", Color))
         else
             local Color = Config.EventLogs.Colors.Error:ToHex()
-            return Menu.Notify(GetRichTextColor("no decal from player '" .. Target.Name .. "' found", Color))
+            return Menu.Notify(Utils.GetRichTextColor("no decal from player '" .. Target.Name .. "' found", Color))
         end
         -- sign check?
     else
         local Color = Config.EventLogs.Colors.Error:ToHex()
-        return Menu.Notify(GetRichTextColor("asset-type for argument[1] expected", Color))
+        return Menu.Notify(Utils.GetRichTextColor("asset-type for argument[1] expected", Color))
     end
 end)
 
@@ -5804,7 +5688,7 @@ do
     
 
     Menu.Screen.Name = "ponyhook"
-    Menu.SetTitle(Menu, "ponyhook" .. GetRichTextColor(".cc", Config.Menu.Accent:ToHex())) -- Can't namecall since synapse is shit
+    Menu.SetTitle(Menu, "ponyhook" .. Utils.GetRichTextColor(".cc", Config.Menu.Accent:ToHex())) -- Can't namecall since synapse is shit
 
     Menu.Tab("Combat")
     Menu.Tab("Visuals")
@@ -6619,7 +6503,7 @@ do
             Threads.Attach.Continue()
         else
             for _, Tool in ipairs(GetTools()) do
-                local ToolInfo = GetToolInfo(Tool.Name)
+                local ToolInfo = GetToolInfo(Tool)
                 if ToolInfo then
                     Tool.Grip = ToolInfo.Grip
                 end
@@ -6680,14 +6564,14 @@ do
                 do
                     local Position = Player:GetAttribute("Position")
                     if typeof(Position) == "Vector3" then
-                        local Origin = tostring(math_round(Position.X, 2) .. "; " .. math_round(Position.Y, 2) .. "; " .. math_round(Position.Z, 2))
+                        local Origin = tostring(Utils.math_round(Position.X, 2) .. "; " .. Utils.math_round(Position.Y, 2) .. "; " .. Utils.math_round(Position.Z, 2))
                         UpdateItemValue("Origin", "Origin: " .. Origin)
                     end
                 end
 
                 local Health = Player:GetAttribute("Health") or 0
                 local Stamina = Player:GetAttribute("Stamina") or 0
-                local KnockOut = math_round(Player:GetAttribute("KnockOut") or 0, 2)
+                local KnockOut = Utils.math_round(Player:GetAttribute("KnockOut") or 0, 2)
 
                 UpdateItemValue("Health", "Health: " .. tostring(Health))
                 UpdateItemValue("Stamina", "Stamina: " .. tostring(Stamina))
@@ -6768,7 +6652,7 @@ do
     Menu.ColorPicker("Settings", "Menu", "Menu accent", Config.Menu.Accent, 0, function(Color)
         Menu.Accent = Color
         Config.Menu.Accent = Color
-	    Menu:SetTitle("ponyhook" .. GetRichTextColor(".cc", Color:ToHex()))
+	    Menu:SetTitle("ponyhook" .. Utils.GetRichTextColor(".cc", Color:ToHex()))
     end)
     Menu.ComboBox("Settings", "Menu", "Console font color", Config.Console.Accent, {"Cyan"}, function(String)
         Config.Console.Accent = String
@@ -7012,7 +6896,7 @@ function Initialize()
             Debounce = true
 
             local Color = Config.EventLogs.Colors.Buy:ToHex()
-            local Message = string.format("%s bought a %s for %s", GetRichTextColor(Player.Name, Color), GetRichTextColor(Name, Color), GetRichTextColor("$" .. Price, Color))
+            local Message = string.format("%s bought a %s for %s", Utils.GetRichTextColor(Player.Name, Color), Utils.GetRichTextColor(Name, Color), Utils.GetRichTextColor("$" .. Price, Color))
 
             LogEvent("Buy", Message, tick())
         end)
@@ -7408,7 +7292,7 @@ function Initialize()
 
                 local Randomization = math.random(-10, 10) / 100
                 local Limit = Config.FakeLag.Limit + Randomization
-                local Current = math_round(os.clock() - Tick, 2)
+                local Current = Utils.math_round(os.clock() - Tick, 2)
 
                 Menu.Indicators.List["Fake Lag"]:Update(math.clamp(Current, 0, Limit), 0, Limit)
                 if Current >= Limit then -- if it's more than the limit then lets get our new last position
@@ -7481,7 +7365,7 @@ function Initialize()
 
     RefreshMenu()
     Menu:SetVisible(true)
-    Menu.Notify(string.format("ponyhook.cc took %s seconds to load in", GetRichTextColor(math_round((os.clock() - Time), 2), Config.Menu.Accent:ToHex()), 10))
+    Menu.Notify(string.format("ponyhook.cc took %s seconds to load in", Utils.GetRichTextColor(Utils.math_round((os.clock() - Time), 2), Config.Menu.Accent:ToHex()), 10))
 end
 
 
