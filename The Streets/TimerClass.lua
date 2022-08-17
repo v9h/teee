@@ -19,16 +19,16 @@ function TimerClass.new(): Timer
 
     function Timer:Destroy()
         self.Time = 0 -- do we really need to
-        table.remove(Timers, self)
+        Timers[self] = nil
     end
 
-    table.insert(Timers, Timer)
+    Timers[Timer] = Timer
     return Timer
 end
 
 
 local function StepTimers()
-    for _, Timer in ipairs(Timers) do
+    for _, Timer in pairs(Timers) do
         Timer.Time = Utils.math_round(os.clock() - Timer.Tick, 2)
         if typeof(Timer.Callback) == "function" then
             Timer:Callback()

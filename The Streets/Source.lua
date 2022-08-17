@@ -681,7 +681,6 @@ local Crouching = false
 local BarsFading = false
 local Teleporting = false
 local GivingTools = false
-local CommandBarHidden = false
 local RefreshingCharacter = false
 
 local DeathPosition = CFrame.new()
@@ -3645,7 +3644,7 @@ end
 
 function Heartbeat(Step: number) -- after phys :: after heartbeat comes network stepped
     Camera = workspace.CurrentCamera
-    if not CommandBarHidden then OnCommandBarFocusLost() end
+    if not CommandBar:GetAttribute("Hidden") then OnCommandBarFocusLost() end
 
     local SelectedTarget = GetSelectedTarget()
     Target = TargetLock and SelectedTarget or GetTarget()
@@ -4197,8 +4196,9 @@ function OnCommandBarFocusLost()
     local CommandBar = Menu.CommandBar
 
     CommandBar:ReleaseFocus()
+    CommandBar:SetAttribute("Hidden", true)
     CommandBar:TweenPosition(UDim2.new(0.5, -100, 1, 5), nil, nil, 0.2, true, function()
-        CommandBarHidden = true
+        CommandBar:SetAttribute("Hidden", true)
     end)
 
     local Success, Result = pcall(function()
@@ -5078,10 +5078,10 @@ function CommandBarToggle(Action_Name: string, State: EnumItem, Input)
     if not State or State == Enum.UserInputState.Begin then
         local CommandBar = Menu.CommandBar
 
-        CommandBarHidden = false
+        CommandBar:SetAttribute("Hidden", false)
         CommandBar:CaptureFocus()
         CommandBar:TweenPosition(UDim2.new(0.5, -100, 0.6, -10), nil, nil, 0.2, true, function()
-            CommandBarHidden = false
+            CommandBar:SetAttribute("Hidden", false)
         end)
 
         delay(0, function() CommandBar.Text = "" end)
