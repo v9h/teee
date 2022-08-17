@@ -3363,10 +3363,12 @@ function GiveToolsPlayer(Target: Player)
 end
 
 
-function Attack(CF: CFrame)
-    local CF = Target and Config.Aimbot.Enabled and GetAimbotCFrame(true) or CF
-
+function Attack(CF: CFrame, Release: boolean)
     if not Tool then return end
+    
+    CF = Target and Config.Aimbot.Enabled and GetAimbotCFrame(true) or CF
+    Release = typeof(Release) == "boolean" and Release or true
+
     -- if AttackCooldown then return end
     -- AttackCooldown = true
     -- delay(0.1, function() AttackCooldown = false end)
@@ -3381,8 +3383,12 @@ function Attack(CF: CFrame)
             velo = Root.AssemblyLinearVelocity.Magnitude or 16
         }
 
+        
         Backpack.Input:FireServer("ml", Arguments)
-        Backpack.Input:FireServer("moff1", Arguments)
+        --if Release then
+            Backpack.Input:FireServer("moff1", Arguments)
+        --else
+        --end
     else
         if Tool:GetAttribute("Gun") then
             if not Tool.CD then return end -- Cooldown
@@ -3644,7 +3650,7 @@ end
 
 function Heartbeat(Step: number) -- after phys :: after heartbeat comes network stepped
     Camera = workspace.CurrentCamera
-    if not Menu.CommandBar:GetAttribute("Hidden") then OnCommandBarFocusLost() end
+    if UserInput:GetFocusedTextBox() ~= Menu.CommandBar then OnCommandBarFocusLost() end
 
     local SelectedTarget = GetSelectedTarget()
     Target = TargetLock and SelectedTarget or GetTarget()
@@ -4196,10 +4202,7 @@ function OnCommandBarFocusLost()
     local CommandBar = Menu.CommandBar
 
     CommandBar:ReleaseFocus()
-    CommandBar:SetAttribute("Hidden", true)
-    CommandBar:TweenPosition(UDim2.new(0.5, -100, 1, 5), nil, nil, 0.2, true, function()
-        CommandBar:SetAttribute("Hidden", true)
-    end)
+    CommandBar:TweenPosition(UDim2.new(0.5, -100, 1, 5), nil, nil, 0.2, true)
 
     local Success, Result = pcall(function()
         Commands.Check(CommandBar.Text)
@@ -5078,11 +5081,8 @@ function CommandBarToggle(Action_Name: string, State: EnumItem, Input)
     if not State or State == Enum.UserInputState.Begin then
         local CommandBar = Menu.CommandBar
 
-        CommandBar:SetAttribute("Hidden", false)
         CommandBar:CaptureFocus()
-        CommandBar:TweenPosition(UDim2.new(0.5, -100, 0.6, -10), nil, nil, 0.2, true, function()
-            CommandBar:SetAttribute("Hidden", false)
-        end)
+        CommandBar:TweenPosition(UDim2.new(0.5, -100, 0.6, -10), nil, nil, 0.2, true)
 
         delay(0, function() CommandBar.Text = "" end)
     end
