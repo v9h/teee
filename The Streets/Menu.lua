@@ -960,13 +960,10 @@ function Menu.Hotkey(Tab_Name: string, Container_Name: string, Name: string, Key
 
 
     function Hotkey:Update(Input: EnumItem, Mode: string)
-        if Input then
-            Button.Text = string.format("[%s]", Input.Name)
-        else
-            Button.Text = "[None]"
-        end
-        self.Mode = Mode or "Toggle"
+        Button.Text = Input and string.format("[%s]", Input.Name) or "[None]"
+
         self.Key = Input
+        self.Mode = Mode or "Toggle"
         self.Editing = false
     end
 
@@ -986,7 +983,7 @@ function Menu.Hotkey(Tab_Name: string, Container_Name: string, Name: string, Key
         return self.Key, self.Mode
     end
 
-    function Hotkey:SetValue(Key:EnumItem, Mode: string)
+    function Hotkey:SetValue(Key: EnumItem, Mode: string)
         self:Update(Key, Mode)
     end
 
@@ -1079,6 +1076,7 @@ function Menu.Hotkey(Tab_Name: string, Container_Name: string, Name: string, Key
         Hotkey.Editing = true
         if UserInput:IsKeyDown(HotkeyRemoveKey) and Key ~= HotkeyRemoveKey then
             Hotkey:Update()
+            Hotkey.Callback(nil, Hotkey.Mode)
         end
     end)
     Button.MouseButton2Click:Connect(function()
