@@ -29,7 +29,7 @@ end
 
 local function StepTimers()
     for _, Timer in ipairs(Timers) do
-        Timer.Time = Utils.math_round(os.clock() - Timer.Tick)
+        Timer.Time = Utils.math_round(os.clock() - Timer.Tick, 2)
         if typeof(Timer.Callback) == "function" then
             Timer:Callback()
         end

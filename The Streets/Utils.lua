@@ -61,7 +61,8 @@ function Utils.GetRichTextColor(Text: string, Color: string): string
 end
 
 function Utils.math_round(Number: number, Scale: number): number
-    return tonumber(string.format("%." .. Scale .. "f", Number))
+    assert(typeof(Number) == "number", "number expected for arguments #1, got '" .. typeof(Number) .. "'")
+    return tonumber(string.format("%." .. (typeof(Scale) == "number" and Scale or 2) .. "f", Number))
 end
 
 
