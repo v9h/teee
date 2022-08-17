@@ -3644,7 +3644,7 @@ end
 
 function Heartbeat(Step: number) -- after phys :: after heartbeat comes network stepped
     Camera = workspace.CurrentCamera
-    if not CommandBar:GetAttribute("Hidden") then OnCommandBarFocusLost() end
+    if not Menu.CommandBar:GetAttribute("Hidden") then OnCommandBarFocusLost() end
 
     local SelectedTarget = GetSelectedTarget()
     Target = TargetLock and SelectedTarget or GetTarget()
