@@ -33,7 +33,6 @@ local Stats = game:GetService("Stats")
 local Debris = game:GetService("Debris")
 local Players = game:GetService("Players")
 local CoreGui = game:GetService("CoreGui")
-local Lighting = game:GetService("Lighting")
 local UserInput = game:GetService("UserInputService")
 local RunService = game:GetService("RunService")
 local StarterGui = game:GetService("StarterGui")
@@ -885,8 +884,8 @@ function LoadConfig(Name: string)
         Lighting.Ambient = Config.Enviorment.Ambient.Colors.Ambient
         Lighting.OutdoorAmbient = Config.Enviorment.Ambient.Colors.OutdoorAmbient
     else
-        Lighting.Ambient = Lighting:GetAttribute("DefaultAmbient")
-        Lighting.OutdoorAmbient = Lighting:GetAttribute("DefaultOutdoorAmbient")
+        Lighting.Ambient = Lighting.DefaultAmbient
+        Lighting.OutdoorAmbient = Lighting.DefaultOutdoorAmbient
     end
 
 
@@ -894,7 +893,7 @@ function LoadConfig(Name: string)
     Mouse.Icon = Crosshair
     EnableInfiniteStamina()
     UpdateAntiAim()
-    UpdateSkybox()
+    Lighting:UpdateSkybox(Config.Enviorment.Skybox.Value)
 end
 
 
@@ -2582,33 +2581,6 @@ function UpdateInterface(Fade: boolean)
 
     for _, Button in ipairs(Buttons) do 
         Button.Visible = not Config.Interface.RemoveUIElements.Enabled 
-    end
-end
-
-
-function UpdateSkybox()
-    local Skybox = Config.Enviorment.Skybox.Value
-    local Skyboxes = GetFolders("ponyhook/Games/The Streets/bin/skyboxes/").Folders
-
-    for k, v in pairs(Skyboxes) do
-        if k == Skybox then
-            local Success, Result = pcall(function()
-                local Sky = Lighting.Sky
-
-                Sky.SkyboxUp = get_custom_asset(readfile(Skybox .. "/Up.png"))
-                Sky.SkyboxDn = get_custom_asset(readfile(Skybox .. "/Down.png"))
-                Sky.SkyboxFt = get_custom_asset(readfile(Skybox .. "/Front.png"))
-                Sky.SkyboxBk = get_custom_asset(readfile(Skybox .. "/Back.png"))
-                Sky.SkyboxLf = get_custom_asset(readfile(Skybox .. "/Left.png"))
-                Sky.SkyboxRt = get_custom_asset(readfile(Skybox .. "/Right.png"))
-            end)
-
-            if not Success then
-                return Console:Error(Result)
-            end
-
-            break
-        end
     end
 end
 
@@ -4329,7 +4301,7 @@ function OnCharacterAdded(Player: Player, Character: Model)
 
                     OnPlayerKnockedOut(Player, false)
                 elseif self:IsA("Tool") then
-                    ToolValue.Value = self
+                    Player.Tool.Value = self
                     if GetToolInfo(self, "IsGun") then
                         self:SetAttribute("Gun", true)
                     end
@@ -4346,7 +4318,7 @@ function OnCharacterAdded(Player: Player, Character: Model)
 
                     SetPlayerChams(Player)
                 elseif self:IsA("Tool") then
-                    ToolValue.Value = nil
+                    Player.Tool.Value = nil
                 end
             end
 
@@ -4387,7 +4359,7 @@ function OnCharacterAdded(Player: Player, Character: Model)
 
             Humanoid.Died:Once(function()
                 OnPlayerDeath(Player)
-                ToolValue.Value = nil
+                Player.Tool.Value = nil
             end)
 
             local Animator = Humanoid:FindFirstChild("Animator")
@@ -4432,16 +4404,14 @@ function OnPlayerAdded(Player: Player)
         end)
         return
     end
-    Menu:FindItem("Misc", "Players", "ListBox", "Target"):SetValue(SelectedTarget, Players:GetPlayers())
 
-    local ToolValue = Instance.new("ObjectValue")
-    ToolValue.Name = "Tool"
-    ToolValue.Parent = Player
+    Menu:FindItem("Misc", "Players", "ListBox", "Target"):SetValue(SelectedTarget, Players:GetPlayers())
+    Instance.new("ObjectValue", Player).Name = "Tool"
 
     if Player.Character then
         local Tool = Player.Character:FindFirstChildOfClass("Tool")
         if Tool then
-            ToolValue.Value = Tool
+            Player.Tool.Value = Tool
 
             if GetToolInfo(Tool, "IsGun") then
                 Tool:SetAttribute("Gun", true)
@@ -4590,7 +4560,7 @@ end
 
 function OnLightingChanged(Property: string)
     if Config.Enviorment.Time.Enabled and Property == "TimeOfDay" then
-        Lighting.TimeOfDay = Config.Enviorment.Time.Value
+        Lighting.Time = Config.Enviorment.Time.Value
     end
 
     if Config.Enviorment.Ambient.Enabled then
@@ -5908,8 +5878,8 @@ do
             Lighting.Ambient = Config.Enviorment.Ambient.Colors.Ambient
             Lighting.OutdoorAmbient = Config.Enviorment.Ambient.Colors.OutdoorAmbient
         else
-            Lighting.Ambient = Lighting:GetAttribute("DefaultAmbient")
-            Lighting.OutdoorAmbient = Lighting:GetAttribute("DefaultOutdoorAmbient")
+            Lighting.Ambient = Lighting.DefaultAmbient
+            Lighting.OutdoorAmbient = Lighting.DefaultOutdoorAmbient
         end
     end)
     Menu.ColorPicker("Visuals", "World", "Ambient", Config.Enviorment.Ambient.Colors.Ambient, 0, function(Color)
@@ -5934,11 +5904,11 @@ do
     end)
     Menu.CheckBox("Visuals", "World", "Saturation changer", Config.Enviorment.Saturation.Enabled, function(Bool)
         Config.Enviorment.Saturation.Enabled = Bool
-        Lighting.ColorCorrection.Saturation = Config.Enviorment.Saturation.Enabled and Config.Enviorment.Saturation.Value or 0
+        Lighting.ColorEffect.Saturation = Config.Enviorment.Saturation.Enabled and Config.Enviorment.Saturation.Value or 0
     end)
     Menu.Slider("Visuals", "World", "Saturation", -1, 0, Config.Enviorment.Saturation.Value, nil, 2, function(Value)
         Config.Enviorment.Saturation.Value = Value
-        Lighting.ColorCorrection.Saturation = Config.Enviorment.Saturation.Enabled and Config.Enviorment.Saturation.Value or 0
+        Lighting.ColorEffect.Saturation = Config.Enviorment.Saturation.Enabled and Config.Enviorment.Saturation.Value or 0
     end)
     Menu.CheckBox("Visuals", "World", "Brick trajectory", Config.BrickTrajectory.Enabled, function(Bool)
         Config.BrickTrajectory.Enabled = Bool
@@ -5968,7 +5938,7 @@ do
     end)
     Menu.ComboBox("Visuals", "World", "Skybox", Config.Enviorment.Skybox.Value, GetFolders("ponyhook/Games/The Streets/bin/skyboxes/").Names, function(String)
         Config.Enviorment.Skybox.Value = String
-        UpdateSkybox()
+        Lighting:UpdateSkybox(Config.Enviorment.Skybox.Value)
     end)
 
     Menu.CheckBox("Visuals", "Other", "Max zoom changer", Config.Zoom.Enabled, function(Bool)
@@ -6582,6 +6552,11 @@ end
 
 
 function Initialize()
+    PlayerManager:Init()
+    Lighting:Init()
+    Lighting:UpdateSkybox(Config.Enviorment.Skybox.Value)
+    Events.Reset.Event:Connect(ResetCharacter)
+    
     pcall(function()
         ChatFrame = PlayerGui.Chat.Frame.ChatChannelParentFrame
         ChatFrame.Position = UDim2.new(0, 0, 1, Config.Interface.Chat.Position)
@@ -6600,50 +6575,6 @@ function Initialize()
         8587081257; 376653421; 1357408709 -- default run
     ]]
 
-    do
-        local Sky = Lighting:FindFirstChildOfClass("Sky")
-        local Blur = Instance.new("BlurEffect")
-        local Bloom = Instance.new("BloomEffect")
-        local SunRays = Utils.IsOriginal and Lighting:WaitForChild("SunRays") or Instance.new("SunRaysEffect")
-        local Atmosphere = Instance.new("Atmosphere")
-        local DepthOfField = Instance.new("DepthOfFieldEffect")
-
-        Blur.Enabled = false
-        Blur.Size = 0
-        Blur.Parent = Lighting
-
-        Bloom.Enabled = false
-        Bloom.Size = 0
-        Bloom.Intensity = 0
-        Bloom.Threshold = 0
-        Bloom.Parent = Lighting
-
-        SunRays.Enabled = Utils.IsOriginal
-        SunRays.Spread = 0
-        SunRays.Intensity = 0
-        SunRays.Parent = Lighting
-
-        Atmosphere.Color = Color3.new(1, 1, 1)
-        Atmosphere.Decay = Color3.new(1, 1, 1)
-        Atmosphere.Glare = 0
-        Atmosphere.Haze = 0
-        Atmosphere.Offset = 0
-        Atmosphere.Density = 0
-        Atmosphere.Parent = Lighting
-
-        DepthOfField.Enabled = false
-        DepthOfField.FarIntensity = 0
-        DepthOfField.NearIntensity = 0
-        DepthOfField.FocusDistance = 0
-        DepthOfField.InFocusRadius = 0
-        DepthOfField.Parent = Lighting
-
-        Lighting:SetAttribute("DefaultAmbient", Lighting.Ambient)
-        Lighting:SetAttribute("DefaultOutdoorAmbient", Lighting.OutdoorAmbient)
-
-        SunRays:SetAttribute("DefaultSpread", SunRays.Spread)
-        SunRays:SetAttribute("DefaultIntensity", SunRays.Intensity)
-    end
 
     AimbotIndicator = DrawCross(20, 4)
     AimbotIndicator:Rotate(90)
@@ -6663,10 +6594,6 @@ function Initialize()
     FloatPart.Size = Vector3.new(100, 1, 100)
     FloatPart.Parent = workspace
 
-    Events.Reset.Event:Connect(ResetCharacter)
-
-    UpdateSkybox()
-    PlayerManager:Initialize()
 
     local AnimationIds = {
         BackFlip = 363364837, Chill = 526821274, Dab = 526812070, Kick = 376851671, Lay = 526815097, Pushups = 526813828, Sit = 178130996, Sit2 = 0, Situps = 526814775, Slide = 1461265895, Roll = 376654657,
@@ -6674,6 +6601,7 @@ function Initialize()
         GlockIdle = 503285264, GlockFire = 503287783, GlockReload = 8533765435, ShottyIdle = 889390949, ShottyFire = 889391270, ShottyReload = 8533763280
     }
 
+    Character:WaitForChild("Humanoid")
     for Name, Id in pairs(AnimationIds) do
         SetAnimation(Name, Id)
     end

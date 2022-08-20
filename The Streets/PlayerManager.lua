@@ -157,7 +157,7 @@ function PlayerManager:GetPlayersFromCharacters(Characters: table): table
 end
 
 
-function PlayerManager:Initialize()
+function PlayerManager:Init()
     for _, Player in ipairs(Players:GetPlayers()) do
         OnPlayerAdded(Player)
     end
