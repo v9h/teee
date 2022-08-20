@@ -157,13 +157,6 @@ function PlayerManager:GetPlayersFromCharacters(Characters: table): table
 end
 
 
-function PlayerManager:Init()
-    for _, Player in ipairs(Players:GetPlayers()) do
-        OnPlayerAdded(Player)
-    end
-end
-
-
 local function OnCharacterAdded(Player: Player, Character: Model)
     local Backpack = Player:WaitForChild("Backpack")
     local Humanoid = Character:WaitForChild("Humanoid")
@@ -220,6 +213,13 @@ end
 
 local function OnHeartbeat(Step: number)
     UpdatePlayersInfo(Step)
+end
+
+
+function PlayerManager:Init()
+    for _, Player in ipairs(Players:GetPlayers()) do
+        OnPlayerAdded(Player)
+    end
 end
 
 
