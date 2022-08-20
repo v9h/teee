@@ -143,7 +143,9 @@ function PlayerManager:GetPlayersWithUserIds(UserIds: table): table
 
     for _, UserId in ipairs(UserIds) do
         UserId = tonumber(UserId)
-        table.insert(PlayersTable, Players:GetPlayerByUserId(UserId))
+        if UserId then
+            table.insert(PlayersTable, Players:GetPlayerByUserId(UserId))
+        end
     end
 
     return PlayersTable
