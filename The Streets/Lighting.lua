@@ -71,7 +71,7 @@ function Lighting:Init()
 end
 
 
-function function:UpdateSkybox(Skybox: string): string--?
+function Lighting:UpdateSkybox(Skybox: string): string--?
     local Skyboxes = GetFolders("ponyhook/Games/The Streets/bin/skyboxes/").Folders
 
     for k, v in pairs(Skyboxes) do
