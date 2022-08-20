@@ -635,9 +635,7 @@ function GetTarget(): Player
     local Selected
     local Radius = math.huge
 
-    local Whitelisted = PlayerManager:GetPlayersWithUserIds(UserTable.Whitelisted)
-    table.insert(Player.UserId, Whitelisted)
-
+    local Whitelisted = {Player.UserId, unpack(PlayerManager:GetPlayersWithUserIds(UserTable.Whitelisted))}
     for _, _Player in ipairs(PlayerManager:GetPlayers(Whitelisted)) do
         if _Player.Character then
             local _Root = Root -- _Root is equal to local player root
