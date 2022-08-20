@@ -1,10 +1,22 @@
 local Utils = {}
 
 
+local Raycast = import "Libraries/Raycast"
+
+
+local request = request or syn and syn.request or http and http.request
+
+
 local CoreGui = game:GetService("CoreGui")
+local Players = game:GetService("Players")
 
 
-function get_clipboard(): string
+
+Utils.IsOriginal = game.PlaceId == 455366377 and true
+Utils.IsPrison = game.PlaceId == 4669040 and true
+
+
+function Utils.get_clipboard(): string
     while not iswindowactive() do wait() end
 
     local text_box = Instance.new("TextBox")
@@ -28,7 +40,7 @@ function get_clipboard(): string
     return clipboard
 end
 
-function set_clipboard(text: string)
+function Utils.set_clipboard(text: string)
     while not iswindowactive() do wait() end
 
     local text_box = Instance.new("TextBox")
@@ -60,6 +72,56 @@ function Utils.GetRichTextColor(Text: string, Color: string): string
     end
 end
 
+
+function Utils.GetRoot(Player: Player): Part
+    local Character = Player and Player.Character
+    local Humanoid = Character and Character:FindFirstChild("Humanoid")
+
+    return Humanoid and Humanoid.RootPart
+end
+
+
+function Utils.UserOwnsAsset(Player: Player, AssetId: string, AssetType: string): boolean
+    --https://inventory.roblox.com/docs#!/Inventory/get_v1_users_userId_items_itemType_itemTargetId
+    -- AssetType : "GamePass", "Asset", "Badge", "Bundle"
+    local UserId = typeof(Player) == "Instance" and Player.UserId
+
+    if UserId and AssetId and AssetType then
+        -- Concatenation is faster than the %s pattern
+        local Url = "https://inventory.roblox.com/v1/users/" .. UserId .. "/items/" .. AssetType .. "/" .. AssetId
+        local Response = request({Url = Url})
+        return string.find(Response.Body, "name") and true or false
+    end
+
+    return false
+end
+
+
+function Utils.IsBehindAWall(Part: BasePart, Part2: BasePart, Blacklist: table): boolean--, Instance?
+    if not Part or not Part2 then return end
+
+    local Blacklist = typeof(Blacklist) == "table" and Blacklist or {}
+    table.insert(Blacklist, workspace.CurrentCamera)
+    table.insert(Blacklist, Players.LocalPlayer.Character)
+
+    local CF = CFrame.new(Part.Position, Part2.Position)
+    local Hit = Raycast.new(CF.Position, CF.LookVector * (Part.Position - Part2.Position).Magnitude, Blacklist)
+
+    if Hit then
+        local HitPart = Hit.Instance
+        if HitPart then
+            if HitPart == Part2 then
+                return false, Hit
+            else
+                return true, Hit
+            end
+        end
+    end
+
+    return false
+end
+
+
 function Utils.math_round(Number: number, Scale: number): number
     assert(typeof(Number) == "number", "number expected for arguments #1, got '" .. typeof(Number) .. "'")
     return tonumber(string.format("%." .. (typeof(Scale) == "number" and Scale or 2) .. "f", Number))
@@ -71,7 +133,7 @@ function Utils.table_clone(Original: table): table
     
     for k, v in pairs(Original) do
         if typeof(v) == "table" then
-            v = table_clone(v)
+            v = Utils.table_clone(v)
         end
         Clone[k] = v
     end
