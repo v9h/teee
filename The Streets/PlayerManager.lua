@@ -1,6 +1,9 @@
 local PlayerManager = {}
 
 
+local spawn = task.spawn
+
+
 local Utils = import "Utils"
 local Events = import "Libraries/Events"
 
@@ -158,23 +161,25 @@ end
 
 
 local function OnCharacterAdded(Player: Player, Character: Model)
-    local Backpack = Player:WaitForChild("Backpack")
-    local Humanoid = Character:WaitForChild("Humanoid")
-    local Root = Humanoid.RootPart
-
-
-    Player:SetAttribute("Vest", Utils.UserOwnsAsset(Player, 6967243, "GamePass"))
-    Player:SetAttribute("AnimeGamePass", Utils.UserOwnsAsset(Player, 1082540, "GamePass") and true or false)
-
-    Player:SetAttribute("Health", Humanoid.Health)
-    Player:SetAttribute("IsAlive", true)
-    Player:SetAttribute("KnockedOut", false)
-    Player:SetAttribute("KnockOut", 0)
-    Player:SetAttribute("RootPoint", Root and Root.Position)
-
-
-    AddPlayerListeners(Player, Character)
-    PlayerManager.CharacterAdded:Fire(Player, Character)
+    spawn(function()
+        local Backpack = Player:WaitForChild("Backpack")
+        local Humanoid = Character:WaitForChild("Humanoid")
+        local Root = Humanoid.RootPart
+    
+    
+        Player:SetAttribute("Vest", Utils.UserOwnsAsset(Player, 6967243, "GamePass"))
+        Player:SetAttribute("AnimeGamePass", Utils.UserOwnsAsset(Player, 1082540, "GamePass") and true or false)
+    
+        Player:SetAttribute("Health", Humanoid.Health)
+        Player:SetAttribute("IsAlive", true)
+        Player:SetAttribute("KnockedOut", false)
+        Player:SetAttribute("KnockOut", 0)
+        Player:SetAttribute("RootPoint", Root and Root.Position)
+    
+    
+        AddPlayerListeners(Player, Character)
+        PlayerManager.CharacterAdded:Fire(Player, Character)
+    end)
 end
 
 

@@ -5995,7 +5995,12 @@ end
 
 
 function Initialize()
+    PlayerManager.PlayerAdded:Add(OnPlayerAdded)
+    PlayerManager.PlayerRemoved:Add(OnPlayerRemoving)
+    PlayerManager.CharacterAdded:Add(OnCharacterAdded)
+
     PlayerManager:Init()
+    
     Lighting:Init()
     Lighting:UpdateSkybox(Config.Enviorment.Skybox.Value)
     Events.Reset.Event:Connect(ResetCharacter)
@@ -6543,10 +6548,6 @@ Initialize()
 
 
 -- Connections
-
-PlayerManager.PlayerAdded:Add(OnPlayerAdded)
-PlayerManager.PlayerRemoved:Add(OnPlayerRemoving)
-PlayerManager.CharacterAdded:Add(OnCharacterAdded)
 
 RunService.Heartbeat:Connect(Heartbeat)
 RunService.Stepped:Connect(Stepped)
