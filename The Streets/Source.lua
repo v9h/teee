@@ -4426,7 +4426,7 @@ function OnPlayerAdded(Player: Player)
         Player:GetAttributeChangedSignal("Stamina"):Connect(function()
             OnStaminaChanged(Player:GetAttribute("Stamina"))
         end)
-        
+
         OnStaminaChanged(Player:GetAttribute("Stamina"))
         return
     end
@@ -6598,16 +6598,6 @@ function Initialize()
         8587081257; 376653421; 1357408709 -- default run
     ]]
 
-    local AnimationIds = {
-        BackFlip = 363364837, Chill = 526821274, Dab = 526812070, Kick = 376851671, Lay = 526815097, Pushups = 526813828, Sit = 178130996, Sit2 = 0, Situps = 526814775, Slide = 1461265895, Roll = 376654657,
-        Gun = 889968874, Gun2 = 229339207, Gun3 = 889390949, Run = 8587081257, Run2 = 458506542, Run3 = 1484589375, Crouch = 8533780211, AntiAim = 215384594, AntiAim2 = 242203091,
-        GlockIdle = 503285264, GlockFire = 503287783, GlockReload = 8533765435, ShottyIdle = 889390949, ShottyFire = 889391270, ShottyReload = 8533763280
-    }
-    
-    for Name, Id in pairs(AnimationIds) do
-        SetAnimation(Name, Id)
-    end
-
     do
         local Sky = Lighting:FindFirstChildOfClass("Sky")
         local Blur = Instance.new("BlurEffect")
@@ -6675,6 +6665,16 @@ function Initialize()
 
     UpdateSkybox()
     PlayerManager:Initialize()
+
+    local AnimationIds = {
+        BackFlip = 363364837, Chill = 526821274, Dab = 526812070, Kick = 376851671, Lay = 526815097, Pushups = 526813828, Sit = 178130996, Sit2 = 0, Situps = 526814775, Slide = 1461265895, Roll = 376654657,
+        Gun = 889968874, Gun2 = 229339207, Gun3 = 889390949, Run = 8587081257, Run2 = 458506542, Run3 = 1484589375, Crouch = 8533780211, AntiAim = 215384594, AntiAim2 = 242203091,
+        GlockIdle = 503285264, GlockFire = 503287783, GlockReload = 8533765435, ShottyIdle = 889390949, ShottyFire = 889391270, ShottyReload = 8533763280
+    }
+
+    for Name, Id in pairs(AnimationIds) do
+        SetAnimation(Name, Id)
+    end
 
     for Name, Pad in pairs(GetBuyPads()) do
         local Part = Pad.Part
