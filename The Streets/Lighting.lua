@@ -64,7 +64,7 @@ function Lighting:Init()
     Lighting.SunRaysEffect = SunRays
     Lighting.Atmosphere = Atmosphere
     Lighting.DepthOfFieldEffect = DepthOfField
-    Lighting.ColorEffect = LightingClass:FindFirstChild("ColorCorrection")
+    Lighting.ColorEffect = LightingService:FindFirstChild("ColorCorrection")
 end
 
 
