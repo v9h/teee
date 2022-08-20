@@ -4078,24 +4078,6 @@ function OnStateChange(Old: EnumItem, New: EnumItem)
 end
 
 
-function OnHealthChange(Health: number)
-    if Health < Player:GetAttribute("Health") then -- if current health is less than last time then we give player the health_tick attribute
-        Player:SetAttribute("HealthTick", os.clock())
-    end
-
-    Player:SetAttribute("Health", Utils.math_round(Health, 2))
-end
-
-
-function OnStaminaChanged(Stamina: number)
-    if Stamina < Player:GetAttribute("Stamina") then -- if current stamina is less than last time then we give player the stamina_tick attribute
-        Player:SetAttribute("StaminaTick", os.clock())
-    end
-
-    Player:SetAttribute("Stamina", Stamina)
-end
-
-
 function OnCharacterAdded(Player: Player, Character: Model)
     spawn(function()
         if Player == PlayerManager.LocalPlayer then
@@ -4423,11 +4405,31 @@ end
 
 function OnPlayerAdded(Player: Player)
     if Player == PlayerManager.LocalPlayer then
+        local function OnHealthChange(Health: number)
+            if typeof(Health) ~= "number" then return end
+            if Health < Player:GetAttribute("Health") then -- if current health is less than last time then we give player the health_tick attribute
+                Player:SetAttribute("HealthTick", os.clock())
+            end
+        end
+        
+        
+        local function OnStaminaChanged(Stamina: number)
+            if typeof(Stamina) ~= "number" then return end
+            if Stamina < Player:GetAttribute("Stamina") then -- if current stamina is less than last time then we give player the stamina_tick attribute
+                Player:SetAttribute("StaminaTick", os.clock())
+            end
+        end
+
+        OnHealthChange(Player:GetAttribute("Health"))
+        OnStaminaChanged(Player:GetAttribute("Stamina"))
+
+        Player:GetAttributeChangedSignal("Health"):Connect(function()
+            OnHealthChange(Player:GetAttribute("Health"))
+        end)
+
         Player:GetAttributeChangedSignal("Stamina"):Connect(function()
             OnStaminaChanged(Player:GetAttribute("Stamina"))
         end)
-
-        OnStaminaChanged(Player:GetAttribute("Stamina"))
         return
     end
     Menu:FindItem("Misc", "Players", "ListBox", "Target"):SetValue(SelectedTarget, Players:GetPlayers())
