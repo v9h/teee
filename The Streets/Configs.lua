@@ -525,7 +525,7 @@ function Configs:Save(Name: string)
 end
 
 
-function Configs:Load(Name: string)
+function Configs:Load(Name: string): table
     local function Iterate(Table: table)
         for k, v in pairs(Table) do
             local Type = typeof(v)
@@ -576,6 +576,8 @@ function Configs:Load(Name: string)
     Iterate(_Config)
     DeepPatch(self.Config, _Config) -- if player made a config a while a go and the script got updated then the config will be invalid we need to patch the cfg
     Configs.Config = _Config
+
+    return Configs.Config
 end
 
 

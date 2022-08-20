@@ -252,7 +252,7 @@ end
 
 
 function LoadConfig(Name: string)
-    Configs:Load(Name)
+    Config = Configs:Load(Name)
     RefreshMenu()
 
     ContextAction:BindAction("aimbotToggle", AimbotToggle, false, Config.Aimbot.Key)
