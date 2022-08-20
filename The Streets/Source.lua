@@ -56,6 +56,7 @@ local Console
 local Commands
 local ToolData
 local DoorData
+local Lighting
 local TimerClass
 local PlayerManager
 
@@ -69,10 +70,11 @@ spawn(function() Console = import("Libraries/Console") end)
 spawn(function() Commands = import("Libraries/Commands") end)
 spawn(function() ToolData = import("Tool Data") end)
 spawn(function() DoorData = import("Door Data") end)
+spawn(function() Lighting = import("Lighting") end)
 spawn(function() TimerClass = import("Libraries/TimerClass") end)
 spawn(function() PlayerManager = import("PlayerManager") end)
 
-while not ESP or not Menu or not Utils or not Raycast or not Console or not Commands or not ToolData or not DoorData or not TimerClass or not PlayerManager do wait() end -- waiting for the modules to load...
+while not ESP or not Menu or not Utils or not Raycast or not Console or not Commands or not ToolData or not DoorData or not Lighting or not TimerClass or not PlayerManager do wait() end -- waiting for the modules to load...
 getgenv().import = nil  -- won't be used anymore
 
 if (Utils.IsOriginal and game.PlaceVersion ~= 1520) or (Utils.IsPrison and game.PlaceVersion ~= 225) then
