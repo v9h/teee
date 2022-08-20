@@ -3493,7 +3493,7 @@ function OnCharacterAdded(Player: Player, Character: Model)
     spawn(function()
         if Player == PlayerManager.LocalPlayer then
             Tool = nil
-            Character = _Character
+            Character = Player.Character
             HUD = PlayerGui:WaitForChild("HUD")
             Backpack = Player:WaitForChild("Backpack")
             Humanoid = Character:WaitForChild("Humanoid")
@@ -6000,7 +6000,7 @@ function Initialize()
     PlayerManager.CharacterAdded:Add(OnCharacterAdded)
 
     PlayerManager:Init()
-    
+
     Lighting:Init()
     Lighting:UpdateSkybox(Config.Enviorment.Skybox.Value)
     Events.Reset.Event:Connect(ResetCharacter)

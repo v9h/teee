@@ -518,7 +518,7 @@ function Configs:Save(Name: string)
     end
 
     local ConfigFile = "ponyhook/Games/The Streets/Configs/" .. Name .. ".cfg"
-    local config_clone = Utils.table_clone(Config)
+    local config_clone = Utils.table_clone(self.Config)
 
     Iterate(config_clone)
     writefile(ConfigFile, HttpService:JSONEncode(config_clone))
@@ -574,7 +574,7 @@ function Configs:Load(Name: string)
     local _Config = HttpService:JSONDecode(readfile(ConfigFile))
 
     Iterate(_Config)
-    DeepPatch(Config, _Config) -- if player made a config a while a go and the script got updated then the config will be invalid we need to patch the cfg
+    DeepPatch(self.Config, _Config) -- if player made a config a while a go and the script got updated then the config will be invalid we need to patch the cfg
     Configs.Config = _Config
 end
 
