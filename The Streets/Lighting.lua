@@ -19,7 +19,7 @@ Lighting.Changed = LightingService.Changed
 
 
 function Lighting:Init()
-    local Sky = Lighting:FindFirstChildOfClass("Sky")
+    local Sky = LightingService:FindFirstChildOfClass("Sky")
     local Blur = Instance.new("BlurEffect")
     local Bloom = Instance.new("BloomEffect")
     local SunRays = Utils.IsOriginal and LightingService:WaitForChild("SunRays") or Instance.new("SunRaysEffect")
