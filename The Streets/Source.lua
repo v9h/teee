@@ -636,7 +636,7 @@ function GetTarget(): Player
     local Radius = math.huge
 
     local Whitelisted = PlayerManager:GetPlayersWithUserIds(UserTable.Whitelisted)
-    table.insert(Player, Whitelisted)
+    table.insert(Player.UserId, Whitelisted)
 
     for _, _Player in ipairs(PlayerManager:GetPlayers(Whitelisted)) do
         if _Player.Character then

@@ -37,11 +37,11 @@ local function AddPlayerListeners(Player: Player, Character: Model)
     end
 
     local function OnHealthChanged(Value: number)
-        Player:SetAttribute("Health", Value)
+        Player:SetAttribute("Health", Utils.math_round(Value, 2))
     end
 
     local function OnStaminaChanged(Value: number)
-        Player:SetAttribute("Stamina", Value)
+        Player:SetAttribute("Stamina", Utils.math_round(Value, 2))
     end
 
 
@@ -171,7 +171,7 @@ local function OnCharacterAdded(Player: Player, Character: Model)
         Player:SetAttribute("Vest", Utils.UserOwnsAsset(Player, 6967243, "GamePass"))
         Player:SetAttribute("AnimeGamePass", Utils.UserOwnsAsset(Player, 1082540, "GamePass") and true or false)
     
-        Player:SetAttribute("Health", Humanoid.Health)
+        Player:SetAttribute("Health", Utils.math_round(Humanoid.Health, 2))
         Player:SetAttribute("IsAlive", true)
         Player:SetAttribute("KnockedOut", false)
         Player:SetAttribute("KnockOut", 0)
