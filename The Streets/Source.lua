@@ -3709,13 +3709,6 @@ function Heartbeat(Step: number) -- after phys :: after heartbeat comes network 
     Ping = Utils.math_round(Stats.PerformanceStats.Ping:GetValue(), 2)
     SendPing = Utils.math_round(Stats.PerformanceStats.NetworkSent:GetValue(), 2)
     ReceivePing = Utils.math_round(Stats.PerformanceStats.NetworkReceived:GetValue(), 2)
-
-    do
-        local Stamina = GetStamina()
-        if Player:GetAttribute("Stamina") ~= Stamina then
-            OnStaminaChanged(Stamina)
-        end
-    end
 end
 
 
@@ -4429,7 +4422,14 @@ end
 
 
 function OnPlayerAdded(Player: Player)
-    if Player == PlayerManager.LocalPlayer then return end
+    if Player == PlayerManager.LocalPlayer then
+        Player:GetAttributeChangedSignal("Stamina"):Connect(function()
+            OnStaminaChanged(Player:GetAttribute("Stamina"))
+        end)
+        
+        OnStaminaChanged(Player:GetAttribute("Stamina"))
+        return
+    end
     Menu:FindItem("Misc", "Players", "ListBox", "Target"):SetValue(SelectedTarget, Players:GetPlayers())
 
     local ToolValue = Instance.new("ObjectValue")
@@ -7168,15 +7168,16 @@ end
 
 -- Connections
 
+PlayerManager.PlayerAdded:Add(OnPlayerAdded)
+PlayerManager.PlayerRemoved:Add(OnPlayerRemoving)
+PlayerManager.CharacterAdded:Add(OnCharacterAdded)
+
 RunService.Heartbeat:Connect(Heartbeat)
 RunService.Stepped:Connect(Stepped)
 RunService.RenderStepped:Connect(RenderStepped)
 UserInput.InputBegan:Connect(OnInput)
 UserInput.InputEnded:Connect(OnInputEnded)
 Player.Idled:Connect(OnIdle)
-PlayerManager.PlayerAdded:Connect(OnPlayerAdded)
-PlayerManager.PlayerRemoved:Connect(OnPlayerRemoving)
-PlayerManager.CharacterAdded:Connect(OnCharacterAdded)
 Menu.CommandBar.FocusLost:Connect(OnCommandBarFocusLost)
 workspace.ChildAdded:Connect(OnWorkspaceChildAdded)
 workspace.ChildRemoved:Connect(OnWorkspaceChildRemoved)
