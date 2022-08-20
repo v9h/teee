@@ -6044,7 +6044,7 @@ function Initialize()
         GlockIdle = 503285264, GlockFire = 503287783, GlockReload = 8533765435, ShottyIdle = 889390949, ShottyFire = 889391270, ShottyReload = 8533763280
     }
 
-    Character:WaitForChild("Humanoid")
+    Humanoid = Character:WaitForChild("Humanoid")
     for Name, Id in pairs(AnimationIds) do
         SetAnimation(Name, Id)
     end
