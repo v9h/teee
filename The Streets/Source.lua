@@ -6539,6 +6539,9 @@ function Initialize()
 end
 
 
+Initialize()
+
+
 -- Connections
 
 PlayerManager.PlayerAdded:Add(OnPlayerAdded)
@@ -6561,6 +6564,3 @@ if Utils.IsOriginal then
     ReplicatedStorage:WaitForChild("TagReplicate").OnClientEvent:Connect(OnTagReplicateEvent)
 end
 ReplicatedStorage:WaitForChild("DefaultChatSystemChatEvents"):WaitForChild("OnNewMessage").OnClientEvent:Connect(OnNewMessageEvent)
-
-
-Initialize()
