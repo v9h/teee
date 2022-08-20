@@ -3629,7 +3629,6 @@ function OnCharacterAdded(Player: Player, Character: Model)
 
             Humanoid.Died:Connect(OnDeath)
             Humanoid.StateChanged:Connect(OnStateChange)
-            Humanoid.HealthChanged:Connect(OnHealthChange)
             Character.DescendantAdded:Connect(OnCharacterDescendantAdded)
             Character.DescendantRemoving:Connect(OnCharacterDescendantRemoving)
             Backpack.ChildAdded:Connect(OnBackpackChildAdded)
