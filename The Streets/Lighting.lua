@@ -56,9 +56,6 @@ function Lighting:Init()
     DepthOfField.InFocusRadius = 0
     DepthOfField.Parent = LightingService
     
-    LightingService:SetAttribute("DefaultAmbient", LightingService.Ambient)
-    LightingService:SetAttribute("DefaultOutdoorAmbient", LightingService.OutdoorAmbient)
-    
     SunRays:SetAttribute("DefaultSpread", SunRays.Spread)
     SunRays:SetAttribute("DefaultIntensity", SunRays.Intensity)
 
@@ -100,7 +97,7 @@ end
 local function UpdateLighting()
     LightingService.TimeOfDay = Lighting.Time
     LightingService.Ambient = Lighting.Ambient
-    LightingService.AOutdoorAmbient = Lighting.OutdoorAmbient
+    LightingService.OutdoorAmbient = Lighting.OutdoorAmbient
 end
 
 
