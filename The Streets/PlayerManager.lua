@@ -82,7 +82,7 @@ local function UpdatePlayersInfo(Step: number)
             Player:SetAttribute("Distance", 0)
             Player:SetAttribute("Velocity", Vector3.new())
             Player:SetAttribute("Position", Vector3.new())
-            Player:SetAttribute("BehindWall". false)
+            Player:SetAttribute("BehindWall", false)
         end
     end
 end
