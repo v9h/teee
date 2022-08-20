@@ -575,7 +575,7 @@ function Configs:Load(Name: string)
 
     Iterate(_Config)
     DeepPatch(Config, _Config) -- if player made a config a while a go and the script got updated then the config will be invalid we need to patch the cfg
-    Config = _Config
+    Configs.Config = _Config
 end
 
 
