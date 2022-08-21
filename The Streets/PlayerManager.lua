@@ -75,7 +75,7 @@ local function UpdatePlayersInfo(Step: number)
             local Position = Root.Position
 
             if Player ~= PlayerManager.LocalPlayer and LocalPlayerRoot then
-                Player:SetAttribute("BehindWall", (IsBehindAWall(Root, LocalPlayerRoot, {LocalPlayerRoot.Parent})))
+                Player:SetAttribute("BehindWall", (Utils.IsBehindAWall(Root, LocalPlayerRoot, {LocalPlayerRoot.Parent})))
             end
 
             Player:SetAttribute("Distance", Utils.math_round(Player:DistanceFromCharacter(Position), 2))
