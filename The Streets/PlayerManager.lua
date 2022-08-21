@@ -194,7 +194,11 @@ end
 
 
 local function OnPlayerAdded(Player: Player)
+    Player:SetAttribute("Distance", 0)
+    Player:SetAttribute("Velocity", Vector3.new())
     Player:SetAttribute("Position", Vector3.new())
+    Player:SetAttribute("BehindWall", false)
+
     PlayerManager.PlayerAdded:Fire(Player)
 
     if Player.Character then
