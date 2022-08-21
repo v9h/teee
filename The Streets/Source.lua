@@ -755,8 +755,8 @@ function GetAimbotCFrame(Randomize: boolean): CFrame
 end
 
 
-function GetTools(_Player: Player, Type: string): table
-    local Player = _Player or Player
+function GetTools(Player: Player, Type: string): table
+    Player = Player or PlayerManager.LocalPlayer
     local Character = Player.Character
     local Backpack = Player:FindFirstChild("Backpack")
 
@@ -1121,8 +1121,8 @@ function IsInCar(): boolean
 end
 
 
-function IsOnSeat(_Player: Player, Seat: Seat): boolean
-    local Player = _Player or Player
+function IsOnSeat(Player: Player, Seat: Seat): boolean
+    Player = Player or PlayerManager.LocalPlayer
 
     if Seat then
         local Occupant = Seat.Occupant
@@ -1133,8 +1133,8 @@ function IsOnSeat(_Player: Player, Seat: Seat): boolean
 end
 
 
-function IsSeated(_Player: Player, Seat: Seat): boolean
-    local Player = _Player or Player
+function IsSeated(Player: Player, Seat: Seat): boolean
+    Player = Player or PlayerManager.LocalPlayer
     for _, Seat in pairs(Seats) do
         local Seated = IsOnSeat(Seat)
         if Seated then return Seated end
@@ -1520,13 +1520,12 @@ function AddItem(Spawn: Instance)
 end
 
 
-function AddPlayerESP(_Player: Player)
-    if typeof(_Player) == "Instance" and _Player:IsA("Player") and _Player ~= Player then
+function AddPlayerESP(Player: Player)
+    if typeof(Player) == "Instance" and Player:IsA("Player") and Player ~= PlayerManager.LocalPlayer then
     else
         return
     end
 
-    local Player = _Player
     local Character = Player.Character
 
     if not Character then return end
@@ -5774,13 +5773,12 @@ do
                 do
                     local Position = Player:GetAttribute("Position")
                     if typeof(Position) == "Vector3" then
-                        local Origin = tostring(Utils.math_round(Position.X, 2) .. "; " .. Utils.math_round(Position.Y, 2) .. "; " .. Utils.math_round(Position.Z, 2))
-                        UpdateItemValue("Origin", "Origin: " .. Origin)
+                        UpdateItemValue("Origin", string.format("Origin: (%d;, %d; ,%d)", Utils.math_round(Position.X, 2), Utils.math_round(Position.Y, 2), Utils.math_round(Position.Z, 2)))
                     end
                 end
 
-                local Health = Player:GetAttribute("Health") or 0
-                local Stamina = Player:GetAttribute("Stamina") or 0
+                local Health = Utils.math_round(Player:GetAttribute("Health") or 0, 2)
+                local Stamina = Utils.math_round(Player:GetAttribute("Stamina") or 0, 2)
                 local KnockOut = Utils.math_round(Player:GetAttribute("KnockOut") or 0, 2)
 
                 UpdateItemValue("Health", "Health: " .. tostring(Health))

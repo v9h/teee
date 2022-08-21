@@ -169,7 +169,7 @@ local function OnCharacterAdded(Player: Player, Character: Model)
         local Humanoid = Character:WaitForChild("Humanoid")
         local Root = Humanoid.RootPart
     
-    
+        Player:SetAttribute("Position", Root and Root.Position or Vector3.new())
         Player:SetAttribute("Vest", Utils.UserOwnsAsset(Player, 6967243, "GamePass"))
         Player:SetAttribute("AnimeGamePass", Utils.UserOwnsAsset(Player, 1082540, "GamePass") and true or false)
     
@@ -194,9 +194,7 @@ end
 
 
 local function OnPlayerAdded(Player: Player)
-
-
-
+    Player:SetAttribute("Position", Vector3.new())
     PlayerManager.PlayerAdded:Fire(Player)
 
     if Player.Character then
