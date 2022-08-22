@@ -2936,11 +2936,11 @@ function Heartbeat(Step: number) -- after phys :: after heartbeat comes network 
         end
 
         if Config.ClanTag.Visualize and not Config.TeleportBypass.Enabled then
-            local ClanModel = GetClanModel() 
-            local Head = ClanModel and ClanModel:FindFirstChild("Head")
+            local ClanModel = GetClanModel()
+            local ClanModelHead = ClanModel and ClanModel:FindFirstChild("Head")
 
-            if Head then
-                Head.Transparency = 0
+            if ClanModelHead then
+                ClanModelHead.Transparency = 0
             end
         end
     end
@@ -3144,11 +3144,8 @@ function Stepped(_, Step: number) -- before phys
             UpdatePlayerFlyState()
 
             if Config.Noclip.Enabled then
-                local Head = Character:FindFirstChild("Head")
-                if Head and Torso then
-                    Head.CanCollide = false
-                    Torso.CanCollide = false
-                end
+                Head.CanCollide = false
+                Torso.CanCollide = false
             end
             
             if Config.DisableToolCollision.Enabled then 
@@ -3494,6 +3491,7 @@ function OnCharacterAdded(Player: Player, Character: Model)
             HUD = PlayerGui:WaitForChild("HUD")
             Backpack = Player:WaitForChild("Backpack")
             Humanoid = Character:WaitForChild("Humanoid")
+            Head = Character:WaitForChild("Head")
             Torso = Character:WaitForChild("Torso")
             Root = Humanoid.RootPart
 
