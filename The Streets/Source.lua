@@ -3390,11 +3390,11 @@ function OnStateChange(Old: EnumItem, New: EnumItem)
 end
 
 
-function OnCharacterAdded(Player: Player, Character: Model)
+function OnCharacterAdded(Player: Player, _Character: Model)
     spawn(function()
         if Player == PlayerManager.LocalPlayer then
             Tool = nil
-            Character = Player.Character
+            Character = _Character
             HUD = PlayerGui:WaitForChild("HUD")
             Backpack = Player:WaitForChild("Backpack")
             Humanoid = Character:WaitForChild("Humanoid")
@@ -3619,6 +3619,7 @@ function OnCharacterAdded(Player: Player, Character: Model)
             delay(1, StarterGui.SetCore, StarterGui, "ResetButtonCallback", Events.Reset)
             Menu:FindItem("Visuals", "Hats", "ComboBox", "Hat"):SetValue("None", {"None", unpack(Humanoid:GetAccessories())})
         else
+            local Character = _Character
             local Backpack = Player:WaitForChild("Backpack")
             local Humanoid = Character:WaitForChild("Humanoid")
             local Torso = Character:WaitForChild("Torso")
@@ -3808,7 +3809,7 @@ function OnPlayerDamaged(Victim: Player, Attacker: Player, Damage: number, Time:
         return 
     end -- if it's the DUMMY or a GHOST? or a buypad?
 
-    if Victim ~= Player and Attacker ~= Player then 
+    if (Victim ~= Player and Attacker ~= Player) and (Victim ~= Attacker) then 
         return 
     end -- if it's not connected to localplayer then ignore
 
@@ -6435,7 +6436,7 @@ workspace.ChildAdded:Connect(OnWorkspaceChildAdded)
 workspace.ChildRemoved:Connect(OnWorkspaceChildRemoved)
 Lighting.Changed:Connect(OnLightingChanged)
 
-Network:Add(Enums.NETWORK.CHAT, OnNewMessage)
+Network:Add(Enums.NETWORK.CHAT, OnNewMessageEvent)
 if Utils.IsOriginal then
     Character:WaitForChild("GetMouse").OnClientInvoke = OnGetMouseInvoke
     Network:Add(Enums.NETWORK.TAG_REPLICATE, OnTagReplicateEvent)
