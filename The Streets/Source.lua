@@ -665,7 +665,7 @@ end
 
 function GetStompTarget(): Model
     if Character and Root then
-        local Ray = Raycast.streets(Root.Position, Root.Position - Vector3.new(0, 2, 0), 3, Character)
+        local Ray = Raycast.streets(Root.Position, Root.Position - Vector3.new(0, 2, 0), 3, {Character})
 
         if Ray and Ray.Parent then
             local Humanoid = Ray.Parent:FindFirstChild("Humanoid")
