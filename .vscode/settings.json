@@ -1,0 +1,11 @@
+{
+    "robloxLsp.diagnostics.globals": [
+        "import",
+        "iswindowactive",
+        "request",
+        "readfile",
+        "listfiles",
+        "isfile",
+        "isfolder"
+    ]
+}

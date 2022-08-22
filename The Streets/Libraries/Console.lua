@@ -3,6 +3,7 @@ Console.ForegroundColor = "Light Gray"
 
 local console_set_title = rconsolename or rconsolesettitle
 
+
 local Colors = {
     --["Black"] = syn and "@@BLACK@@" or "Black",
     ["Blue"] = syn and "@@BLUE@@" or "blue",
@@ -74,5 +75,6 @@ end
 function Console:Error(Message)
     Console:Write(Message, "Red")
 end
+
 
 return Console

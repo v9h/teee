@@ -1,6 +1,9 @@
 local Lighting = {}
 
 
+local get_custom_asset = getcustomasset or syn and getsynasset
+
+
 local Utils = import "Utils"
 
 
@@ -69,7 +72,7 @@ end
 
 
 function Lighting:UpdateSkybox(Skybox: string): string--?
-    local Skyboxes = GetFolders("ponyhook/Games/The Streets/bin/skyboxes/").Folders
+    local Skyboxes = Utils.GetFolders("ponyhook/Games/The Streets/bin/skyboxes/").Folders
 
     for k, v in pairs(Skyboxes) do
         if k == Skybox then

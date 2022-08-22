@@ -51,7 +51,9 @@ if not import then return messagebox("Error 0x5; Something went wrong with initi
 local ESP
 local Menu
 local Utils
+local Enums
 local Raycast
+local Network
 local Configs
 local Console
 local Commands
@@ -65,8 +67,10 @@ local PlayerManager
 
 spawn(function() ESP = import("Libraries/ESP") end)
 spawn(function() Menu = import("Libraries/Menu") end)
+spawn(function() Enums = import("Enums") end)
 spawn(function() Utils = import("Utils") end)
 spawn(function() Raycast = import("Libraries/Raycast") end)
+spawn(function() Network = import("Network") end)
 spawn(function() Configs = import("Configs") end)
 spawn(function() Console = import("Libraries/Console") end)
 spawn(function() Commands = import("Libraries/Commands") end)
@@ -76,7 +80,7 @@ spawn(function() Lighting = import("Lighting") end)
 spawn(function() TimerClass = import("Libraries/TimerClass") end)
 spawn(function() PlayerManager = import("PlayerManager") end)
 
-while not ESP or not Menu or not Utils or not Configs or not Raycast or not Console or not Commands or not ToolData or not DoorData or not Lighting or not TimerClass or not PlayerManager do wait() end -- waiting for the modules to load...
+while not ESP or not Menu or not Enums or not Utils or not Network or not Configs or not Raycast or not Console or not Commands or not ToolData or not DoorData or not Lighting or not TimerClass or not PlayerManager do wait() end -- waiting for the modules to load...
 getgenv().import = nil  -- won't be used anymore
 
 if (Utils.IsOriginal and game.PlaceVersion ~= 1520) or (Utils.IsPrison and game.PlaceVersion ~= 225) then
@@ -172,15 +176,14 @@ local SelectedTarget
 local HitSound
 local Crosshair
 
-local CustomCharacter
-local FloatPart
-local FlyVelocity
-local FlyAngularVelocity
+local FloatPart = Instance.new("Part")
+local FlyVelocity = Instance.new("BodyVelocity")
+local FlyAngularVelocity = Instance.new("BodyAngularVelocity")
 local BrickTrajectory = ESP.Trajectory()
 local FakeLagVisualizer = ESP.Skeleton()
 
 local AimbotIndicator
-local FieldOfViewCircle
+local FieldOfViewCircle = Drawing.new("Circle")
 
 local CommandsList = ""
 local script_version = get_script_version()
@@ -206,13 +209,6 @@ local RefreshingCharacter = false
 local DeathPosition = CFrame.new()
 
 do
-    CustomCharacter = Instance.new("Model")
-    FloatPart = Instance.new("Part")
-    FlyVelocity = Instance.new("BodyVelocity")
-    FlyAngularVelocity = Instance.new("BodyAngularVelocity")
-
-    FieldOfViewCircle = Drawing.new("Circle")
-    
     Events.Reset = Instance.new("BindableEvent")
     
     Menu.Watermark = Menu.Watermark()
@@ -586,44 +582,6 @@ function RefreshMenu()
 end
 
 
-function GetFolders(Directory: string): table
-    local Folders = {}
-    local Names = {}
-
-    local function Recurse(Directory: string)
-        for _, File in ipairs(listfiles(Directory)) do
-            if isfolder(File) then
-                table.insert(Folders, File)
-                table.insert(Names, string.match(File, "[^/\\]+$"))
-            end
-        end
-    end
-
-    Recurse(Directory)
-    return {Folders = Folders, Names = Names}
-end
-
-
-function GetFiles(Directory: string): table
-    local Files = {}
-    local Names = {}
-
-    local function Recurse(Directory: string)
-        for _, File in ipairs(listfiles(Directory)) do
-            if isfile(File) then
-                table.insert(Files, File)
-                table.insert(Names, string.match(File, "[^/\\]+$"))
-            elseif isfolder(File) then
-                Recurse(File)
-            end
-        end
-    end
-
-    Recurse(Directory)
-    return {Files = Files, Names = Names}
-end
-
-
 function GetSelectedTarget(): Player
     return Players:FindFirstChild(SelectedTarget or "")
 end
@@ -719,20 +677,13 @@ end
 
 
 function GetClanModel(): Model
-    local Model
-
     if Character then
         for _, v in ipairs(Character:GetChildren()) do
-            if v:IsA("Model") then
-                if v:FindFirstChild("f") then
-                    Model = v
-                    break
-                end
+            if v:IsA("Model") and v:FindFirstChild("f") then
+                return v
             end
         end
     end
-
-    return Model
 end
 
 
@@ -955,7 +906,7 @@ function GetBrickTrajectoryPoints(Brick: Tool): table
     local End = Mouse.Hit.Position
 
     if Target and Config.Aimbot.Enabled then
-        local AimbotCFrame = GetAimbotCFrame()
+        local AimbotCFrame = GetAimbotCFrame() + Vector3.new(0, 3, 0)
 
         if AimbotCFrame then
             End = AimbotCFrame.Position
@@ -1195,7 +1146,7 @@ end
 
 function Chat(Message: string)
     Message = tostring(Message)
-    ReplicatedStorage.DefaultChatSystemChatEvents.SayMessageRequest:FireServer(Message, "All")
+    Network:Send(Enums.NETWORK.CHAT, Message)
     --Players:Chat(Message)
     --ReplicatedStorage.Xbox:FireServer() ReplicatedStorage.Talk:FireServer(Message)
 end
@@ -1223,7 +1174,7 @@ do
 
     -- much easier with raknet but you know ._.
 
-    function SetCharacterServerCFrame(CF)
+    function SetCharacterServerCFrame(CF: CFrame)
         if Root and typeof(CF) == "CFrame" then
             if CFrameSending then return end
 
@@ -1244,7 +1195,7 @@ do
         end
     end
 
-    function SetCharacterServerVelocity(Velocity, AngularVelocity)
+    function SetCharacterServerVelocity(Velocity: Vector3, AngularVelocity: Vector3)
         if Root and typeof(Velocity) == "Vector3" and typeof(AngularVelocity) == "Vector3" then
             if VelocitySending then return end
 
@@ -1272,7 +1223,7 @@ do
 end
 
 
-function SetModelDefaults(Model, Ignore)
+function SetModelDefaults(Model: Model, Ignore: table)
     if not Model:GetAttribute("DefaultsSet") then
         for _, Part in ipairs(GetModelParts(Model, Ignore)) do
             if Part:GetAttribute("DefaultTransparency") == 1 then continue end
@@ -1292,7 +1243,7 @@ function SetModelDefaults(Model, Ignore)
 end
 
 
-function SetModelProperties(Model, Color, Material, Reflectance, Transparency, UsePartColor)
+function SetModelProperties(Model: Model, Color: Color3, Material: EnumItem, Reflectance: number, Transparency: number, UsePartColor: boolean)
     if Material == "Force field" then
 	    Material = "ForceField"
     end
@@ -1323,7 +1274,7 @@ function SetModelProperties(Model, Color, Material, Reflectance, Transparency, U
 end
 
 
-function SetPlayerChams(Player, ...) -- not actual chams just changing the properties of players parts
+function SetPlayerChams(Player: Player, ...) -- not actual chams just changing the properties of players parts
     local Character = Player.Character
 
     if Character then
@@ -1332,7 +1283,7 @@ function SetPlayerChams(Player, ...) -- not actual chams just changing the prope
 end
 
 
-function SetToolChams(Tool)
+function SetToolChams(Tool: Tool)
     if not Tool then return end
     SetModelDefaults(Tool)
 
@@ -1344,54 +1295,32 @@ function SetToolChams(Tool)
 end
 
 
-function SetHat(Name)
-    pcall(function()
-        local Stank = Backpack.Stank
-        local Hat = Character and Character:FindFirstChild(Name)
-        local Handle = Hat and Hat:FindFirstChild("Handle")
+function SetHat(Name: string)
+    local Hat = Character and Character:FindFirstChild(Name)
+    local Handle = Hat and Hat:FindFirstChild("Handle")
 
-        if Handle then
-            Stank:FireServer("rep", {
-                typ = {Value = Hat.Name}
-            }) -- Server does WhiteDecal.Parent = Character:FindFirstChild(A.typ.Value).Handle [a is the second argument], every player has a whitedecal instance
-        else
-            Stank:FireServer("ren")
-        end
-    end)
+    if Handle then
+        Network:Send(Enums.NETWORK.SET_HAT, Hat.Name) -- Server does WhiteDecal.Parent = Character:FindFirstChild(A.typ.Value).Handle [a is the second argument], every player has a whitedecal instance
+    else
+        Network:Send(Enums.NETWORK.REMOVE_HAT)
+    end
 end
 
 
 --https://developer.roblox.com/en-us/articles/BrickColor-Codes
-function SetHatColor(_Color)
-    local Color = _Color or Color3.new()
-    local Stank = Backpack:FindFirstChild("Stank")
-
-    if Stank then
-        Stank:FireServer("color", {BackgroundColor3 = Color})
-    end
+function SetHatColor(Color: Color3)
+    Color = typeof(Color) == "Color3" and Color or Color3.new()
+    Network:Send(Enums.NETWORK.SET_HAT_COLOR, Color)
 end
 
 
 do
     local LastTag
 
-    function SetClanTag(Tag)
-        local Tag = typeof(Tag) == "string" and Tag or ""
+    function SetClanTag(Tag: string)
+        Tag = typeof(Tag) == "string" and Tag or ""
         Tag = string.rep("\n", 100 - #Tag) .. Tag
-
-        local Stank = Backpack:FindFirstChild("Stank")
-
-        if Stank then
-            Stank:FireServer("pick", {
-                Name = 1, -- yeah no u have no choice in this u get the guest role
-                TextLabel = {Text = Tag} -- max char count 100
-            })
-            
-            local GroupTitle = HUD and HUD:FindFirstChild("Clan") and HUD.Clan:FindFirstChild("Group") and HUD.Clan.Group:FindFirstChild("Title")
-            if GroupTitle then
-                GroupTitle.AutoLocalize = false -- disable TextScraper lag; LocalizationService:StopTextScraper()
-            end
-        end
+        Network:Send(Enums.NETWORK.SET_GROUP, 1, Tag)
 
         --[[
         Stank.OnServerEvent:Connect(function(Player, Method, ...)
@@ -1584,12 +1513,12 @@ function AddPlayerESP(Player: Player)
         Arrow = ESP.Arrow(Torso)
     }
 
-    Head.AncestryChanged:Connect(function(_, Parent)
+    Head.Destroying:Once(function(_, Parent)
         if Parent then return end
         Destroy_ESP()
     end)
 
-    Torso.AncestryChanged:Connect(function(_, Parent)
+    Torso.Destroying:Once(function(_, Parent)
         if Parent then return end
         Destroy_ESP()
     end)
@@ -2131,7 +2060,7 @@ function UpdateAimbotIndicator()
         AimbotIndicator:SetPosition(UserInput:GetMouseLocation())
         AimbotIndicator:SetColor(Color3.fromRGB(100, 40, 175), 0)
 
-        local Vector, OnScreen = Camera:WorldToViewportPoint(GetAimbotCFrame(false).Position)
+        local Vector, OnScreen = Camera:WorldToViewportPoint(GetAimbotCFrame().Position)
         if OnScreen then
             AimbotIndicator:SetPosition(Vector2.new(Vector.x, Vector.y))
         end
@@ -2444,10 +2373,7 @@ end
 function TeleportBypass()
     if Config.TeleportBypass.Enabled then
         if Utils.IsOriginal then
-            Backpack.Stank:FireServer("pick", {
-                Name = "",
-                TextLabel = {Text = 1}
-            })
+            Network:Send(Enums.NETWORK.SET_GROUP, "", 1)
         else
             local RootPart = Utils.GetRoot(Player)
             if tostring(RootPart) == "HumanoidRootPart" then
@@ -2460,16 +2386,14 @@ function TeleportBypass()
         end
     else
         if not Character:FindFirstChildOfClass("Model") then
-            if Utils.IsOriginal then Backpack.Stank:FireServer("leave") end
+            if Utils.IsOriginal then Network:Send(Enums.NETWORK.LEAVE_GROUP) end
         end
     end
 end
 
 
 function PlayAnimationServer(Animation: Instance)
-    Backpack.ServerTraits.Finish:FireServer({
-        Finish = Animation
-    })
+   Network:Send(Enums.NETWORK.STOMP, Animation)
 end
 
 
@@ -2639,16 +2563,11 @@ function Attack(CF: CFrame, Release: boolean)
         -- Tool.CD is disabled for reg
         if TagSystem.has(Character, "reloading") then return end
 
-        local Arguments = {
-            shift = UserInput:IsKeyDown(Enum.KeyCode.LeftShift),
-            mousehit = CF,
-            velo = Root.AssemblyLinearVelocity.Magnitude or 16
-        }
 
-        
-        Backpack.Input:FireServer("ml", Arguments)
+
+        Network:Send(Enums.NETWORK.ATTACK, "ml", CF, UserInput:IsKeyDown(Enum.KeyCode.LeftShift), Root.AssemblyLinearVelocity.Magnitude)
         --if Release then
-            Backpack.Input:FireServer("moff1", Arguments)
+            Network:Send(Enums.NETWORK.ATTACK, "moff1", CF, UserInput:IsKeyDown(Enum.KeyCode.LeftShift), Root.AssemblyLinearVelocity.Magnitude)
         --else
         --end
     else
@@ -2656,38 +2575,30 @@ function Attack(CF: CFrame, Release: boolean)
             if not Tool.CD then return end -- Cooldown
             local AnimationId = string.gsub(Tool.Fires.AnimationId, "%D", "")
             GetAnimation(AnimationId):Play(0.1, 1, 2)
-
-            if Utils.IsPrison and Tool:FindFirstChild("Fire") then
-                Tool.Fire:FireServer(CF, true) -- not sure why we sending boolean something for namecall check
-            else
-                Tool.Shoot:FireServer(CF, true)
-            end
+            Network:Send(Enums.NETWORK.ATTACK, Tool, CF)
         elseif Tool:FindFirstChild("Finish") then
-            Backpack.ServerTraits.Touch1:FireServer(Tool, 0, UserInput:IsKeyDown(Enum.KeyCode.LeftShift), 0)
+            Network:Send(Enums.NETWORK.ATTACK, Tool, UserInput:IsKeyDown(Enum.KeyCode.LeftShift))
         end
     end
 end
 
 
 function Stomp(Amount: number)
-    local Amount = typeof(Amount) == "number" and Amount or 1
+    Amount = typeof(Amount) == "number" and Amount or 1
 
     if Utils.IsOriginal then
         if Tool and Tool:FindFirstChild("Finish") then
-            local Input = Backpack.Input
             for _ = 1, Amount do
-                Input:FireServer("e", {})
+                Network:Send(Enums.NETWORK.STOMP)
             end
         end
     else
-        local Finish = Backpack.ServerTraits.Finish
-
         if not Tool or Tool and not Tool:FindFirstChild("Finish") then
             Tool = Backpack:FindFirstChild("Punch")
         end
 
         for _ = 1, Amount do
-            Finish:FireServer(Tool) -- does raycast if hitpart found Root.Position - Vector3.new(0, 2, 0) then if raycast.Parent:find humanoid kill humanoid and humanoid.Parent needs to have KO value
+            Network:Send(Enums.NETWORK.STOMP, Tool)
         end
     end
 end
@@ -2695,11 +2606,7 @@ end
 
 function Drag()
     if Character and not Dragging then
-        if Utils.IsOriginal then
-            Backpack.Input:FireServer("e", {})
-        else
-            Backpack.ServerTraits.Drag:FireServer(true)
-        end
+        Network:Send(Enums.NETWORK.DRAG)
     end
 end
 
@@ -3221,10 +3128,10 @@ function Stepped(_, Step: number) -- before phys
                         local Locker = Door:FindFirstChild("Locker")
 
                         if Locker and Locker.Value then
-                            Door.Lock.ClickDetector.RemoteEvent:FireServer()
+                            Network:Send(Enums.NETWORK.INTERACTABLE_LOCK, Door)
                         end
-
-                        Door.Click.ClickDetector.RemoteEvent:FireServer()
+                        
+                        Network:Send(Enums.NETWORK.INTERACTABLE_CLICK, Door)
                     end
                 end
             end
@@ -3234,7 +3141,7 @@ function Stepped(_, Step: number) -- before phys
                     local IsOpen = IsWindowOpen(Window)
 
                     if not IsOpen then
-                        Window.Move.Click.ClickDetector.RemoteEvent:FireServer()
+                        Network:Send(Enums.NETWORK.INTERACTABLE_CLICK, Window)
                     end
                 end
             end
@@ -3249,10 +3156,10 @@ function Stepped(_, Step: number) -- before phys
 
                     if IsOpen then
                         if not Config.CloseDoors.Enabled then continue end
-                        Door.Click.ClickDetector.RemoteEvent:FireServer()
+                        Network:Send(Enums.NETWORK.INTERACTABLE_CLICK, Door)
                     else
                         if not Config.OpenDoors.Enabled then continue end
-                        Door.Click.ClickDetector.RemoteEvent:FireServer()
+                        Network:Send(Enums.NETWORK.INTERACTABLE_CLICK, Door)
                     end
                 end
             end
@@ -3264,10 +3171,10 @@ function Stepped(_, Step: number) -- before phys
 
                     if IsOpen then
                         if not Config.CloseDoors.Enabled then continue end
-                        Window.Move.Click.ClickDetector.RemoteEvent:FireServer()
+                        Network:Send(Enums.NETWORK.INTERACTABLE.CLICK, Window)
                     else
                         if not Config.OpenDoors.Enabled then continue end
-                        Window.Move.Click.ClickDetector.RemoteEvent:FireServer()
+                        Network:Send(Enums.NETWORK.INTERACTABLE.CLICK, Window)
                     end
                 end
             end
@@ -3509,8 +3416,6 @@ function OnCharacterAdded(Player: Player, Character: Model)
                 delay(0.3, GiveToolsPlayer, GetSelectedTarget())
             end
 
-            CustomCharacter.Parent = Character
-
             TeleportBypass()
             EnableInfiniteStamina()
             CreateJoints(Player)
@@ -3693,10 +3598,9 @@ function OnCharacterAdded(Player: Player, Character: Model)
                         local Remote = Boombox:WaitForChild("RemoteEvent")
 
                         if Remote then
-                            Boombox.Parent = Character 
-                            Remote:FireServer("play", LastAudio)
-
-                            pcall(function() Boombox.BoomBoxu.Entry.TextBox.Text = Id end)
+                            Boombox.Parent = Character
+                            Network:Send(Enums.NETWORK.PLAY_BOOMBOX, Boombox, LastAudio)
+                            pcall(function() Boombox.BoomBoxu.Entry.TextBox.Text = LastAudio end)
                             delay(1, function() Boombox.Parent = Backpack end)
                         end
                     end
@@ -3706,6 +3610,11 @@ function OnCharacterAdded(Player: Player, Character: Model)
             if Config.AutoSort.Enabled then 
                 SortBackpack() 
             end
+
+            spawn(function()
+                local GroupTitle = HUD:WaitForChild("Clan"):WaitForChild("Group"):WaitForChild("Title")
+                GroupTitle.AutoLocalize = false -- disable TextScraper lag; LocalizationService:StopTextScraper()
+            end)
 
             delay(1, StarterGui.SetCore, StarterGui, "ResetButtonCallback", Events.Reset)
             Menu:FindItem("Visuals", "Hats", "ComboBox", "Hat"):SetValue("None", {"None", unpack(Humanoid:GetAccessories())})
@@ -4156,7 +4065,8 @@ function OnGetMouseInvoke(): any -- Uuh but weguwarid why don't u just hook mous
     FireTick = os.clock()
 
     if Target and Target.Character and Config.Aimbot.Enabled then
-        return GetAimbotCFrame(true) or Mouse.Hit, Target.Character
+        local AimbotCFrame = (Tool and Tool.Name == "Brick") and (GetAimbotCFrame() + Vector3.new(0, 3, 0)) or GetAimbotCFrame(true)
+        return AimbotCFrame or Mouse.Hit, Target.Character
     end
 
     return Mouse.Hit, Mouse.Target
@@ -4719,20 +4629,20 @@ end)
 
 Commands.Add("play", {}, "[id] - mass plays the selected 'id'", function(Arguments)
     local Audio = Arguments[1]
-    local Remotes = {}
+    local Boomboxes = {}
     for _, Tool in ipairs(GetTools()) do
         if Tool.Name == "BoomBox" then
             Tool.Parent = Character
             local Remote = Tool:FindFirstChildWhichIsA("RemoteEvent", true)
-            if Remote then table.insert(Remotes, Remote) end
+            if Remote then table.insert(Boomboxes, Tool) end
         end
     end
 
     delay(0, function()
         if Audio == "stop" then
-            for _, Remote in ipairs(Remotes) do Remote:FireServer("stop") end
+            for _, Boombox in ipairs(Boomboxes) do Network:Send(Enums.NETWORK.STOP_BOOMBOX, Boombox) end
         else
-            for _, Remote in ipairs(Remotes) do Remote:FireServer("play", Audio) end
+            for _, Boombox in ipairs(Boomboxes) do Network:Send(Enums.NETWORK.PLAY_BOOMBOX, Boombox, Audio) end
         end
     end)
 end)
@@ -4883,7 +4793,7 @@ do
                     PlayerGui.BoomBoxu.Entry.TextBox.Text = Id
                     LastAudio = Id
                     for _, Object in ipairs(Character:GetChildren()) do
-                        if Object.Name == "BoomBox" then Object.RemoteEvent:FireServer("play", Id) end
+                        if Object.Name == "BoomBox" then Network:Send(Enums.NETWORK.PLAY_BOOMBOX, Object, Id) end
                     end
                 end)
             end)
@@ -4922,7 +4832,6 @@ do
     Menu.Container("Misc", "Exploits", "Left")
     Menu.Container("Misc", "Players", "Right")
     Menu.Container("Misc", "Clan tag", "Right"):SetVisible(Utils.IsOriginal)
-    Menu.Container("Settings", "Demo recorder", "Left")
     Menu.Container("Settings", "Settings", "Left")
     Menu.Container("Settings", "Menu", "Left")
     Menu.Container("Settings", "Configs", "Right")
@@ -5369,7 +5278,7 @@ do
     Menu.CheckBox("Visuals", "World", "Disable bullet trails", Config.BulletTracers.DisableTrails, function(Bool)
         Config.BulletTracers.DisableTrails = Bool
     end)
-    Menu.ComboBox("Visuals", "World", "Skybox", Config.Enviorment.Skybox.Value, GetFolders("ponyhook/Games/The Streets/bin/skyboxes/").Names, function(String)
+    Menu.ComboBox("Visuals", "World", "Skybox", Config.Enviorment.Skybox.Value, Utils.GetFolders("ponyhook/Games/The Streets/bin/skyboxes/").Names, function(String)
         Config.Enviorment.Skybox.Value = String
         Lighting:UpdateSkybox(Config.Enviorment.Skybox.Value)
     end)
@@ -5674,9 +5583,9 @@ do
     Menu.Slider("Misc", "Exploits", "Fake lag limit", 3, 15, Config.FakeLag.Limit, "", 1, function(Value)
         Config.FakeLag.Limit = Value / 10
     end)
-    Menu.Button("Misc", "Exploits", "Crash server", function()
-        Threads.CrashServer.Continue()
-    end)
+    -- Menu.Button("Misc", "Exploits", "Crash server", function()
+    --     Threads.CrashServer.Continue()
+    -- end)
     Menu.ListBox("Misc", "Players", "Target", false, Players:GetPlayers(), function(Player_Name)
         local Player = PlayerManager:FindPlayersByName(Player_Name)[1]
         if not Player then return end
@@ -5813,34 +5722,9 @@ do
     Menu.TextBox("Misc", "Clan tag", "Spotify token", Config.ClanTag.SpotifyToken, function(Token)
         Config.ClanTag.SpotifyToken = Token
     end)
-
-    do
-        local DemoPlayer
-        local Recording = false
-        local RecordingName = ""
-
-        local StatusLabel = Menu.GetItem(Menu, Menu.Label("Settings", "Demo recorder", "Status: Not recording"))
-        Menu.TextBox("Settings", "Demo recorder", "Demo Name", "", function(String)
-            RecordingName = String
-        end)
-        Menu.Button("Settings", "Demo recorder", "Toggle recording", function()
-            Recording = not Recording
-            if Recording then
-                DemoPlayer:start()
-            else
-                DemoPlayer:stop()
-                DemoPlayer:create()
-            end
-            local Status = Recording and "Recording..." or "Not recording"
-            StatusLabel:SetLabel("Status: " .. Status)
-        end)
-        Menu.Button("Settings", "Demo recorder", "Copy Replay Place", function()
-            setclipboard("https://www.roblox.com/games/8869691226/Replay-House")
-        end)
-    end
     
     Menu.Button("Settings", "Settings", "Refresh", function()
-        Menu:FindItem("Visuals", "World", "ComboBox", "Skybox"):SetValue(Config.Enviorment.Skybox.Value, GetFolders("ponyhook/Games/The Streets/bin/skyboxes/").Names)
+        Menu:FindItem("Visuals", "World", "ComboBox", "Skybox"):SetValue(Config.Enviorment.Skybox.Value, Utils.GetFolders("ponyhook/Games/The Streets/bin/skyboxes/").Names)
         HitSound = get_custom_asset("ponyhook/Games/The Streets/bin/sounds/hitsound.mp3") -- huh seems to automatically when file changes?
         Crosshair = get_custom_asset("ponyhook/Games/The Streets/bin/crosshairs/crosshair.png")
         Mouse.Icon = Crosshair
@@ -5866,21 +5750,21 @@ do
     end)
 
     Menu.TextBox("Settings", "Configs", "Config name", "")
-    Menu.ListBox("Settings", "Configs", "Configs", false, GetFiles("ponyhook/Games/The Streets/Configs/").Names, function(cfg_name)
+    Menu.ListBox("Settings", "Configs", "Configs", false, Utils.GetFiles("ponyhook/Games/The Streets/Configs/").Names, function(cfg_name)
         Menu:FindItem("Settings", "Configs", "TextBox", "Config name"):SetValue(cfg_name)
     end)
     Menu.Button("Settings", "Configs", "Create", function()
         local cfg_name = Menu:FindItem("Settings", "Configs", "TextBox", "Config name"):GetValue()
         -- file already exists?
         Configs:Save(cfg_name)
-        Menu:FindItem("Settings", "Configs", "ListBox", "Configs"):SetValue(cfg_name .. ".cfg", GetFiles("ponyhook/Games/The Streets/Configs").Names)
+        Menu:FindItem("Settings", "Configs", "ListBox", "Configs"):SetValue(cfg_name .. ".cfg", Utils.GetFiles("ponyhook/Games/The Streets/Configs").Names)
     end)
     Menu.Button("Settings", "Configs", "Save", function()
         local cfg_name = Menu:FindItem("Settings", "Configs", "ListBox", "Configs"):GetValue()
         Menu.Prompt("Are you sure you want to overwrite save  of  '" .. cfg_name .. "' ?", function() -- 2 spaces since the font makes it look like no spaces
             cfg_name = string.gsub(cfg_name, ".cfg", "")
             Configs:Save(cfg_name)
-            Menu:FindItem("Settings", "Configs", "ListBox", "Configs"):SetValue(cfg_name .. ".cfg", GetFiles("ponyhook/Games/The Streets/Configs").Names)
+            Menu:FindItem("Settings", "Configs", "ListBox", "Configs"):SetValue(cfg_name .. ".cfg", Utils.GetFiles("ponyhook/Games/The Streets/Configs").Names)
         end)
     end)
     Menu.Button("Settings", "Configs", "Load", function()
@@ -5892,7 +5776,7 @@ do
         local cfg_name = Menu:FindItem("Settings", "Configs", "ListBox", "Configs"):GetValue()
         Menu.Prompt("Are you sure you want to delete '" .. cfg_name .. "' ?", function()
             delfile("ponyhook/Games/The Streets/Configs/" .. cfg_name)
-            Menu:FindItem("Settings", "Configs", "ListBox", "Configs"):SetValue("", GetFiles("ponyhook/Games/The Streets/Configs").Names)
+            Menu:FindItem("Settings", "Configs", "ListBox", "Configs"):SetValue("", Utils.GetFiles("ponyhook/Games/The Streets/Configs").Names)
         end)
     end)
 
@@ -6019,8 +5903,6 @@ function Initialize()
 
     AimbotIndicator = DrawCross(20, 4)
     AimbotIndicator:Rotate(90)
-
-    CustomCharacter.Name = "CustomCharacter"
 
     FlyVelocity.Velocity = Vector3.new()
     FlyVelocity.MaxForce = Vector3.new(9e9, 9e9, 9e9)
@@ -6388,7 +6270,7 @@ function Initialize()
             
             for _, Door in ipairs(Doors) do
                 if IsDoorOpen(Door) then continue end
-                Door.Knock.ClickDetector.RemoteEvent:FireServer()
+                Network:Send(Enums.NETWORK.INTERACTABLE_KNOCK, Door)
             end
         end
     end)
@@ -6553,8 +6435,8 @@ workspace.ChildAdded:Connect(OnWorkspaceChildAdded)
 workspace.ChildRemoved:Connect(OnWorkspaceChildRemoved)
 Lighting.Changed:Connect(OnLightingChanged)
 
+Network:Add(Enums.NETWORK.CHAT, OnNewMessage)
 if Utils.IsOriginal then
     Character:WaitForChild("GetMouse").OnClientInvoke = OnGetMouseInvoke
-    ReplicatedStorage:WaitForChild("TagReplicate").OnClientEvent:Connect(OnTagReplicateEvent)
+    Network:Add(Enums.NETWORK.TAG_REPLICATE, OnTagReplicateEvent)
 end
-ReplicatedStorage:WaitForChild("DefaultChatSystemChatEvents"):WaitForChild("OnNewMessage").OnClientEvent:Connect(OnNewMessageEvent)

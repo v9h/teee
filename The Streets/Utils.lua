@@ -4,12 +4,12 @@ local Utils = {}
 local Raycast = import "Libraries/Raycast"
 
 
+local wait = task.wait
 local request = request or syn and syn.request or http and http.request
 
 
 local CoreGui = game:GetService("CoreGui")
 local Players = game:GetService("Players")
-
 
 
 Utils.IsOriginal = game.PlaceId == 455366377 and true
@@ -100,7 +100,7 @@ end
 function Utils.IsBehindAWall(Part: BasePart, Part2: BasePart, Blacklist: table): boolean--, Instance?
     if not Part or not Part2 then return end
 
-    local Blacklist = typeof(Blacklist) == "table" and Blacklist or {}
+    Blacklist = typeof(Blacklist) == "table" and Blacklist or {}
     table.insert(Blacklist, workspace.CurrentCamera)
     table.insert(Blacklist, Players.LocalPlayer.Character)
 
@@ -122,6 +122,44 @@ function Utils.IsBehindAWall(Part: BasePart, Part2: BasePart, Blacklist: table):
 end
 
 
+function Utils.GetFolders(Directory: string): table
+    local Folders = {}
+    local Names = {}
+
+    local function Recurse(Directory: string)
+        for _, File in ipairs(listfiles(Directory)) do
+            if isfolder(File) then
+                table.insert(Folders, File)
+                table.insert(Names, string.match(File, "[^/\\]+$"))
+            end
+        end
+    end
+
+    Recurse(Directory)
+    return {Folders = Folders, Names = Names}
+end
+
+
+function Utils.GetFiles(Directory: string): table
+    local Files = {}
+    local Names = {}
+
+    local function Recurse(Directory: string)
+        for _, File in ipairs(listfiles(Directory)) do
+            if isfile(File) then
+                table.insert(Files, File)
+                table.insert(Names, string.match(File, "[^/\\]+$"))
+            elseif isfolder(File) then
+                Recurse(File)
+            end
+        end
+    end
+
+    Recurse(Directory)
+    return {Files = Files, Names = Names}
+end
+
+
 function Utils.math_round(Number: number, Scale: number): number
     assert(typeof(Number) == "number", "number expected for arguments #1, got '" .. typeof(Number) .. "'")
     return tonumber(string.format("%." .. (typeof(Scale) == "number" and Scale or 2) .. "f", Number))
@@ -130,14 +168,14 @@ end
 
 function Utils.table_clone(Original: table): table
     local Clone = {}
-    
+
     for k, v in pairs(Original) do
         if typeof(v) == "table" then
             v = Utils.table_clone(v)
         end
         Clone[k] = v
     end
-    
+
     return Clone
 end
 
