@@ -21,8 +21,8 @@ function Network:Send(Type: Enum_Item, ...)
         --local Input = Backpack.Input
 
         if Type == Enums.NETWORK.SET_GROUP then
-            local GroupId = table.remove(Arguments, 1)
-            local Tag = table.remove(Arguments, 2)
+            local GroupId = Arguments[1]
+            local Tag = Arguments[2]
 
             if Tag then
                 Stank:FireServer("pick", {
@@ -59,10 +59,10 @@ function Network:Send(Type: Enum_Item, ...)
         return true
     elseif Type == Enums.NETWORK.ATTACK then
         if Utils.IsOriginal then
-            local MouseType = table.remove(Arguments, 1)
-            local Hit = table.remove(Arguments, 2)
-            local IsShifting = table.remove(Arguments, 3)
-            local Velocity = table.remove(Arguments, 4)
+            local MouseType = Arguments[1]
+            local Hit = Arguments[2]
+            local IsShifting = Arguments[3]
+            local Velocity = Arguments[4]
 
             assert(MouseType == "ml" or MouseType == "moff", "invalid argument, for #arguments 1, \"ml\" or \"moff\" expected, got '" .. typeof(MouseType) .. "'")
             assert(typeof(Hit) == "CFrame", "invalid argument, for #arguments 2, type \"CFrame\" expected, got '" .. typeof(Hit) .. "'")
@@ -77,12 +77,12 @@ function Network:Send(Type: Enum_Item, ...)
 
             return true
         else
-            local Tool = table.remove(Arguments, 1)
+            local Tool = Arguments[1]
             assert(typeof(Tool) == "Instance" and Tool:IsA("Tool"), "invalid argument, for #arguments1, 'Tool' expected, got '" .. typeof(Tool) .. "'")
 
             local Remote = Tool:FindFirstChild("Fire")
             if Remote:IsA("RemoteEvent") then
-                local Hit = table.remove(Arguments, 2)
+                local Hit = Arguments[2]
                 assert(typeof(Hit) == "CFrame", "invalid argument, for #arguments 2, type \"CFrame\" expected, got '" .. typeof(Hit) .. "'")
                 Remote:FireServer(Hit)
                 return true
@@ -90,7 +90,7 @@ function Network:Send(Type: Enum_Item, ...)
 
             local Animation = Tool:FindFirstChild("Finish")
             if Animation:IsA("Animation") then
-                local IsShifting = table.remove(Arguments, 2)
+                local IsShifting = Arguments[2]
                 IsShifting = typeof(IsShifting) == "boolean" and IsShifting or false
                 Backpack.ServerTraits.Touch1:FireServer(Tool, 0, IsShifting, 0)
             end
@@ -115,8 +115,8 @@ function Network:Send(Type: Enum_Item, ...)
             -- })
         end
     elseif Type == Enums.NETWORK.PLAY_BOOMBOX then
-        local Tool = table.remove(Arguments, 1)
-        local Audio = table.remove(Arguments, 2)
+        local Tool = Arguments[1]
+        local Audio = Arguments[2]
         
         assert(typeof(Tool == "Instance" and Tool:IsA("Tool")), "Tool expected for #arguments 1, got '" .. typeof(Tool) .. "'")
         assert(Tool.Name == "BoomBox", "Boombox expected for #arguments 1, got '" .. Tool.Name .. "'")

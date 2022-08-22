@@ -1316,35 +1316,31 @@ function SetHatColor(Color: Color3)
 end
 
 
-do
-    local LastTag
+function SetClanTag(Tag: string)
+    Tag = typeof(Tag) == "string" and Tag or ""
+    Tag = string.rep("\n", 100 - #Tag) .. Tag
+    Network:Send(Enums.NETWORK.SET_GROUP, 1, Tag)
 
-    function SetClanTag(Tag: string)
-        Tag = typeof(Tag) == "string" and Tag or ""
-        Tag = string.rep("\n", 100 - #Tag) .. Tag
-        Network:Send(Enums.NETWORK.SET_GROUP, 1, Tag)
+    --[[
+    Stank.OnServerEvent:Connect(function(Player, Method, ...)
+        if Method == "pick" then
+            local GroupFrame = ...
+            local Role = Player:GetRoleInGroup(GroupFrame.Name)
+            local GroupName = GroupFrame.TextLabel.Text
+            
+            local X = GroupName .. "\n" .. Role .. "\n" .. Player.Name -- something like this
+            db:set(Player, "clan", X) -- not sure if it saves the string or the group_id and group_role
+            
+            -- gets created everytime when player spawns
+            ClanModel.Name = X
 
-        --[[
-        Stank.OnServerEvent:Connect(function(Player, Method, ...)
-            if Method == "pick" then
-                local GroupFrame = ...
-                local Role = Player:GetRoleInGroup(GroupFrame.Name)
-                local GroupName = GroupFrame.TextLabel.Text
-                
-                local X = GroupName .. "\n" .. Role .. "\n" .. Player.Name -- something like this
-                db:set(Player, "clan", X) -- not sure if it saves the string or the group_id and group_role
-                
-                -- gets created everytime when player spawns
-                ClanModel.Name = X
-
-                -- when the player spawns
-                ClanModel = Instance.new("Model")
-                ClanModel.Name = db:get(Player, "clan") -- will error though if it's malformed
-                ClanModel.Parent = Player.Character
-            end
-        end)
-        ]]
-    end
+            -- when the player spawns
+            ClanModel = Instance.new("Model")
+            ClanModel.Name = db:get(Player, "clan") -- will error though if it's malformed
+            ClanModel.Parent = Player.Character
+        end
+    end)
+    ]]
 end
 
 
