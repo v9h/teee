@@ -6,6 +6,7 @@
         "readfile",
         "listfiles",
         "isfile",
-        "isfolder"
+        "isfolder",
+        "checkcaller"
     ]
 }

@@ -73,12 +73,7 @@ local function UpdatePlayersInfo(Step: number)
 
         if Root then
             local Position = Root.Position
-
-            if Player ~= PlayerManager.LocalPlayer and LocalPlayerRoot then
-                Player:SetAttribute("BehindWall", (Utils.IsBehindAWall(Root, LocalPlayerRoot, {LocalPlayerRoot.Parent})))
-            end
-
-            Player:SetAttribute("Distance", Utils.math_round(Player:DistanceFromCharacter(Position), 2))
+            Player:SetAttribute("Distance", Utils.math_round(PlayerManager.LocalPlayer:DistanceFromCharacter(Position), 2))
             Player:SetAttribute("Velocity", (Position - LastPosition) / Step)
             Player:SetAttribute("Position", Position)
         else
@@ -98,12 +93,12 @@ function PlayerManager:FindPlayersByName(Name: string): table
     local PlayersTable = Players:GetPlayers()
 
     if Name == "me" then
-        return {Player}
+        return {self.LocalPlayer}
     -- elseif Name == "target" then
     --     return {Target}
     elseif Name == "all" then
         Matches = PlayersTable
-        table.remove(Matches, table.find(Matches, Player))
+        table.remove(Matches, table.find(Matches, self.LocalPlayer))
         return Matches
     end
 
@@ -156,7 +151,7 @@ function PlayerManager:GetPlayersFromCharacters(Characters: table): table
     local PlayersTable = {}
 
     for _, Character in ipairs(Characters) do
-        table.insert(PlayersTable, Players:GetPlayerFromCharacter(UserId))
+        table.insert(PlayersTable, Players:GetPlayerFromCharacter(Character))
     end
 
     return PlayersTable
@@ -215,8 +210,6 @@ end
 
 
 local function OnPlayerRemoving(Player: Player)
-
-
     PlayerManager.PlayerRemoved:Fire(Player)
 end
 

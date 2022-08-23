@@ -748,20 +748,8 @@ function GetToolInfo(self: Tool, Property: string): any -- Maybe use attributes 
             if Property == "Ammo" then
                 local Ammo = self:FindFirstChild("Ammo")
                 local Clips = self:FindFirstChild("Clips")
-                local AmmoPerClip = 0
-
-                if Tool_Name == "Glock" then
-                    AmmoPerClip = 8
-                elseif Tool_Name == "Uzi" then
-                    AmmoPerClip = 14 -- ? i think
-                elseif Tool_Name == "Shotty" then
-                    AmmoPerClip = 4
-                elseif Tool_Name == "Sawed Off" then
-                    AmmoPerClip = 2
-                    if not Utils.IsOriginal then -- prison is retarded
-                        AmmoPerClip = 4
-                    end
-                end
+                local AmmoPerClip = Tool_Name == "Glock" and 8 or Tool_Name == "Uzi" and 14 or Tool_Name == "Shotty" and 4 or
+                                    Tool_Name == "Sawed Off" and not Utils.IsOriginal and 4 or 2
 
                 if Ammo and Clips then return Ammo.Value, Clips.Value, AmmoPerClip end
                 if self:GetAttribute("Gun") then return 0, 0, AmmoPerClip end
@@ -868,7 +856,9 @@ do
                 add_to_pad_list(ItemName, self)
             end)
 
-            delay(20, Event.Disconnect, Event) -- if the buy pad is broken
+            delay(20, function()
+                Event:Disconnect()
+            end) -- if the buy pad is broken
         elseif string.find(Name, " | ") and string.find(Name, string.lower(ItemName)) then
             local BuyerName = get_name(string.lower(ItemName))
             Buyers[BuyerName] = { -- string_lower who cares
@@ -1007,7 +997,7 @@ function GetAssetInfo(AssetId: number): table
     end)
 
     if not Success then
-        Console:Error("[GET ASSET INFO] " .. Result)
+        Console:Write(string.format("[Main::GetAssetInfo(%d)]: %s", AssetId, Result), "Red")
         wait(3)
         return GetAssetInfo(AssetId)
     end
@@ -1663,7 +1653,7 @@ function UpdateESP()
             v.Chams:SetVisible(IS_VISIBLE() and ESP_Chams.Enabled)
             v.Chams:SetRenderMode("Walls")
 
-            if Player:GetAttribute("BehindWall") then
+            if (Player:GetAttribute("Distance") < 1000 and Utils.IsBehindAWall(Root, LocalPlayerRoot, {LocalPlayerRoot.Parent})) then
                 v.Chams:SetColor(ESP_Chams.WallsColor, ESP_Chams.WallsTransparency)
             else
                 v.Chams:SetColor(ESP_Chams.Color, ESP_Chams.Transparency)
@@ -2649,7 +2639,7 @@ function CanPlayerAttackVictim(Player: Player, Victim: Player, Range: number): b
 
         if Root and vRoot then
             if (vRoot - (Root.Position + (Root.CFrame.LookVector * Range / 2))).Magnitude < Range then
-                local Hit = Raycast.streets(Root.Position, TargetRoot.Position, 5, Character)
+                local Hit = Raycast.streets(Root.Position, vRoot.Position, 5, Character)
 
                 if Hit == nil or Hit.Anchored == false then
                     return true
@@ -3362,7 +3352,7 @@ function OnCommandBarFocusLost()
     end)
 
     if not Success then
-        Console:Error("[COMMAND ERROR] " .. Result)
+        Console:Write(string.format("[Main::OnCommandBarFocusLost()]: %s", Result), "Red")
     end
     CommandBar.Text = ""
 end
@@ -3956,20 +3946,15 @@ function OnBulletAdded(Bullet: Instance)
         local Direction = (End - Origin).Unit
         local Distance = 150
 
-        table.insert(BulletLogs, { -- technically we are not using this table at all so it shouldn't be a memleak?
-            Origin = Origin,
-            End = End,
-            TargetOrigin = Target and Target:GetAttribute("Position"),
-            Time = tick()
-        })
+        -- table.insert(BulletLogs, {
+        --     Origin = Origin,
+        --     End = End,
+        --     TargetOrigin = Target and Target:GetAttribute("Position"),
+        --     Time = tick()
+        -- })
     
         if Config.BulletImpact.Enabled then 
             CreateBulletImpact(End, Config.BulletImpact.Color) 
-        end
-
-        if Target then
-            --Console:Warn("[DEBUG] Bullet position from target: " .. tostring(End - Target:GetAttribute("Position")))
-            --Console:Warn("[DEBUG] Current Aimbot Vector Velocity Amplifier (" .. tostring() .. ")")
         end
     
         -- TagSystem doesn't log Client damaged Player, so we have to raycast our bullets
@@ -3992,23 +3977,25 @@ function OnBulletAdded(Bullet: Instance)
             Cross:SetColor(Config.HitMarkers.Color, 1 - Config.HitMarkers.Transparency)
 
             if Config.HitMarkers.Fade then
-                Cross:FadeOut(Cross.Destroy)
+                Cross:FadeOut(function()
+                    Cross:Destroy()
+                end)
             else
-                delay(1, Cross.Destroy, Cross)
+                delay(1, function()
+                    Cross:Destroy()
+                end)
             end
 
-            spawn(function()
-                while Cross:IsAlive() do
-                    local Position, Visible = Camera:WorldToViewportPoint(End)
-                    local Distance = (Camera.CFrame.Position - End).Magnitude
+            while Cross:IsAlive() do
+                local Position, Visible = Camera:WorldToViewportPoint(End)
+                local Distance = (Camera.CFrame.Position - End).Magnitude
 
-                    Cross:SetVisible(Visible)
-                    Cross:SetSize((Distance / 100) * 1 - Config.HitMarkers.Size)
-                    Cross:SetPosition(Vector2.new(Position.x, Position.y))
+                Cross:SetVisible(Visible)
+                Cross:SetSize((Distance / 100) * 1 - Config.HitMarkers.Size)
+                Cross:SetPosition(Vector2.new(Position.x, Position.y))
 
-                    RunService.RenderStepped:Wait()
-                end
-            end)
+                RunService.RenderStepped:Wait()
+            end
         end
     end)
 
@@ -4102,7 +4089,7 @@ end
 -- Key bind toggles
 
 
-function AimbotToggle(Action_Name, State, Input)
+function AimbotToggle(Action_Name: string, State: EnumItem, Input: InputObject)
     if not State or State == Enum.UserInputState.Begin then
         Config.Aimbot.Enabled = not Config.Aimbot.Enabled
 
@@ -4113,7 +4100,7 @@ function AimbotToggle(Action_Name, State, Input)
 end
 
 
-function AutoFireToggle(Action_Name, State, Input)
+function AutoFireToggle(Action_Name: string, State: EnumItem, Input: InputObject)
     if not State or State == Enum.UserInputState.Begin then
         Config.AutoFire.Enabled = not Config.AutoFire.Enabled
         Menu:FindItem("Combat", "Aimbot", "CheckBox", "Auto fire"):SetValue(Config.AutoFire.Enabled)
@@ -4121,7 +4108,7 @@ function AutoFireToggle(Action_Name, State, Input)
 end
 
 
-function CameraLockToggle(Action_Name, State, Input)
+function CameraLockToggle(Action_Name: string, State: EnumItem, Input: InputObject)
     if not State or State == Enum.UserInputState.Begin then
         Config.CameraLock.Enabled = not Config.CameraLock.Enabled
 
@@ -4132,7 +4119,7 @@ function CameraLockToggle(Action_Name, State, Input)
 end
 
 
-function FlyToggle(Action_Name, State, Input)
+function FlyToggle(Action_Name: string, State: EnumItem, Input: InputObject)
     if not State or State == Enum.UserInputState.Begin then
         Config.Flight.Enabled = not Config.Flight.Enabled
 
@@ -4147,7 +4134,7 @@ function FlyToggle(Action_Name, State, Input)
 end
 
 
-function BlinkToggle(Action_Name, State, Input)
+function BlinkToggle(Action_Name: string, State: EnumItem, Input: InputObject)
     if not State or State == Enum.UserInputState.Begin then
         Config.Blink.Enabled = not Config.Blink.Enabled
 
@@ -4158,7 +4145,7 @@ function BlinkToggle(Action_Name, State, Input)
 end
 
 
-function FloatToggle(Action_Name, State, Input)
+function FloatToggle(Action_Name: string, State: EnumItem, Input: InputObject)
     if not State or State == Enum.UserInputState.Begin then
         Config.Float.Enabled = not Config.Float.Enabled
         FloatPart.CanCollide = Config.Float.Enabled
@@ -4170,7 +4157,7 @@ function FloatToggle(Action_Name, State, Input)
 end
 
 
-function NoclipToggle(Action_Name, State, Input)
+function NoclipToggle(Action_Name: string, State: EnumItem, Input: InputObject)
     if not State or State == Enum.UserInputState.Begin then
         Config.Noclip.Enabled = not Config.Noclip.Enabled
 
@@ -4181,7 +4168,7 @@ function NoclipToggle(Action_Name, State, Input)
 end
 
 
-function AntiAimToggle(Action_Name, State, Input)
+function AntiAimToggle(Action_Name: string, State: EnumItem, Input: InputObject)
     if not State or State == Enum.UserInputState.Begin then
         Config.AntiAim.Enabled = not Config.AntiAim.Enabled
         UpdateAntiAim()
@@ -4193,7 +4180,7 @@ function AntiAimToggle(Action_Name, State, Input)
 end
 
 
-function CommandBarToggle(Action_Name: string, State: EnumItem, Input)
+function CommandBarToggle(Action_Name: string, State: EnumItem, Input: InputObject)
     if not State or State == Enum.UserInputState.Begin then
         local CommandBar = Menu.CommandBar
 
@@ -4205,7 +4192,7 @@ function CommandBarToggle(Action_Name: string, State: EnumItem, Input)
 end
 
 
-function MenuToggle(Action_Name, State, Input)
+function MenuToggle(Action_Name: string, State: EnumItem, Input: InputObject)
     if not State or State == Enum.UserInputState.Begin then
         Menu:SetVisible(not Menu.IsVisible)
     end
@@ -4328,8 +4315,8 @@ function OnNewIndex(self: Instance, Key: any, Value: any)
         if Key == "Health" then return end
     end
 
-    if Key == "CFrame" and self:IsDescendantOf(Character) then 
-        return 
+    if Key == "CFrame" and self == Root then 
+        return
     end
 
     return NewIndex(self, Key, Value)
@@ -4382,14 +4369,14 @@ function OnNameCall(self: Instance, ...)
             end
         end
 
-        if (Utils.IsPrison and Name == "Fire") or (not Original and Name == "Shoot") then 
+        if (Utils.IsPrison and Name == "Fire") then 
             if not Caller and Menu.IsVisible then 
                 return 
             end 
 
             Arguments[1] = Mouse.Hit or CFrame.new()
 
-            if Target and Config.Aimbot.Enabled and ((not caller) or Arguments[2]) then 
+            if Target and Config.Aimbot.Enabled then 
                 Arguments[1] = GetAimbotCFrame(true) or Mouse.Hit 
             end 
 
@@ -4452,14 +4439,14 @@ function OnNameCall(self: Instance, ...)
         end
 
         if self == Character and (Method == "BreakJoints" or Method == "ClearAllChildren") then 
-            return 
+            return
         end
         
         if (Method == "WaitForChild" or Method == "FindFirstChild" or Method == "findFirstChild") then
             local Key = Arguments[1]
 
             if Config.NoSlow.Enabled and ((Key == "Action") or (Key == "Info" and self.ClassName ~= "Tool")) then
-                return 
+                return
             end -- Checks for OnHit :: Play Anim
 
             if self == Character and Key == "HumanoidRootPart" then
@@ -6006,7 +5993,7 @@ function Initialize()
                 local Message = string.lower(Console:Read(">"))
                 local Output = Commands.Check(Message)
                 if not Output then
-                    Console:Warn("Warning: Command does not exist!")
+                    Console:Write("Warning: Command does not exist!", "Yellow")
                 end
 
                 GetInput()
@@ -6051,7 +6038,7 @@ function Initialize()
                 end)
 
                 if not Success then
-                    Console:Error(string.format("[%s] " .. Result), string.upper(Name))
+                    Console:Write(string.format("[%s] " .. Result), string.upper(Name), "Red")
                 end
             end,
             Thread = Thread

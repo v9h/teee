@@ -35,7 +35,7 @@ function Console:Clear()
 end
 
 
-function Console:Write(Message, Color, NoNewLine)
+function Console:Write(Message: string, Color: string, NoNewLine: boolean)
     if syn then
         if Color then
             rconsoleprint(Colors[Color])
@@ -56,7 +56,7 @@ function Console:WriteLine(...)
 end
 
 
-function Console:Read(Message, Color)
+function Console:Read(Message: string, Color: string)
     Console:Write(Message, Color, true)
     return rconsoleinput()
 end
@@ -64,16 +64,6 @@ end
 
 function Console:ReadLine(...)
     Console:Read(...)
-end
-
-
-function Console:Warn(Message)
-    Console:Write(Message, "Yellow")
-end
-
-
-function Console:Error(Message)
-    Console:Write(Message, "Red")
 end
 
 
