@@ -1450,6 +1450,7 @@ function AddPlayerESP(Player: Player)
     local Humanoid = Character:FindFirstChild("Humanoid")
     local Head = Character:FindFirstChild("Head")
     local Torso = Character:FindFirstChild("Torso")
+    local Root = Humanoid.RootPart
     
     if not Humanoid or not Head or not Torso then return end
 
@@ -1473,6 +1474,7 @@ function AddPlayerESP(Player: Player)
     Player_ESP = {
         self = Player,
         Character = Character,
+        Root = Root,
         Type = "Player",
         Destroy = Destroy_ESP,
 
@@ -1601,7 +1603,6 @@ function UpdateESP()
             local Whitelisted = table.find(UserTable.Whitelisted, Player.UserId)
             local Distance = Player:GetAttribute("Distance")
 
-
             local function IS_VISIBLE()
                 local TARGET_CHECK = true
 
@@ -1653,7 +1654,7 @@ function UpdateESP()
             v.Chams:SetVisible(IS_VISIBLE() and ESP_Chams.Enabled)
             v.Chams:SetRenderMode("Walls")
 
-            if (Player:GetAttribute("Distance") < 1000 and Utils.IsBehindAWall(Root, LocalPlayerRoot, {LocalPlayerRoot.Parent})) then
+            if (Distance < 1000 and Utils.IsBehindAWall(v.Root, Root, {Root.Parent})) then
                 v.Chams:SetColor(ESP_Chams.WallsColor, ESP_Chams.WallsTransparency)
             else
                 v.Chams:SetColor(ESP_Chams.Color, ESP_Chams.Transparency)
