@@ -2554,9 +2554,9 @@ function Attack(CF: CFrame, Release: boolean)
 
 
 
-        Network:Send(Enums.NETWORK.ATTACK, "ml", CF, UserInput:IsKeyDown(Enum.KeyCode.LeftShift), Root.AssemblyLinearVelocity.Magnitude)
+        Network:Send(Enums.NETWORK.ATTACK, 1, CF, UserInput:IsKeyDown(Enum.KeyCode.LeftShift), Root.AssemblyLinearVelocity.Magnitude)
         --if Release then
-            Network:Send(Enums.NETWORK.ATTACK, "moff1", CF, UserInput:IsKeyDown(Enum.KeyCode.LeftShift), Root.AssemblyLinearVelocity.Magnitude)
+            Network:Send(Enums.NETWORK.ATTACK, 2, CF, UserInput:IsKeyDown(Enum.KeyCode.LeftShift), Root.AssemblyLinearVelocity.Magnitude)
         --else
         --end
     else

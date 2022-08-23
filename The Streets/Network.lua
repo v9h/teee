@@ -64,7 +64,9 @@ function Network:Send(Type: Enum_Item, ...)
             local IsShifting = Arguments[3]
             local Velocity = Arguments[4]
 
-            assert(MouseType == "ml" or MouseType == "moff", "invalid argument, for #arguments 1, \"ml\" or \"moff\" expected, got '" .. typeof(MouseType) .. "'")
+            MouseType = MouseType == 1 and "ml" or MouseType == 2 and "moff1"
+
+            assert(MouseType == "ml" or MouseType == "moff1", "invalid argument, for #arguments 1, number <1, 2> expected, got '" .. typeof(MouseType) .. "'")
             assert(typeof(Hit) == "CFrame", "invalid argument, for #arguments 2, type \"CFrame\" expected, got '" .. typeof(Hit) .. "'")
             IsShifting = typeof(IsShifting) == "boolean" and IsShifting or false
             Velocity = typeof(Velocity) == "number" and Velocity or math.random(0, 16)
