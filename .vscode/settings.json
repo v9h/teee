@@ -7,6 +7,7 @@
         "listfiles",
         "isfile",
         "isfolder",
-        "checkcaller"
+        "checkcaller",
+        "Drawing"
     ]
 }

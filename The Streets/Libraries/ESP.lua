@@ -1,13 +1,4 @@
--- R15 Support ?? ; might already exist never attempted; yeah like all of the configs are done by the user
--- Image and Text Offset;
--- Fix Boxes, Bars, Arrows
--- Corner 2D BOX
--- Outline Color Text
--- Gradient lines
--- Fix offscreen esp
-
-
-if ESP and ESP.__CHECK and ESP.Clear then ESP:Clear() end
+-- rewrite esp lib
 
 local ESP = {__CHECK = true}
 local Drawn = {}
@@ -164,7 +155,7 @@ function ESP.Bar(self)
         Bar.Points = {typeof(a) == "number" and a or 0, typeof(b) == "number" and b or 0, typeof(c) == "number" and c or 0, typeof(d) == "number" and d or 0}
     end
 
-    function Bar:SetValue(Value:Percentage)
+    function Bar:SetValue(Value: number)
         local Value = typeof(Value) == "number" and Value or 100
         Bar.Value = math.clamp(Value, 0, 100) -- percetange
     end
@@ -313,16 +304,16 @@ end
 
 
 function ESP.ViewBeam()
-    local Line = Instance.new("LineHandleAdornment")
-    Line.Name = "Line"
-    Line.Length = Length
-    Line.Thickness = Thickness
-    Line.AlwaysOnTop = true
-    Line.Color3 = Color or Color3.new(1, 1, 1)
-    Line.Transparency = Transparency or 0
-    Line.Visible = true
-    Line.Adornee = Part
-    Line.Parent = Part
+    -- local Line = Instance.new("LineHandleAdornment")
+    -- Line.Name = "Line"
+    -- Line.Length = Length
+    -- Line.Thickness = Thickness
+    -- Line.AlwaysOnTop = true
+    -- Line.Color3 = Color or Color3.new(1, 1, 1)
+    -- Line.Transparency = Transparency or 0
+    -- Line.Visible = true
+    -- Line.Adornee = Part
+    -- Line.Parent = Part
 end
 
 
@@ -490,7 +481,7 @@ function ESP.Snapline(self) -- I liked tracer more but whateva
     Snapline.Root = self
     
     Snapline.self = Drawing.new("Line")
-    Snapline.self.Thickness = Thickness or 1
+    Snapline.self.Thickness = 1
     Snapline.self.Transparency = 1
     Snapline.self.Color = Color3.new(1, 1, 1)
     Snapline.self.From = Vector2.new(Camera.ViewportSize.x / 2, Camera.ViewportSize.y / 2)

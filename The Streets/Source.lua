@@ -1652,19 +1652,21 @@ function UpdateESP()
 
 
             v.Chams:SetVisible(IS_VISIBLE() and ESP_Chams.Enabled)
-            v.Chams:SetRenderMode("Walls")
+            if v.Chams.self.Enabled then
+                v.Chams:SetRenderMode("Walls")
 
-            if (Distance < 1000 and Utils.IsBehindAWall(v.Root, Root, {Root.Parent})) then
-                v.Chams:SetColor(ESP_Chams.WallsColor, ESP_Chams.WallsTransparency)
-            else
-                v.Chams:SetColor(ESP_Chams.Color, ESP_Chams.Transparency)
-            end
+                if (Distance < 1000 and Utils.IsBehindAWall(v.Root, Root, {Root.Parent})) then
+                    v.Chams:SetColor(ESP_Chams.WallsColor, ESP_Chams.WallsTransparency)
+                else
+                    v.Chams:SetColor(ESP_Chams.Color, ESP_Chams.Transparency)
+                end
 
-            if ESP_Chams.AutoOutlineColor then
-                local Health = Player:GetAttribute("Health")
-                v.Chams:SetOutlineColor(Color3.fromHSV((Health / 100) * 0.3, 1, 1), ESP_Chams.OutlineTransparency)
-            else
-                v.Chams:SetOutlineColor(ESP_Chams.OutlineColor, ESP_Chams.OutlineTransparency)
+                if ESP_Chams.AutoOutlineColor then
+                    local Health = Player:GetAttribute("Health")
+                    v.Chams:SetOutlineColor(Color3.fromHSV((Health / 100) * 0.3, 1, 1), ESP_Chams.OutlineTransparency)
+                else
+                    v.Chams:SetOutlineColor(ESP_Chams.OutlineColor, ESP_Chams.OutlineTransparency)
+                end
             end
 
 
