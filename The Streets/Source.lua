@@ -3680,7 +3680,7 @@ function OnCharacterAdded(Player: Player, _Character: Model)
                     DrawStrawHat(Player)
                 end
 
-                --local Player_ESP = AddPlayerESP(Player) disabled right now due to massive lag
+                local Player_ESP = AddPlayerESP(Player)
 
                 do
                     local Ignore = {}

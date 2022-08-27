@@ -12,7 +12,7 @@ function TimerClass.new(): Timer
     Timer.Time = 0
 
     function Timer:Start(Callback: any)
-        assert(typeof(self.Callback) == "function", "type 'function' expected for 'Callback', got '" .. typeof(Callback) .. "'")
+        assert(typeof(Callback) == "function", "type 'function' expected for 'Callback', got '" .. typeof(Callback) .. "'")
         self.Tick = os.clock()
         self.Callback = Callback
 
