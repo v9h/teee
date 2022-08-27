@@ -76,10 +76,208 @@ local function DrawGradientLine(Gradient, From, To) -- snapline; trajectory; ske
 end
 
 
-function ESP:Clear()
-    RenderLoop:Disconnect()
+local function UpdateDrawnObjects()
+    Camera = workspace.CurrentCamera
+
+    if not Camera then return end
+    local ScreenSize = Camera.ViewportSize
+
     for _, v in pairs(Drawn) do
-        v:Remove()
+        local self = v.self
+
+        if not render_object_exists(self) then
+            Drawn[v] = nil
+            continue
+        end
+
+        if not v.Visible then
+            v:SetVisible(false)
+            continue
+        end
+        
+        local Position
+        local Outline = v.Outline
+        local Type = v.Type
+
+        if Type == "Snapline" then
+            local Root = v.Root
+            local Position, OnScreen, Depth = WorldToScreen(Root.Position)
+            self.Visible = OnScreen
+
+            if not OnScreen and v.OffScreen and Depth < 0 then
+                -- make the position be angled towards the Root
+                local Angle = math.atan2(Root.Position.y - Camera.CFrame.p.y, Root.Position.x - Camera.CFrame.p.x)
+                Position = Vector2.new(Position.x + math.cos(Angle) * Depth, ScreenSize.y)
+
+                self.Visible = true
+            end
+
+            if self.Visible then
+                self.To = Position
+            end
+        elseif Type == "Arrow" then
+            local Root = v.Root
+            local Position, OnScreen = WorldToScreen(Root.Position)
+            self.Visible = not OnScreen
+            self.Filled = v.Filled
+
+            if Position.x < 0 or Position.y < 0 or Position.x > ScreenSize.x or Position.y > ScreenSize.y then
+                local ScreenCenter = ScreenSize / 2
+
+                local Angle = ScreenCenter - Position
+                local AngleYaw = math.rad(Angle.y)
+    
+                local NewPoint = Vector2.new(ScreenCenter.x + v.Offset * math.cos(AngleYaw), ScreenCenter.y + v.Offset * math.sin(AngleYaw))
+    
+                local Points = {}
+                Points[1] = NewPoint - Vector2.new(10, 10)
+                Points[2] = NewPoint + Vector2.new(25, 0)
+                Points[3] = NewPoint + Vector2.new(-10, 10)
+    
+                local function RotateTriangle(Points, Rotation)
+                    local Center = (Points[1] + Points[2] + Points[3]) / 3
+                    local NewPoints = {}
+                    for _, Point in ipairs(Points) do
+                        local NewPoint = Point - Center
+                        NewPoint = Vector2.new(NewPoint.x * math.cos(Rotation) - NewPoint.y * math.sin(Rotation), NewPoint.x * math.sin(Rotation) + NewPoint.y * math.cos(Rotation))
+                        NewPoint = NewPoint + Center
+                        table.insert(NewPoints, NewPoint)
+                    end
+                    
+                    
+                    self.PointA = NewPoints[1]
+                    self.PointB = NewPoints[2]
+                    self.PointC = NewPoints[3]
+                end
+    
+    
+                RotateTriangle(Points, AngleYaw)
+            else
+                self.Visible = false
+                continue
+            end
+        elseif Type == "Text" then
+            local Root = v.Root
+            if Root then
+                Position, self.Visible = WorldToScreen(Root.Position + Vector3.new(0, v.Offset.y, 0))
+            end
+            self.Position = Position + Vector2.new(0, -(self.TextBounds.y / 2))
+        elseif Type == "Image" then
+            local Root = v.Root
+            if Root then
+                Position, self.Visible = WorldToScreen(Root.Position + Vector3.new(0, v.Offset.y, 0))
+            end
+            self.Position = (Position - self.Size / 2)
+        elseif Type == "Box" then
+            local Root = v.Root
+            if Root then
+                local Origin = Root.Position
+                local Position, OnScreen = WorldToScreen(Origin)
+                self.Visible = OnScreen
+                Outline.Visible = OnScreen
+                if OnScreen then
+                    local CF = Camera.CFrame
+                    
+                    local Points = v.Points
+                    local Top = WorldToScreen(Origin + 0.5 * Points[1] * CF.UpVector)
+                    local Bottom = WorldToScreen(Origin - 0.5 * Points[2] * CF.UpVector)
+                    local Left = WorldToScreen(Origin - 0.5 * Points[3] * CF.RightVector)
+                    local Right = WorldToScreen(Origin + 0.5 * Points[4] * CF.RightVector)
+
+                    self.PointA = Vector2.new(Left.x, Top.y)
+                    self.PointB = Vector2.new(Right.x, Top.y)
+                    self.PointC = Vector2.new(Right.x, Bottom.y)
+                    self.PointD = Vector2.new(Left.x, Bottom.y)
+
+                    Outline.PointA = self.PointA + Vector2.new(-1, -1)
+                    Outline.PointB = self.PointB + Vector2.new(1, -1)
+                    Outline.PointC = self.PointC + Vector2.new(1, 1)
+                    Outline.PointD = self.PointD + Vector2.new(-1, 1)
+                end
+            end
+        elseif Type == "Bar" then
+            local Root = v.Root
+            if Root then
+                local Origin = Root.Position
+                local Position, OnScreen = WorldToScreen(Origin)
+                self.Visible = OnScreen
+                Outline.Visible = OnScreen
+                if OnScreen then
+                    local CF = Camera.CFrame
+
+                    local Points = v.Points
+                    local Top = WorldToScreen(Origin + 0.5 * Points[1] * CF.UpVector)
+                    local Bottom = WorldToScreen(Origin - 0.5 * Points[2] * CF.UpVector)
+                    local Left = WorldToScreen(Origin - 0.5 * Points[3] * CF.RightVector)
+                    local Right = WorldToScreen(Origin + 0.5 * Points[4] * CF.RightVector)
+
+                    if v.Axis == "y" then
+                        local Value = Bottom.y + ((Top.y - Bottom.y) * v:GetValue() / 100)
+                        self.To = Vector2.new(Right.x, Value)
+                        self.From = Vector2.new(Left.x, Bottom.y)
+                        Outline.PointA = Vector2.new(Left.x - 1, Top.y - 1)
+                        Outline.PointB = Vector2.new(Left.x + 1, Top.y - 1)
+                        Outline.PointC = Vector2.new(Left.x + 1, self.From.y + 1)
+                        Outline.PointD = Vector2.new(Left.x - 1, self.From.y + 1)
+                    elseif v.Axis == "x" then
+                        local Value = Left.x + ((Right.x - Left.x) * v:GetValue() / 100)
+                        self.To = Vector2.new(Value, Top.y)
+                        self.From = Vector2.new(Left.x, Bottom.y)
+                        Outline.PointA = Vector2.new(self.From.x - 1, self.To.y - 1)
+                        Outline.PointB = Vector2.new(self.To.x + 1, self.To.y - 1)
+                        Outline.PointC = Vector2.new(self.To.x + 1, self.From.y + 1)
+                        Outline.PointD = Vector2.new(self.From.x - 1, self.From.y + 1)
+                    end
+                end
+            end
+        elseif Type == "Skeleton" then
+            local Lines = v.Lines
+            local Points = v.Points
+
+            if typeof(Points) == "table" and #Points >= 15 then
+                local Position, OnScreen = WorldToScreen(Points[1])
+                for _, Line in ipairs(Lines) do Line.Visible = OnScreen end
+                if OnScreen then
+                    Lines[1].From = Position; Lines[1].To = Position -- Head
+                    for i = 2, 3 do -- Neck, Pelvis
+                        Lines[i].From = Lines[i - 1].To
+                        Lines[i].To = WorldToScreen(Points[i])
+                    end
+
+                    -- limbs
+                    local function Set(j, Origin)
+                        Lines[j].From = Lines[Origin].To
+                        Lines[j].To = WorldToScreen(Points[j])
+                        for i = 1, 3 do
+                            Lines[j + i].From = Lines[(j + i) - 1].To
+                            Lines[j + i].To = WorldToScreen(Points[j + i])
+                            if j + i == 15 then break end -- last point
+                        end
+                    end
+
+                    Set(4, 2) -- Left arm
+                    Set(7, 2) -- Right arm
+                    Set(10, 3) -- Left leg
+                    Set(13, 3) -- Right Leg
+                end
+            end
+        elseif Type == "Trajectory" then
+            local Lines = v.Lines
+            local Points = v.Points
+
+            if typeof(Points) == "table" and #Points > 0 then
+                local From = WorldToScreen(Points[1])
+                for i, Point in ipairs(Points) do
+                    local Position, OnScreen = WorldToScreen(Point)
+                    Lines[i].Visible = OnScreen
+                    if OnScreen then
+                        Lines[i].From = From
+                        Lines[i].To = Position
+                    end
+                    From = Position
+                end
+            end
+        end
     end
 end
 
@@ -573,217 +771,21 @@ function ESP.Trajectory(Points)
 end
 
 
-local function UpdateDrawnObjects()
-    Camera = workspace.CurrentCamera
-
-    if not Camera then return end
-    local ScreenSize = Camera.ViewportSize
-
-    for _, v in pairs(Drawn) do
-        local self = v.self
-
-        if not render_object_exists(self) then
-            Drawn[v] = nil
-            continue
-        end
-
-        if not v.Visible then
-            v:SetVisible(false)
-            continue
-        end
-        
-        local Position
-        local Outline = v.Outline
-        local Type = v.Type
-
-        if Type == "Snapline" then
-            local Root = v.Root
-            local Position, OnScreen, Depth = WorldToScreen(Root.Position)
-            self.Visible = OnScreen
-
-            if not OnScreen and v.OffScreen and Depth < 0 then
-                -- make the position be angled towards the Root
-                local Angle = math.atan2(Root.Position.y - Camera.CFrame.p.y, Root.Position.x - Camera.CFrame.p.x)
-                Position = Vector2.new(Position.x + math.cos(Angle) * Depth, ScreenSize.y)
-
-                self.Visible = true
-            end
-
-            if self.Visible then
-                self.To = Position
-            end
-        elseif Type == "Arrow" then
-            local Root = v.Root
-            local Position, OnScreen = WorldToScreen(Root.Position)
-            self.Visible = not OnScreen
-            self.Filled = v.Filled
-
-            if Position.x < 0 or Position.y < 0 or Position.x > ScreenSize.x or Position.y > ScreenSize.y then
-                local ScreenCenter = ScreenSize / 2
-
-                local Angle = ScreenCenter - Position
-                local AngleYaw = math.rad(Angle.y)
-    
-                local NewPoint = Vector2.new(ScreenCenter.x + v.Offset * math.cos(AngleYaw), ScreenCenter.y + v.Offset * math.sin(AngleYaw))
-    
-                local Points = {}
-                Points[1] = NewPoint - Vector2.new(10, 10)
-                Points[2] = NewPoint + Vector2.new(25, 0)
-                Points[3] = NewPoint + Vector2.new(-10, 10)
-    
-                local function RotateTriangle(Points, Rotation)
-                    local Center = (Points[1] + Points[2] + Points[3]) / 3
-                    local NewPoints = {}
-                    for _, Point in ipairs(Points) do
-                        local NewPoint = Point - Center
-                        NewPoint = Vector2.new(NewPoint.x * math.cos(Rotation) - NewPoint.y * math.sin(Rotation), NewPoint.x * math.sin(Rotation) + NewPoint.y * math.cos(Rotation))
-                        NewPoint = NewPoint + Center
-                        table.insert(NewPoints, NewPoint)
-                    end
-                    
-                    
-                    self.PointA = NewPoints[1]
-                    self.PointB = NewPoints[2]
-                    self.PointC = NewPoints[3]
-                end
-    
-    
-                RotateTriangle(Points, AngleYaw)
-            else
-                self.Visible = false
-                continue
-            end
-        elseif Type == "Text" then
-            local Root = v.Root
-            if Root then
-                Position, self.Visible = WorldToScreen(Root.Position + Vector3.new(0, v.Offset.y, 0))
-            end
-            self.Position = Position + Vector2.new(0, -(self.TextBounds.y / 2))
-        elseif Type == "Image" then
-            local Root = v.Root
-            if Root then
-                Position, self.Visible = WorldToScreen(Root.Position + Vector3.new(0, v.Offset.y, 0))
-            end
-            self.Position = (Position - self.Size / 2)
-        elseif Type == "Box" then
-            local Root = v.Root
-            if Root then
-                local Origin = Root.Position
-                local Position, OnScreen = WorldToScreen(Origin)
-                self.Visible = OnScreen
-                Outline.Visible = OnScreen
-                if OnScreen then
-                    local CF = Camera.CFrame
-                    
-                    local Points = v.Points
-                    local Top = WorldToScreen(Origin + 0.5 * Points[1] * CF.UpVector)
-                    local Bottom = WorldToScreen(Origin - 0.5 * Points[2] * CF.UpVector)
-                    local Left = WorldToScreen(Origin - 0.5 * Points[3] * CF.RightVector)
-                    local Right = WorldToScreen(Origin + 0.5 * Points[4] * CF.RightVector)
-
-                    self.PointA = Vector2.new(Left.x, Top.y)
-                    self.PointB = Vector2.new(Right.x, Top.y)
-                    self.PointC = Vector2.new(Right.x, Bottom.y)
-                    self.PointD = Vector2.new(Left.x, Bottom.y)
-
-                    Outline.PointA = self.PointA + Vector2.new(-1, -1)
-                    Outline.PointB = self.PointB + Vector2.new(1, -1)
-                    Outline.PointC = self.PointC + Vector2.new(1, 1)
-                    Outline.PointD = self.PointD + Vector2.new(-1, 1)
-                end
-            end
-        elseif Type == "Bar" then
-            local Root = v.Root
-            if Root then
-                local Origin = Root.Position
-                local Position, OnScreen = WorldToScreen(Origin)
-                self.Visible = OnScreen
-                Outline.Visible = OnScreen
-                if OnScreen then
-                    local CF = Camera.CFrame
-
-                    local Points = v.Points
-                    local Top = WorldToScreen(Origin + 0.5 * Points[1] * CF.UpVector)
-                    local Bottom = WorldToScreen(Origin - 0.5 * Points[2] * CF.UpVector)
-                    local Left = WorldToScreen(Origin - 0.5 * Points[3] * CF.RightVector)
-                    local Right = WorldToScreen(Origin + 0.5 * Points[4] * CF.RightVector)
-
-                    if v.Axis == "y" then
-                        local Value = Bottom.y + ((Top.y - Bottom.y) * v:GetValue() / 100)
-                        self.To = Vector2.new(Right.x, Value)
-                        self.From = Vector2.new(Left.x, Bottom.y)
-                        Outline.PointA = Vector2.new(Left.x - 1, Top.y - 1)
-                        Outline.PointB = Vector2.new(Left.x + 1, Top.y - 1)
-                        Outline.PointC = Vector2.new(Left.x + 1, self.From.y + 1)
-                        Outline.PointD = Vector2.new(Left.x - 1, self.From.y + 1)
-                    elseif v.Axis == "x" then
-                        local Value = Left.x + ((Right.x - Left.x) * v:GetValue() / 100)
-                        self.To = Vector2.new(Value, Top.y)
-                        self.From = Vector2.new(Left.x, Bottom.y)
-                        Outline.PointA = Vector2.new(self.From.x - 1, self.To.y - 1)
-                        Outline.PointB = Vector2.new(self.To.x + 1, self.To.y - 1)
-                        Outline.PointC = Vector2.new(self.To.x + 1, self.From.y + 1)
-                        Outline.PointD = Vector2.new(self.From.x - 1, self.From.y + 1)
-                    end
-                end
-            end
-        elseif Type == "Skeleton" then
-            local Lines = v.Lines
-            local Points = v.Points
-
-            if typeof(Points) == "table" and #Points >= 15 then
-                local Position, OnScreen = WorldToScreen(Points[1])
-                for _, Line in ipairs(Lines) do Line.Visible = OnScreen end
-                if OnScreen then
-                    Lines[1].From = Position; Lines[1].To = Position -- Head
-                    for i = 2, 3 do -- Neck, Pelvis
-                        Lines[i].From = Lines[i - 1].To
-                        Lines[i].To = WorldToScreen(Points[i])
-                    end
-
-                    -- limbs
-                    local function Set(j, Origin)
-                        Lines[j].From = Lines[Origin].To
-                        Lines[j].To = WorldToScreen(Points[j])
-                        for i = 1, 3 do
-                            Lines[j + i].From = Lines[(j + i) - 1].To
-                            Lines[j + i].To = WorldToScreen(Points[j + i])
-                            if j + i == 15 then break end -- last point
-                        end
-                    end
-
-                    Set(4, 2) -- Left arm
-                    Set(7, 2) -- Right arm
-                    Set(10, 3) -- Left leg
-                    Set(13, 3) -- Right Leg
-                end
-            end
-        elseif Type == "Trajectory" then
-            local Lines = v.Lines
-            local Points = v.Points
-
-            if typeof(Points) == "table" and #Points > 0 then
-                local From = WorldToScreen(Points[1])
-                for i, Point in ipairs(Points) do
-                    local Position, OnScreen = WorldToScreen(Point)
-                    Lines[i].Visible = OnScreen
-                    if OnScreen then
-                        Lines[i].From = From
-                        Lines[i].To = Position
-                    end
-                    From = Position
-                end
-            end
-        end
-    end
+function ESP:Init()
+    RenderLoop = RunService.RenderStepped:Connect(function(Delta)
+        debug.profilebegin("[Libraries/ESP.lua]::RunService.RenderStepped")
+        UpdateDrawnObjects(Delta)
+        debug.profileend()
+    end)
 end
 
 
-RenderLoop = RunService.RenderStepped:Connect(function(Delta)
-    debug.profilebegin("[Libraries/ESP.lua]::RunService.RenderStepped")
-    UpdateDrawnObjects(Delta)
-    debug.profileend()
-end)
+function ESP:Clear()
+    RenderLoop:Disconnect()
+    for _, v in pairs(Drawn) do
+        v:Remove()
+    end
+end
 
 
 return ESP

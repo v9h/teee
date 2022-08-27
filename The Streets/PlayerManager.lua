@@ -225,12 +225,11 @@ function PlayerManager:Init()
     for _, Player in ipairs(Players:GetPlayers()) do
         OnPlayerAdded(Player)
     end
+
+    Players.PlayerAdded:Connect(OnPlayerAdded)
+    Players.PlayerRemoving:Connect(OnPlayerRemoving)
+    RunService.Heartbeat:Connect(OnHeartbeat)
 end
-
-
-Players.PlayerAdded:Connect(OnPlayerAdded)
-Players.PlayerRemoving:Connect(OnPlayerRemoving)
-RunService.Heartbeat:Connect(OnHeartbeat)
 
 
 return PlayerManager

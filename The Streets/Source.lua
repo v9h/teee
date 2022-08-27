@@ -988,7 +988,7 @@ end
 
 
 function GetAssetInfo(AssetId: number): table
-    local AssetId = tonumber(AssetId)
+    AssetId = tonumber(AssetId)
     if not AssetId then return end
 
     local Info = {}
@@ -1624,7 +1624,6 @@ function UpdateESP()
                 FONT_PUSH_AMOUNT -= 4
                 return math.clamp(Distance / 100, 0.5, 10) * FONT_PUSH_AMOUNT
             end
-
 
             local TOP_BAR_PUSH = 6.125
             local LEFT_BAR_PUSH = 5.125
@@ -5876,6 +5875,7 @@ function Initialize()
     PlayerManager.PlayerRemoved:Add(OnPlayerRemoving)
     PlayerManager.CharacterAdded:Add(OnCharacterAdded)
 
+    ESP:Init()
     PlayerManager:Init()
 
     Lighting:Init()
