@@ -4,7 +4,6 @@ local Utils = import "Utils"
 
 local RunService = game:GetService("RunService")
 
-local Timers = {}
 
 function TimerClass.new(): Timer
     local Timer = {}
@@ -13,9 +12,15 @@ function TimerClass.new(): Timer
     Timer.Time = 0
 
     function Timer:Start(Callback: any)
+        assert(typeof(self.Callback) == "function", "type 'function' expected for 'Callback', got '" .. typeof(Callback) .. "'")
         self.Tick = os.clock()
         self.Callback = Callback
-        Timers[Timer] = Timer
+
+        self._Heartbeat = RunService.Heartbeat:Connect(function()
+            self.Time = Utils.math_round(os.clock() - self.Tick, 2)
+            self:Callback()
+        end)
+
 
         function self:Start()
             error("attempted to start a timer more than once")
@@ -24,24 +29,11 @@ function TimerClass.new(): Timer
 
     function Timer:Destroy()
         self.Time = 0 -- do we really need to
-        Timers[self] = nil
+        self._Heartbeat:Disconnect()
     end
 
     return Timer
 end
-
-
-local function StepTimers()
-    for Timer in pairs(Timers) do
-        Timer.Time = Utils.math_round(os.clock() - Timer.Tick, 2)
-        if typeof(Timer.Callback) == "function" then
-            Timer:Callback()
-        end
-    end
-end
-
-
-RunService.Heartbeat:Connect(StepTimers)
 
 
 return TimerClass

@@ -21,6 +21,13 @@ Lighting.DefaultOutdoorAmbient = Lighting.OutdoorAmbient
 Lighting.Changed = LightingService.Changed
 
 
+local function UpdateLighting()
+    LightingService.TimeOfDay = Lighting.Time
+    LightingService.Ambient = Lighting.Ambient
+    LightingService.OutdoorAmbient = Lighting.OutdoorAmbient
+end
+
+
 function Lighting:Init()
     local Sky = LightingService:FindFirstChildOfClass("Sky")
     local Blur = Instance.new("BlurEffect")
@@ -68,6 +75,8 @@ function Lighting:Init()
     Lighting.Atmosphere = Atmosphere
     Lighting.DepthOfFieldEffect = DepthOfField
     Lighting.ColorEffect = LightingService:FindFirstChild("ColorCorrection")
+
+    RunService.Heartbeat:Connect(UpdateLighting)
 end
 
 
@@ -95,16 +104,6 @@ function Lighting:UpdateSkybox(Skybox: string): string--?
         end
     end
 end
-
-
-local function UpdateLighting()
-    LightingService.TimeOfDay = Lighting.Time
-    LightingService.Ambient = Lighting.Ambient
-    LightingService.OutdoorAmbient = Lighting.OutdoorAmbient
-end
-
-
-RunService.Heartbeat:Connect(UpdateLighting)
 
 
 return Lighting

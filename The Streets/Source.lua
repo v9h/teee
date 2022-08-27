@@ -5875,6 +5875,7 @@ function Initialize()
     PlayerManager.CharacterAdded:Add(OnCharacterAdded)
 
     ESP:Init()
+    Menu:Init()
     PlayerManager:Init()
 
     Lighting:Init()
