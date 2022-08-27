@@ -1650,7 +1650,6 @@ function UpdateESP()
                 end
             end
 
-
             v.Chams:SetVisible(IS_VISIBLE() and ESP_Chams.Enabled)
             if v.Chams.self.Enabled then
                 v.Chams:SetRenderMode("Walls")
@@ -1840,7 +1839,7 @@ function UpdateESP()
                 v.Arrow:SetColor(ESP_Arrows.Color, ESP_Arrows.Transparency)
             end
         elseif Type == "Item" then
-            if not self or not self:FindFirstAncestor(tostring(workspace)) then -- wait why Am I just not using a ancestry changed event ? :|
+            if not self or self.Parent ~= workspace then -- wait why Am I just not using a ancestry changed event ? :|
                 v.Destroy()
                 continue
             end
@@ -3681,7 +3680,7 @@ function OnCharacterAdded(Player: Player, _Character: Model)
                     DrawStrawHat(Player)
                 end
 
-                local Player_ESP = AddPlayerESP(Player)
+                --local Player_ESP = AddPlayerESP(Player) disabled right now due to massive lag
 
                 do
                     local Ignore = {}
