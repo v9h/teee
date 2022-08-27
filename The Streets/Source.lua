@@ -1549,6 +1549,7 @@ end
 
 
 function UpdateESP()
+    debug.profilebegin("[Source.lua]::UpdateESP()")
     local ESP = Config.ESP
     local ESP_Enabled = ESP.Enabled
     local ESP_Flags = ESP.Flags
@@ -1884,6 +1885,8 @@ function UpdateESP()
             end
         end
     end
+
+    debug.profileend()
 end
 
 
@@ -2147,7 +2150,6 @@ function CreateBulletImpact(Position: Vector3, Color: Color3, Material: EnumItem
 
     return Impact
 end
-
 
 
 function DrawLine(Color: Color3, Transparency: number, From: Vector2, To: Vector2): Line
@@ -2809,6 +2811,7 @@ function ShowDoorMenu(self: Instance) -- I hate this shitty code
 end
 
 function Heartbeat(Step: number) -- after phys :: after heartbeat comes network stepped
+    debug.profilebegin("[Source.lua]::Heartbeat()")
     Camera = workspace.CurrentCamera
     if UserInput:GetFocusedTextBox() ~= Menu.CommandBar then OnCommandBarFocusLost() end
 
@@ -3015,10 +3018,13 @@ function Heartbeat(Step: number) -- after phys :: after heartbeat comes network 
     Ping = Utils.math_round(Stats.PerformanceStats.Ping:GetValue(), 2)
     SendPing = Utils.math_round(Stats.PerformanceStats.NetworkSent:GetValue(), 2)
     ReceivePing = Utils.math_round(Stats.PerformanceStats.NetworkReceived:GetValue(), 2)
+
+    debug.profileend()
 end
 
 
 function Stepped(_, Step: number) -- before phys
+    debug.profilebegin("[Source.lua]::Stepped()")
     UpdateESP()
 
     if Root and Humanoid then
@@ -3171,10 +3177,13 @@ function Stepped(_, Step: number) -- before phys
             end
         end
     end
+
+    debug.profileend()
 end
 
 
 function RenderStepped(Step: number)
+    debug.profilebegin("[Source.lua]::RenderStepped()")
     UpdateFieldOfViewCircle() -- Has check if visible anyway
     UpdateAimbotIndicator()
 
@@ -3241,6 +3250,8 @@ function RenderStepped(Step: number)
             end
         end
     end
+
+    debug.profileend()
 end
 
 

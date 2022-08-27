@@ -14,12 +14,12 @@ end
 local RenderLoop
 
 
-function AddDrawn(self)
+local function AddDrawn(self)
     DrawnObjects[self] = true
 end
 
 
-function RemoveDrawn(self, Item)
+local function RemoveDrawn(self, Item)
     if self then
         pcall(function()
             DrawnObjects[self] = nil
@@ -32,13 +32,13 @@ function RemoveDrawn(self, Item)
 end
 
 
-function WorldToScreen(Position)
+local function WorldToScreen(Position)
     local Vector, OnScreen = Camera:WorldToViewportPoint(Position)
     return Vector2.new(Vector.x, Vector.y), OnScreen, Vector.z
 end
 
 
-function DrawLine(Color, Transparency, From, To)
+local function DrawLine(Color, Transparency, From, To)
     local Line = Drawing.new("Line")
     Line.Color = Color or Color3.new(1, 1, 1)
     Line.Transparency = Transparency or 1
@@ -51,7 +51,7 @@ function DrawLine(Color, Transparency, From, To)
 end
 
 
-function DrawGradientLine(Gradient, From, To) -- snapline; trajectory; skeleton; bar
+local function DrawGradientLine(Gradient, From, To) -- snapline; trajectory; skeleton; bar
     local Lines = {}
     local Axis = (From.x - To.x) == 0 and "y" or "x"
     local Length = (Axis == "y" and math.abs(From.y - To.y)) or (Axis == "x" and math.abs(From.x - To.x))
@@ -573,7 +573,7 @@ function ESP.Trajectory(Points)
 end
 
 
-function UpdateDrawnObjects()
+local function UpdateDrawnObjects()
     Camera = workspace.CurrentCamera
 
     if not Camera then return end
@@ -779,7 +779,11 @@ function UpdateDrawnObjects()
 end
 
 
-RenderLoop = RunService.RenderStepped:Connect(UpdateDrawnObjects)
+RenderLoop = RunService.RenderStepped:Connect(function(Delta)
+    debug.profilebegin("[Libraries/ESP.lua]::RunService.RenderStepped")
+    UpdateDrawnObjects(Delta)
+    debug.profileend()
+end)
 
 
 return ESP

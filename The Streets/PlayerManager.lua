@@ -215,7 +215,9 @@ end
 
 
 local function OnHeartbeat(Step: number)
+    debug.profilebegin("[PlayerManager.lua]::OnHeartbeat()")
     UpdatePlayersInfo(Step)
+    debug.profileend()
 end
 
 

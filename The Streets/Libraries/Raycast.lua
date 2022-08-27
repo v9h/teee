@@ -3,7 +3,7 @@ local function streets_raycast(Start: Vector3, End: Vector3, Distance: number, B
 end
 
 
-local function Raycast(Position: Vector3, Position_2: Vector3, Blacklist: table): RaycastResult
+local function Raycast(Position: Vector3, Position_2: Vector3, Blacklist: table)
     local RayParams = RaycastParams.new()
     RayParams.FilterType = Enum.RaycastFilterType.Blacklist
     RayParams.FilterDescendantsInstances = Blacklist
