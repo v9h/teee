@@ -13,6 +13,7 @@ if not game:IsLoaded() then
 end
 
 local Time = os.clock()
+local IsGameHooked = false
 
 -- Original values maybe different for some remakes but I'm too lazy to add support for that
 local ORIGINAL_GRAVITY = workspace.Gravity
@@ -4211,566 +4212,567 @@ function MenuToggle(Action_Name: string, State: EnumItem, Input: InputObject)
 end
 
 
--- Game Hook
-
-if Utils.IsOriginal then
-    for _, Connection in ipairs(getconnections(ScriptContext.Error)) do
-        if getfenv(Connection.Function).script == PlayerGui.LocalScript then
-            Connection:Disable()
-        end
-    end
-else
-    local wait_hook;
-    wait_hook = hookfunction(getrenv().wait, function(constant) -- (note from xaxa) for info on why im writing getrenv()["wait"], please refer to line 69 in the source (literally not a coincidence, BLAME ELDEN)
-        if not checkcaller() and Config.NoGunDelay.Enabled and (constant == 0.5 or constant == 0.25 or constant == 0.33) then 
-            constant = 0
-        end
-        
-        return wait_hook(constant)
-    end)
-end
-
-local Index, NewIndex, NameCall, OldFunctionHook
-
-function OnIndex(self: Instance, Key: any)
-    local Caller = checkcaller()
-    local Name = tostring(self)
-
-    if not Caller then
-        if table.find({"Stamina", "Stann", "Stam"}, Name) and Key == "Value" then 
-    	    return (Config.NoSlow.Enabled or Config.God.Enabled) and 100 or math.clamp(Player:GetAttribute("Stamina") or 0, 0, 100) -- meh?
-        end
-    
-        if not Utils.IsOriginal and (Config.NoSlow.Enabled or Config.God.Enabled) then
-            if self == Root and Key == "Anchored" and (Tool and Tool.GetAttribute(Tool, "Gun")) then
-        	    return false
+function HookGame()
+    if Utils.IsOriginal then
+        for _, Connection in ipairs(getconnections(ScriptContext.Error)) do
+            if getfenv(Connection.Function).script == PlayerGui.LocalScript then
+                Connection:Disable()
             end
         end
-    
-        if self == ScriptContext and Key == "Error" then
-            return {connect = function() end} -- HACKED
-        end
-    
-        if Name == "Namer" and Config.God.Enabled then 
-            return "Torso" 
-        end
-
-        if Name == "LocalScript" and Key == "Disabled" then 
-            return false 
-        end
-        
-        if self == Humanoid then
-            if Key == "WalkSpeed" then
-                return ORIGINAL_SPEED
+    else
+        local wait_hook;
+        wait_hook = hookfunction(getrenv().wait, function(constant) -- (note from xaxa) for info on why im writing getrenv()["wait"], please refer to line 69 in the source (literally not a coincidence, BLAME ELDEN)
+            if not checkcaller() and Config.NoGunDelay.Enabled and (constant == 0.5 or constant == 0.25 or constant == 0.33) then 
+                constant = 0
             end
             
-            if Key == "HipHeight" then
-                return ORIGINAL_HIPHEIGHT
+            return wait_hook(constant)
+        end)
+    end
+
+    local Index, NewIndex, NameCall, OldFunctionHook
+
+    function OnIndex(self: Instance, Key: any)
+        local Caller = checkcaller()
+        local Name = tostring(self)
+
+        if not Caller then
+            if table.find({"Stamina", "Stann", "Stam"}, Name) and Key == "Value" then 
+                return (Config.NoSlow.Enabled or Config.God.Enabled) and 100 or math.clamp(Player:GetAttribute("Stamina") or 0, 0, 100) -- meh?
             end
         
-            if Key == "JumpPower" then
-                return ORIGINAL_JUMPPOWER
+            if not Utils.IsOriginal and (Config.NoSlow.Enabled or Config.God.Enabled) then
+                if self == Root and Key == "Anchored" and (Tool and Tool.GetAttribute(Tool, "Gun")) then
+                    return false
+                end
             end
-        end
         
-        if self == workspace and Key == "Gravity" then
-            return ORIGINAL_GRAVITY
-        end
-    end
-
-    return Index(self, Key)
-end
-
-function OnNewIndex(self: Instance, Key: any, Value: any)
-    local Caller = checkcaller()
-
-    if Caller then 
-        return NewIndex(self, Key, Value)
-    end 
-
-    if self == Mouse and Key == "Icon" then return end
-    if Utils.IsOriginal and Key == "OnClientInvoke" and self.Name == "GetMouse" then 
-        Value = OnGetMouseInvoke 
-    end
-
-    if self == Humanoid then
-        if Key == "WalkSpeed" then
-            local IsRunning = Value > 16
-            local IsWalking = Value > 8 and Value < 18
-            local IsCrouching = Value == 8
-            local Hit = Value == 2
-            local CantMove = Value == 0
-
-            Running = IsRunning
-            Crouching = IsCrouching
-            ORIGINAL_SPEED = Value
-
-            if (Config.NoSlow.Enabled or Config.God.Enabled) and (CantMove or Hit) then 
-                return 
+            if self == ScriptContext and Key == "Error" then
+                return {connect = function() end} -- HACKED
+            end
+        
+            if Name == "Namer" and Config.God.Enabled then 
+                return "Torso" 
             end
 
-            Value = (IsRunning and Config.RunSpeed.Value) or (IsCrouching and Config.CrouchSpeed.Value) or (IsWalking and Config.WalkSpeed.Value)
-        end
-
-        if Key == "JumpPower" then
-            Value = (Value > 0 and Config.JumpPower.Value) or (Value == 0 and (Config.NoSlow.Enabled or Config.God.Enabled) and Config.JumpPower.Value or 0)
-        end
-
-        if (Key == "Jump" and not Value) and (Config.NoSlow.Enabled or Config.God.Enabled) then 
-            return 
-        end
-
-        if Key == "AutoRotate" then 
-            Value = true 
-        end
-
-        if Key == "Health" then return end
-    end
-
-    if Key == "CFrame" and self == Root then 
-        return
-    end
-
-    return NewIndex(self, Key, Value)
-end
-
-function OnNameCall(self: Instance, ...)
-    local Arguments = {...}
-    local Name = self.Name
-    local Caller, Method = checkcaller(), (getnamecallmethod or get_namecall_method)()
-
-    if self == Player and (Method == "Kick" or Method == "kick") then 
-        return 
-    end 
-
-    if Method == "FireServer" then
-        if self.Parent == ReplicatedStorage then 
-            if string.find(Name, "l") and string.find(Name, "i") and #Name < 7 then 
-                return 
+            if Name == "LocalScript" and Key == "Disabled" then 
+                return false 
             end
+            
+            if self == Humanoid then
+                if Key == "WalkSpeed" then
+                    return ORIGINAL_SPEED
+                end
+                
+                if Key == "HipHeight" then
+                    return ORIGINAL_HIPHEIGHT
+                end
+            
+                if Key == "JumpPower" then
+                    return ORIGINAL_JUMPPOWER
+                end
+            end
+            
+            if self == workspace and Key == "Gravity" then
+                return ORIGINAL_GRAVITY
+            end
+        end
+
+        return Index(self, Key)
+    end
+
+    function OnNewIndex(self: Instance, Key: any, Value: any)
+        local Caller = checkcaller()
+
+        if Caller then 
+            return NewIndex(self, Key, Value)
         end 
 
-        if Name == "Input" then 
-            local Key = Arguments[1] 
+        if self == Mouse and Key == "Icon" then return end
+        if Utils.IsOriginal and Key == "OnClientInvoke" and self.Name == "GetMouse" then 
+            Value = OnGetMouseInvoke 
+        end
 
-            if table.find({"bv", "hb", "ws", "strafe"}, Key) then 
-                return 
-            end 
+        if self == Humanoid then
+            if Key == "WalkSpeed" then
+                local IsRunning = Value > 16
+                local IsWalking = Value > 8 and Value < 18
+                local IsCrouching = Value == 8
+                local Hit = Value == 2
+                local CantMove = Value == 0
 
-            if Key == "ml" or Key == "moff1" then 
-                if not Caller and Menu.IsVisible then 
+                Running = IsRunning
+                Crouching = IsCrouching
+                ORIGINAL_SPEED = Value
+
+                if (Config.NoSlow.Enabled or Config.God.Enabled) and (CantMove or Hit) then 
                     return 
                 end
 
-                if not Arguments[2] then 
-                    Arguments[2] = {}
+                Value = (IsRunning and Config.RunSpeed.Value) or (IsCrouching and Config.CrouchSpeed.Value) or (IsWalking and Config.WalkSpeed.Value)
+            end
+
+            if Key == "JumpPower" then
+                Value = (Value > 0 and Config.JumpPower.Value) or (Value == 0 and (Config.NoSlow.Enabled or Config.God.Enabled) and Config.JumpPower.Value or 0)
+            end
+
+            if (Key == "Jump" and not Value) and (Config.NoSlow.Enabled or Config.God.Enabled) then 
+                return 
+            end
+
+            if Key == "AutoRotate" then 
+                Value = true 
+            end
+
+            if Key == "Health" then return end
+        end
+
+        if Key == "CFrame" and self == Root then 
+            return
+        end
+
+        return NewIndex(self, Key, Value)
+    end
+
+    function OnNameCall(self: Instance, ...)
+        local Arguments = {...}
+        local Name = self.Name
+        local Caller, Method = checkcaller(), (getnamecallmethod or get_namecall_method)()
+
+        if self == Player and (Method == "Kick" or Method == "kick") then 
+            return 
+        end 
+
+        if Method == "FireServer" then
+            if self.Parent == ReplicatedStorage then 
+                if string.find(Name, "l") and string.find(Name, "i") and #Name < 7 then 
+                    return 
+                end
+            end 
+
+            if Name == "Input" then 
+                local Key = Arguments[1] 
+
+                if table.find({"bv", "hb", "ws", "strafe"}, Key) then 
+                    return 
                 end 
 
-                Arguments[2].mousehit = Mouse.Hit or CFrame.new() 
-                Arguments[2].velo = 16 
+                if Key == "ml" or Key == "moff1" then 
+                    if not Caller and Menu.IsVisible then 
+                        return 
+                    end
+
+                    if not Arguments[2] then 
+                        Arguments[2] = {}
+                    end 
+
+                    Arguments[2].mousehit = Mouse.Hit or CFrame.new() 
+                    Arguments[2].velo = 16 
+
+                    if Target and Config.Aimbot.Enabled then 
+                        Arguments[2].mousehit = GetAimbotCFrame(true) or Mouse.Hit 
+                    end 
+
+                    if Config.AlwaysGroundHit.Enabled then
+                        Arguments[2].shift = true
+                    end
+
+                    FireTick = os.clock()
+                end
+            end
+
+            if (Utils.IsPrison and Name == "Fire") then 
+                if not Caller and Menu.IsVisible then 
+                    return 
+                end 
+
+                Arguments[1] = Mouse.Hit or CFrame.new()
 
                 if Target and Config.Aimbot.Enabled then 
-                    Arguments[2].mousehit = GetAimbotCFrame(true) or Mouse.Hit 
+                    Arguments[1] = GetAimbotCFrame(true) or Mouse.Hit 
                 end 
-
-                if Config.AlwaysGroundHit.Enabled then
-                    Arguments[2].shift = true
-                end
 
                 FireTick = os.clock()
             end
-        end
 
-        if (Utils.IsPrison and Name == "Fire") then 
-            if not Caller and Menu.IsVisible then 
-                return 
-            end 
-
-            Arguments[1] = Mouse.Hit or CFrame.new()
-
-            if Target and Config.Aimbot.Enabled then 
-                Arguments[1] = GetAimbotCFrame(true) or Mouse.Hit 
-            end 
-
-            FireTick = os.clock()
-        end
-
-        if Name == "Touch1" then 
-            if Config.AlwaysGroundHit.Enabled then 
-                Arguments[3] = true 
-            end 
-        end
-
-        if not Caller and Arguments[1] == "play" and Arguments[2] then 
-            LastAudio = Arguments[2]
-
-            if not table.find(AudioLogs, LastAudio) then
-                table.insert(AudioLogs, LastAudio)
-                writefile("ponyhook/Games/The Streets/Audios.dat", table.concat(AudioLogs, "\n"))
+            if Name == "Touch1" then 
+                if Config.AlwaysGroundHit.Enabled then 
+                    Arguments[3] = true 
+                end 
             end
-        end
-    end
 
+            if not Caller and Arguments[1] == "play" and Arguments[2] then 
+                LastAudio = Arguments[2]
 
-    if table.find({"Destroy", "destroy", "Remove", "remove"}, Method) then 
-        if FlyVelocity.Parent == self then
-            FlyVelocity.Parent = nil
-        end
-
-        if FlyAngularVelocity.Parent == self then
-            FlyAngularVelocity.Parent = nil
-        end
-    end
-
-    if not Caller then
-        if self.ClassName == "AnimationTrack" then
-            local AnimationId = string.gsub(self.Animation.AnimationId, "%D", "")
-
-            if table.find({"Play", "play", "Stop", "stop"}, Method) and table.find(AnimationIds, AnimationId) then
-                if Config.Animations.Run.Enabled then
-                    local Style = Config.Animations.Run.Style
-                    self = Style == "Default" and Animations.Run.self or Style == "Style-2" and Animations.Run2.self or Animations.Run3.self
+                if not table.find(AudioLogs, LastAudio) then
+                    table.insert(AudioLogs, LastAudio)
+                    writefile("ponyhook/Games/The Streets/Audios.dat", table.concat(AudioLogs, "\n"))
                 end
             end
         end
 
-        if Method == "PlayerOwnsAsset" and Arguments[2] == 457667510 then
-            return Player.GetAttribute(Player, "AnimeGamePass")
-        end
-	
-    	if Method == "IsA" or Method == "isA" then
-            if (self == FlyVelocity or self == FlyAngularVelocity) or string.find(self.ClassName, "Body") then
-	   	        return
+
+        if table.find({"Destroy", "destroy", "Remove", "remove"}, Method) then 
+            if FlyVelocity.Parent == self then
+                FlyVelocity.Parent = nil
             end
-    	end
 
-        if Method == "Destroy" then
-            if self == Character then return end
-	        if Name == "Head" or Name == "Torso" then return end
-            if string.find(self.ClassName, "Body") then return end
-        end
-
-        if self == Character and (Method == "BreakJoints" or Method == "ClearAllChildren") then 
-            return
-        end
-        
-        if (Method == "WaitForChild" or Method == "FindFirstChild" or Method == "findFirstChild") then
-            local Key = Arguments[1]
-
-            if Config.NoSlow.Enabled and ((Key == "Action") or (Key == "Info" and self.ClassName ~= "Tool")) then
-                return
-            end -- Checks for OnHit :: Play Anim
-
-            if self == Character and Key == "HumanoidRootPart" then
-                Arguments[1] = "Torso"
+            if FlyAngularVelocity.Parent == self then
+                FlyAngularVelocity.Parent = nil
             end
         end
-    end
-    
-    return NameCall(self, unpack(Arguments))
-end
 
-local PostMessageHook = function(self, Message)
-    if not checkcaller() and self == PostMessage and Config.AntiChatLog.Enabled then
-        MessageEvent:Fire(Message)
-        return
-    end
-    -- Credits to whoever made this function
-    return OldFunctionHook(self, Message)
-end
+        if not Caller then
+            if self.ClassName == "AnimationTrack" then
+                local AnimationId = string.gsub(self.Animation.AnimationId, "%D", "")
 
-
---if u do getgenv().hookmetamethod then ur the retard not me fuck you
-if not hookmetamethod then while true do end end -- just incase someone tries to use a krnl for this script, sorry for the crash but I would rather crash you than you getting banned
-Index = hookmetamethod(game, "__index", OnIndex)
-NewIndex = hookmetamethod(game, "__newindex", OnNewIndex)
-NameCall = hookmetamethod(game, "__namecall", OnNameCall)
-
-OldFunctionHook = hookfunction(PostMessage.fire, PostMessageHook)
-
---local mt = getrawmetatable(game); setreadonly(mt, false); local old_namecall = mt.__namecall; mt.__namecall = function(...) return old_namecall(...) end
-
--- Commands
-Commands.Add("walkspeed", {"ws"}, "[number] - sets your walkspeed to 'number'", function(Arguments)
-    Config.WalkSpeed.Value = Arguments[1] or 16
-    Menu:FindItem("Player", "Movement", "Slider", "Walk speed"):SetValue(Config.WalkSpeed.Value)
-end)
-
-Commands.Add("jumppower", {"jp"}, "[number] - sets your jumppower to 'number'", function(Arguments)
-    Config.JumpPower.Value = Arguments[1] or 37.5
-    Menu:FindItem("Player", "Movement", "Slider", "Jump power"):SetValue(Config.JumpPower.Value)
-end)
-
-Commands.Add("runspeed", {"rs"}, "[number] - sets your runspeed to 'number'", function(Arguments)
-    Config.RunSpeed.Value = Arguments[1] or 24.5
-    Menu:FindItem("Player", "Movement", "Slider", "Run speed"):SetValue(Config.RunSpeed.Value)
-end)
-
-Commands.Add("crouchspeed", {"cs"}, "[number] - sets your crouchspeed to 'number'", function(Arguments)
-    Config.CrouchSpeed.Value = Arguments[1] or 8
-    Menu:FindItem("Player", "Movement", "Slider", "Crouch speed"):SetValue(Config.CrouchSpeed.Value)
-end)
-
-Commands.Add("hipheight", {"hh"}, "[number] - sets your hipheight to 'number'", function(Arguments)
-    Humanoid.HipHeight = Arguments[1] or 0
-end)
-
-Commands.Add("gravity", {}, "[number] - sets your gravity to 'number'", function(Arguments)
-    workspace.Gravity = Arguments[1] or 196.2
-end)
-
-Commands.Add("blink", {"cfwalk"}, "- enables 'blink mode'", function()
-    Config.Blink.Enabled = true
-    Menu:FindItem("Player", "Movement", "CheckBox", "Blink"):SetValue(Config.Blink.Enabled)
-end)
-
-Commands.Add("unblink", {"uncfwalk"}, "- disables 'blink mode'", function()
-    Config.Blink.Enabled = false
-    Menu:FindItem("Player", "Movement", "CheckBox", "Blink"):SetValue(Config.Blink.Enabled)
-end)
-
-Commands.Add("fly", {"flight"}, "- enables 'flight'", function()
-    FlyToggle()
-end)
-
-Commands.Add("unfly", {"noflight"}, "- disables 'flight'", function()
-    Config.Flight.Enabled = false
-    Menu:FindItem("Player", "Movement", "CheckBox", "Flight"):SetValue(Config.Flight.Enabled)
-end)
-
-Commands.Add("float", {"airwalk"}, "- enables 'float'", function()
-    Config.Float.Enabled = not Config.Float.Enabled
-    FloatPart.CanCollide = Config.Float.Enabled
-    Menu:FindItem("Player", "Movement", "CheckBox", "Float"):SetValue(Config.Float.Enabled)
-end)
-
-Commands.Add("unfloat", {"unairwalk"}, "- disables 'float'", function()
-    Config.Float.Enabled = false
-    FloatPart.CanCollide = false
-    Menu:FindItem("Player", "Movement", "CheckBox", "Float"):SetValue(Config.Float.Enabled)
-end)
-
-Commands.Add("noclip", {}, "- enables 'noclip'", function()
-    Config.Noclip.Enabled = true
-    Menu:FindItem("Player", "Movement", "CheckBox", "Noclip"):SetValue(Config.Noclip.Enabled)
-end)
-
-Commands.Add("clip", {}, "- disables 'noclip'", function()
-    Config.Noclip.Enabled = false
-    Menu:FindItem("Player", "Movement", "CheckBox", "Noclip"):SetValue(Config.Noclip.Enabled)
-end)
-
-Commands.Add("god", {}, "- enables 'god mode'", function()
-    Config.God.Enabled = true
-    Menu:FindItem("Misc", "Exploits", "CheckBox", "God"):SetValue(Config.God.Enabled)
-end)
-
-Commands.Add("ungod", {}, "- disables 'god mode'", function()
-    Config.God.Enabled = false
-    Menu:FindItem("Misc", "Exploits", "CheckBox", "God"):SetValue(Config.God.Enabled)
-end)
-
-Commands.Add("reset", {"re"}, "- resets your character", RefreshCharacter)
-
-Commands.Add("car", {"bringcar"}, "[streets only] - brings a car to you", function()
-    local Jeep = workspace:FindFirstChild("Jeep")
-
-    if Jeep then
-        local Seat = Jeep:FindFirstChild("DriveSeat", true)
-        if Seat then
-            if Seat.Occupant then
-                Menu.Notify("Car is occupied by someone else!", 5)
-                return
-            end
-            if not IsSeated() then Seat:Sit(Humanoid) end
-        end
-    else
-        Menu.Notify("Car not found!", 5)
-    end
-end)
-
-Commands.Add("rejoin", {"rj"}, "- attempts to rejoin to the current server", function()
-    TeleportToPlace(game.PlaceId, game.JobId)
-end)
-
-Commands.Add("swap", {}, "- teleports either to the streets or the prison", function()
-    TeleportToPlace(Utils.IsOriginal and 4669040 or 455366377)
-end)
-
-Commands.Add("goto", {"to"}, "[player] - teleports to the 'player'", function(Arguments)
-    if not Arguments[1] then return end
-    local Target = PlayerManager:FindPlayersByName(Arguments[1])
-
-    for _, Target in ipairs(Target) do
-        local Root = Utils.GetRoot(Target)
-        if Root then
-            Teleport(Root.CFrame)
-            break
-        end
-    end
-end)
-
-Commands.Add("item", {"get"}, "[name] - if the item is found then it teleports you to the item", function(Arguments)
-    local Found, Part, Price
-    local Item_Name = string.lower(table.concat(Arguments, " "))
-
-    for _, Item in pairs(Items) do
-        if string.lower(Item:GetAttribute("Item")) == Item_Name then
-            Found = true
-            Teleport(Item.CFrame)
-            break
-        end
-    end
-
-    if Utils.IsOriginal and not Found then BuyItem(Item_Name) end
-end)
-
-Commands.Add("play", {}, "[id] - mass plays the selected 'id'", function(Arguments)
-    local Audio = Arguments[1]
-    local Boomboxes = {}
-    for _, Tool in ipairs(GetTools()) do
-        if Tool.Name == "BoomBox" then
-            Tool.Parent = Character
-            local Remote = Tool:FindFirstChildWhichIsA("RemoteEvent", true)
-            if Remote then table.insert(Boomboxes, Tool) end
-        end
-    end
-
-    delay(0, function()
-        if Audio == "stop" then
-            for _, Boombox in ipairs(Boomboxes) do Network:Send(Enums.NETWORK.STOP_BOOMBOX, Boombox) end
-        else
-            for _, Boombox in ipairs(Boomboxes) do Network:Send(Enums.NETWORK.PLAY_BOOMBOX, Boombox, Audio) end
-        end
-    end)
-end)
-
-Commands.Add("bypass", {}, "[prison only] - Attempts to give you tool and teleport bypass", function()
-    if not Utils.IsOriginal then
-        queue_on_teleport([[
-            if not game:IsLoaded() then game.Loaded:Wait() end -- Synapse is shit
-            game:GetService("TeleportService"):TeleportToPlaceInstance(4669040, game.JobId)
-        ]])
-        TeleportToPlace(game.PlaceId, game.JobId)
-    end
-end)
-
---[[
-    Commands.Add("breakpads", {"breakbuypads"}, "", function()
-        if Utils.IsOriginal then
-            Humanoid:Destroy() -- Kicks you, disabling for now
-            Backpack:Destroy() -- If This Replicated It Would Also Break Them
-            BuyItem("Glock")
-        end
-    end)
-]]
-
-Commands.Add("key", {"bind"}, "- [regularid please do this one]", function(Arguments)
-    local Name, Key, Command = table.remove(Arguments, 1), table.remove(Arguments, 1), table.remove(Arguments, 1)
-    if Name and Key and Command then
-        Name = string.lower(Name)
-        Key = string.lower(Key)
-
-        for _, v in ipairs(Enum.KeyCode:GetEnumItems()) do
-            if Key == string.lower(v.Name) then Key = v break end
-        end
-
-        for _, v in ipairs(Enum.UserInputType:GetEnumItems()) do
-            if Key == string.lower(v.Name) then Key = v break end
-        end
-
-        if Name and Key then
-            BindKey(Name, "Remove")
-            BindKey(Name, "Add", Key, Command, Arguments)
-        end
-    end
-end)
-
-Commands.Add("unkey", {"unbind"}, "[keybind name] - unbinds 'keybind name'", function(Arguments)
-    local Name = Arguments[1]
-    if Name then BindKey(string.lower(Name), "Remove") end
-end)
-
-Commands.Add("commands", {"cmds"}, "- prints all the commands in the rconsole", function()
-    Console:Write("\n")
-    Console:Write(CommandsList)
-end)
-
-Commands.Add("clear", {"cls"}, "- clears the rconsole of all text", function()
-    Console:Clear()
-    Console:Write([[                                                                    
-                                                    88                                     88         
-                                                    88                                     88         
-                                                    88                                     88         
-8b,dPPYba,    ,adPPYba,   8b,dPPYba,   8b       d8  88,dPPYba,    ,adPPYba,    ,adPPYba,   88   ,d8   
-88P'    "8a  a8"     "8a  88P'   `"8a  `8b     d8'  88P'    "8a  a8"     "8a  a8"     "8a  88 ,a8"    
-88       d8  8b       d8  88       88   `8b   d8'   88       88  8b       d8  8b       d8  8888[      
-88b,   ,a8"  "8a,   ,a8"  88       88    `8b,d8'    88       88  "8a,   ,a8"  "8a,   ,a8"  88`"Yba,   
-88`YbbdP"'    `"YbbdP"'   88       88      Y88'     88       88   `"YbbdP"'    `"YbbdP"'   88   `Y8a  
-88                                         d8'                                                        
-88                                        d8'                                                                                                                                                                                                                                                                                                                                                          
-]])
-    Console:Write("\nBy: " .. table.concat(UserTable.Developers, ", "))
-    Console:Write(string.format("Script Version: %s", get_script_version()))
-    Console:Write("\nType 'cmds' to see the commands!")
-end)
-
-Commands.Add("steal", {"st", "log"}, "([audio]/[decal]) [player] - steals the selected audio or decal from 'player'", function(Arguments)
-    local asset_type = string.lower(tostring(Arguments[1]))
-    local player_name = Arguments[2]
-
-    local Target = PlayerManager:FindPlayersByName(player_name)[1]
-    if not Target then
-        local Color = Config.EventLogs.Colors.Error:ToHex()
-        return Menu.Notify(Utils.GetRichTextColor("player_name for argument[2] expeceted", Color))
-    end
-
-    if asset_type == "audio" or asset_type == "sound" or asset_type == "radio" or asset_type == "boombox" then
-        local Tools = GetTools(Target)
-        if Tools then
-            for _, Tool in ipairs(Tools) do
-                if Tool.Name == "BoomBox" then
-                    local sound = Tool:FindFirstChildWhichIsA("Sound", true)
-                    local sound_id = sound and sound.SoundId
-                    if sound_id then
-                        setclipboard(sound_id)
-                        local Color = Config.EventLogs.Colors.Success:ToHex()
-                        return Menu.Notify(Utils.GetRichTextColor("set audio_id rbxassetid://'" .. sound_id .. "' to your clipboard", Color))
+                if table.find({"Play", "play", "Stop", "stop"}, Method) and table.find(AnimationIds, AnimationId) then
+                    if Config.Animations.Run.Enabled then
+                        local Style = Config.Animations.Run.Style
+                        self = Style == "Default" and Animations.Run.self or Style == "Style-2" and Animations.Run2.self or Animations.Run3.self
                     end
                 end
             end
 
-            local Color = Config.EventLogs.Colors.Error:ToHex()
-            return Menu.Notify(Utils.GetRichTextColor("no audio from player '" .. Target.Name .. "' found", Color))
-        end
-    elseif asset_type == "decal" or asset_type == "spray" then
-        local spray_part = workspace:FindFirstChild(Target.Name .. "Spray")
-        if spray_part then
-            local decal = spray_part:WaitForChild("Decal")
-            local decal_id = string.match(decal.Texture, "%d+")
-            if not Utils.IsOriginal then decal_id += 1 end
-            setclipboard(decal_id)
-            local Color = Config.EventLogs.Colors.Success:ToHex()
-            return Menu.Notify(Utils.GetRichTextColor("set decal_id rbxassetid://'" .. decal_id .. "' to your clipboard", Color))
-        else
-            local Color = Config.EventLogs.Colors.Error:ToHex()
-            return Menu.Notify(Utils.GetRichTextColor("no decal from player '" .. Target.Name .. "' found", Color))
-        end
-        -- sign check?
-    else
-        local Color = Config.EventLogs.Colors.Error:ToHex()
-        return Menu.Notify(Utils.GetRichTextColor("asset-type for argument[1] expected", Color))
-    end
-end)
+            if Method == "PlayerOwnsAsset" and Arguments[2] == 457667510 then
+                return Player.GetAttribute(Player, "AnimeGamePass")
+            end
+        
+            if Method == "IsA" or Method == "isA" then
+                if (self == FlyVelocity or self == FlyAngularVelocity) or string.find(self.ClassName, "Body") then
+                    return
+                end
+            end
 
--- Command auto-printization thingy (note from xaxa - sorry if this looks bad elden)
-for Index, Command in ipairs(Commands) do 
-    CommandsList = CommandsList .. string.format("%s%s%s %s", Command.Name, (#Command.Aliases > 0 and "/" or ""), ((#Command.Aliases > 0 and table.concat(Command.Aliases, "/")) or ""), Command.Description) .. "\n"
+            if Method == "Destroy" then
+                if self == Character then return end
+                if Name == "Head" or Name == "Torso" then return end
+                if string.find(self.ClassName, "Body") then return end
+            end
+
+            if self == Character and (Method == "BreakJoints" or Method == "ClearAllChildren") then 
+                return
+            end
+            
+            if (Method == "WaitForChild" or Method == "FindFirstChild" or Method == "findFirstChild") then
+                local Key = Arguments[1]
+
+                if Config.NoSlow.Enabled and ((Key == "Action") or (Key == "Info" and self.ClassName ~= "Tool")) then
+                    return
+                end -- Checks for OnHit :: Play Anim
+
+                if self == Character and Key == "HumanoidRootPart" then
+                    Arguments[1] = "Torso"
+                end
+            end
+        end
+        
+        return NameCall(self, unpack(Arguments))
+    end
+
+    local PostMessageHook = function(self, Message)
+        if not checkcaller() and self == PostMessage and Config.AntiChatLog.Enabled then
+            MessageEvent:Fire(Message)
+            return
+        end
+        -- Credits to whoever made this function
+        return OldFunctionHook(self, Message)
+    end
+
+    --if u do getgenv().hookmetamethod then ur the retard not me fuck you
+    if not hookmetamethod then while true do end end -- just incase someone tries to use a krnl for this script, sorry for the crash but I would rather crash you than you getting banned
+    Index = hookmetamethod(game, "__index", OnIndex)
+    NewIndex = hookmetamethod(game, "__newindex", OnNewIndex)
+    NameCall = hookmetamethod(game, "__namecall", OnNameCall)
+
+    OldFunctionHook = hookfunction(PostMessage.fire, PostMessageHook)
+    --local mt = getrawmetatable(game); setreadonly(mt, false); local old_namecall = mt.__namecall; mt.__namecall = function(...) return old_namecall(...) end
+    IsGameHooked = true
 end
 
--- User Interface
 
-do
+function InitializeCommands()
+    -- Commands
+    Commands.Add("walkspeed", {"ws"}, "[number] - sets your walkspeed to 'number'", function(Arguments)
+        Config.WalkSpeed.Value = Arguments[1] or 16
+        Menu:FindItem("Player", "Movement", "Slider", "Walk speed"):SetValue(Config.WalkSpeed.Value)
+    end)
+
+    Commands.Add("jumppower", {"jp"}, "[number] - sets your jumppower to 'number'", function(Arguments)
+        Config.JumpPower.Value = Arguments[1] or 37.5
+        Menu:FindItem("Player", "Movement", "Slider", "Jump power"):SetValue(Config.JumpPower.Value)
+    end)
+
+    Commands.Add("runspeed", {"rs"}, "[number] - sets your runspeed to 'number'", function(Arguments)
+        Config.RunSpeed.Value = Arguments[1] or 24.5
+        Menu:FindItem("Player", "Movement", "Slider", "Run speed"):SetValue(Config.RunSpeed.Value)
+    end)
+
+    Commands.Add("crouchspeed", {"cs"}, "[number] - sets your crouchspeed to 'number'", function(Arguments)
+        Config.CrouchSpeed.Value = Arguments[1] or 8
+        Menu:FindItem("Player", "Movement", "Slider", "Crouch speed"):SetValue(Config.CrouchSpeed.Value)
+    end)
+
+    Commands.Add("hipheight", {"hh"}, "[number] - sets your hipheight to 'number'", function(Arguments)
+        Humanoid.HipHeight = Arguments[1] or 0
+    end)
+
+    Commands.Add("gravity", {}, "[number] - sets your gravity to 'number'", function(Arguments)
+        workspace.Gravity = Arguments[1] or 196.2
+    end)
+
+    Commands.Add("blink", {"cfwalk"}, "- enables 'blink mode'", function()
+        Config.Blink.Enabled = true
+        Menu:FindItem("Player", "Movement", "CheckBox", "Blink"):SetValue(Config.Blink.Enabled)
+    end)
+
+    Commands.Add("unblink", {"uncfwalk"}, "- disables 'blink mode'", function()
+        Config.Blink.Enabled = false
+        Menu:FindItem("Player", "Movement", "CheckBox", "Blink"):SetValue(Config.Blink.Enabled)
+    end)
+
+    Commands.Add("fly", {"flight"}, "- enables 'flight'", function()
+        FlyToggle()
+    end)
+
+    Commands.Add("unfly", {"noflight"}, "- disables 'flight'", function()
+        Config.Flight.Enabled = false
+        Menu:FindItem("Player", "Movement", "CheckBox", "Flight"):SetValue(Config.Flight.Enabled)
+    end)
+
+    Commands.Add("float", {"airwalk"}, "- enables 'float'", function()
+        Config.Float.Enabled = not Config.Float.Enabled
+        FloatPart.CanCollide = Config.Float.Enabled
+        Menu:FindItem("Player", "Movement", "CheckBox", "Float"):SetValue(Config.Float.Enabled)
+    end)
+
+    Commands.Add("unfloat", {"unairwalk"}, "- disables 'float'", function()
+        Config.Float.Enabled = false
+        FloatPart.CanCollide = false
+        Menu:FindItem("Player", "Movement", "CheckBox", "Float"):SetValue(Config.Float.Enabled)
+    end)
+
+    Commands.Add("noclip", {}, "- enables 'noclip'", function()
+        Config.Noclip.Enabled = true
+        Menu:FindItem("Player", "Movement", "CheckBox", "Noclip"):SetValue(Config.Noclip.Enabled)
+    end)
+
+    Commands.Add("clip", {}, "- disables 'noclip'", function()
+        Config.Noclip.Enabled = false
+        Menu:FindItem("Player", "Movement", "CheckBox", "Noclip"):SetValue(Config.Noclip.Enabled)
+    end)
+
+    Commands.Add("god", {}, "- enables 'god mode'", function()
+        Config.God.Enabled = true
+        Menu:FindItem("Misc", "Exploits", "CheckBox", "God"):SetValue(Config.God.Enabled)
+    end)
+
+    Commands.Add("ungod", {}, "- disables 'god mode'", function()
+        Config.God.Enabled = false
+        Menu:FindItem("Misc", "Exploits", "CheckBox", "God"):SetValue(Config.God.Enabled)
+    end)
+
+    Commands.Add("reset", {"re"}, "- resets your character", RefreshCharacter)
+
+    Commands.Add("car", {"bringcar"}, "[streets only] - brings a car to you", function()
+        local Jeep = workspace:FindFirstChild("Jeep")
+
+        if Jeep then
+            local Seat = Jeep:FindFirstChild("DriveSeat", true)
+            if Seat then
+                if Seat.Occupant then
+                    Menu.Notify("Car is occupied by someone else!", 5)
+                    return
+                end
+                if not IsSeated() then Seat:Sit(Humanoid) end
+            end
+        else
+            Menu.Notify("Car not found!", 5)
+        end
+    end)
+
+    Commands.Add("rejoin", {"rj"}, "- attempts to rejoin to the current server", function()
+        TeleportToPlace(game.PlaceId, game.JobId)
+    end)
+
+    Commands.Add("swap", {}, "- teleports either to the streets or the prison", function()
+        TeleportToPlace(Utils.IsOriginal and 4669040 or 455366377)
+    end)
+
+    Commands.Add("goto", {"to"}, "[player] - teleports to the 'player'", function(Arguments)
+        if not Arguments[1] then return end
+        local Target = PlayerManager:FindPlayersByName(Arguments[1])
+
+        for _, Target in ipairs(Target) do
+            local Root = Utils.GetRoot(Target)
+            if Root then
+                Teleport(Root.CFrame)
+                break
+            end
+        end
+    end)
+
+    Commands.Add("item", {"get"}, "[name] - if the item is found then it teleports you to the item", function(Arguments)
+        local Found, Part, Price
+        local Item_Name = string.lower(table.concat(Arguments, " "))
+
+        for _, Item in pairs(Items) do
+            if string.lower(Item:GetAttribute("Item")) == Item_Name then
+                Found = true
+                Teleport(Item.CFrame)
+                break
+            end
+        end
+
+        if Utils.IsOriginal and not Found then BuyItem(Item_Name) end
+    end)
+
+    Commands.Add("play", {}, "[id] - mass plays the selected 'id'", function(Arguments)
+        local Audio = Arguments[1]
+        local Boomboxes = {}
+        for _, Tool in ipairs(GetTools()) do
+            if Tool.Name == "BoomBox" then
+                Tool.Parent = Character
+                local Remote = Tool:FindFirstChildWhichIsA("RemoteEvent", true)
+                if Remote then table.insert(Boomboxes, Tool) end
+            end
+        end
+
+        delay(0, function()
+            if Audio == "stop" then
+                for _, Boombox in ipairs(Boomboxes) do Network:Send(Enums.NETWORK.STOP_BOOMBOX, Boombox) end
+            else
+                for _, Boombox in ipairs(Boomboxes) do Network:Send(Enums.NETWORK.PLAY_BOOMBOX, Boombox, Audio) end
+            end
+        end)
+    end)
+
+    Commands.Add("bypass", {}, "[prison only] - Attempts to give you tool and teleport bypass", function()
+        if not Utils.IsOriginal then
+            queue_on_teleport([[
+                if not game:IsLoaded() then game.Loaded:Wait() end -- Synapse is shit
+                game:GetService("TeleportService"):TeleportToPlaceInstance(4669040, game.JobId)
+            ]])
+            TeleportToPlace(game.PlaceId, game.JobId)
+        end
+    end)
+
+    --[[
+        Commands.Add("breakpads", {"breakbuypads"}, "", function()
+            if Utils.IsOriginal then
+                Humanoid:Destroy() -- Kicks you, disabling for now
+                Backpack:Destroy() -- If This Replicated It Would Also Break Them
+                BuyItem("Glock")
+            end
+        end)
+    ]]
+
+    Commands.Add("key", {"bind"}, "- [regularid please do this one]", function(Arguments)
+        local Name, Key, Command = table.remove(Arguments, 1), table.remove(Arguments, 1), table.remove(Arguments, 1)
+        if Name and Key and Command then
+            Name = string.lower(Name)
+            Key = string.lower(Key)
+
+            for _, v in ipairs(Enum.KeyCode:GetEnumItems()) do
+                if Key == string.lower(v.Name) then Key = v break end
+            end
+
+            for _, v in ipairs(Enum.UserInputType:GetEnumItems()) do
+                if Key == string.lower(v.Name) then Key = v break end
+            end
+
+            if Name and Key then
+                BindKey(Name, "Remove")
+                BindKey(Name, "Add", Key, Command, Arguments)
+            end
+        end
+    end)
+
+    Commands.Add("unkey", {"unbind"}, "[keybind name] - unbinds 'keybind name'", function(Arguments)
+        local Name = Arguments[1]
+        if Name then BindKey(string.lower(Name), "Remove") end
+    end)
+
+    Commands.Add("commands", {"cmds"}, "- prints all the commands in the rconsole", function()
+        Console:Write("\n")
+        Console:Write(CommandsList)
+    end)
+
+    Commands.Add("clear", {"cls"}, "- clears the rconsole of all text", function()
+        Console:Clear()
+        Console:Write([[                                                                    
+                                                        88                                     88         
+                                                        88                                     88         
+                                                        88                                     88         
+    8b,dPPYba,    ,adPPYba,   8b,dPPYba,   8b       d8  88,dPPYba,    ,adPPYba,    ,adPPYba,   88   ,d8   
+    88P'    "8a  a8"     "8a  88P'   `"8a  `8b     d8'  88P'    "8a  a8"     "8a  a8"     "8a  88 ,a8"    
+    88       d8  8b       d8  88       88   `8b   d8'   88       88  8b       d8  8b       d8  8888[      
+    88b,   ,a8"  "8a,   ,a8"  88       88    `8b,d8'    88       88  "8a,   ,a8"  "8a,   ,a8"  88`"Yba,   
+    88`YbbdP"'    `"YbbdP"'   88       88      Y88'     88       88   `"YbbdP"'    `"YbbdP"'   88   `Y8a  
+    88                                         d8'                                                        
+    88                                        d8'                                                                                                                                                                                                                                                                                                                                                          
+    ]])
+        Console:Write("\nBy: " .. table.concat(UserTable.Developers, ", "))
+        Console:Write(string.format("Script Version: %s", get_script_version()))
+        Console:Write("\nType 'cmds' to see the commands!")
+    end)
+
+    Commands.Add("steal", {"st", "log"}, "([audio]/[decal]) [player] - steals the selected audio or decal from 'player'", function(Arguments)
+        local asset_type = string.lower(tostring(Arguments[1]))
+        local player_name = Arguments[2]
+
+        local Target = PlayerManager:FindPlayersByName(player_name)[1]
+        if not Target then
+            local Color = Config.EventLogs.Colors.Error:ToHex()
+            return Menu.Notify(Utils.GetRichTextColor("player_name for argument[2] expeceted", Color))
+        end
+
+        if asset_type == "audio" or asset_type == "sound" or asset_type == "radio" or asset_type == "boombox" then
+            local Tools = GetTools(Target)
+            if Tools then
+                for _, Tool in ipairs(Tools) do
+                    if Tool.Name == "BoomBox" then
+                        local sound = Tool:FindFirstChildWhichIsA("Sound", true)
+                        local sound_id = sound and sound.SoundId
+                        if sound_id then
+                            setclipboard(sound_id)
+                            local Color = Config.EventLogs.Colors.Success:ToHex()
+                            return Menu.Notify(Utils.GetRichTextColor("set audio_id rbxassetid://'" .. sound_id .. "' to your clipboard", Color))
+                        end
+                    end
+                end
+
+                local Color = Config.EventLogs.Colors.Error:ToHex()
+                return Menu.Notify(Utils.GetRichTextColor("no audio from player '" .. Target.Name .. "' found", Color))
+            end
+        elseif asset_type == "decal" or asset_type == "spray" then
+            local spray_part = workspace:FindFirstChild(Target.Name .. "Spray")
+            if spray_part then
+                local decal = spray_part:WaitForChild("Decal")
+                local decal_id = string.match(decal.Texture, "%d+")
+                if not Utils.IsOriginal then decal_id += 1 end
+                setclipboard(decal_id)
+                local Color = Config.EventLogs.Colors.Success:ToHex()
+                return Menu.Notify(Utils.GetRichTextColor("set decal_id rbxassetid://'" .. decal_id .. "' to your clipboard", Color))
+            else
+                local Color = Config.EventLogs.Colors.Error:ToHex()
+                return Menu.Notify(Utils.GetRichTextColor("no decal from player '" .. Target.Name .. "' found", Color))
+            end
+            -- sign check?
+        else
+            local Color = Config.EventLogs.Colors.Error:ToHex()
+            return Menu.Notify(Utils.GetRichTextColor("asset-type for argument[1] expected", Color))
+        end
+    end)
+
+    -- Command auto-printization thingy (note from xaxa - sorry if this looks bad elden)
+    for Index, Command in ipairs(Commands) do 
+        CommandsList = CommandsList .. string.format("%s%s%s %s", Command.Name, (#Command.Aliases > 0 and "/" or ""), ((#Command.Aliases > 0 and table.concat(Command.Aliases, "/")) or ""), Command.Description) .. "\n"
+    end
+end
+
+
+function InitializeMenu()
     Menu.Accent = Config.Menu.Accent
 
     Menu.AddAudioButton = function(Id)
@@ -4830,8 +4832,8 @@ do
     Menu.Container("Misc", "Exploits", "Left")
     Menu.Container("Misc", "Players", "Right")
     Menu.Container("Misc", "Clan tag", "Right"):SetVisible(Utils.IsOriginal)
-    Menu.Container("Settings", "Settings", "Left")
     Menu.Container("Settings", "Menu", "Left")
+    Menu.Container("Settings", "Settings", "Left")
     Menu.Container("Settings", "Configs", "Right")
 
     Menu.CheckBox("Combat", "Aimbot", "Enabled", Config.Aimbot.Enabled, function(Bool)
@@ -5720,13 +5722,6 @@ do
     Menu.TextBox("Misc", "Clan tag", "Spotify token", Config.ClanTag.SpotifyToken, function(Token)
         Config.ClanTag.SpotifyToken = Token
     end)
-    
-    Menu.Button("Settings", "Settings", "Refresh", function()
-        Menu:FindItem("Visuals", "World", "ComboBox", "Skybox"):SetValue(Config.Enviorment.Skybox.Value, Utils.GetFolders("ponyhook/Games/The Streets/bin/skyboxes/").Names)
-        HitSound = get_custom_asset("ponyhook/Games/The Streets/bin/sounds/hitsound.mp3") -- huh seems to automatically when file changes?
-        Crosshair = get_custom_asset("ponyhook/Games/The Streets/bin/crosshairs/crosshair.png")
-        Mouse.Icon = Crosshair
-    end)
 
     Menu.Hotkey("Settings", "Menu", "Menu key", Config.Menu.Key, function(KeyCode)
         Config.Menu.Key = KeyCode
@@ -5745,6 +5740,13 @@ do
     Menu.ComboBox("Settings", "Menu", "Console font color", Config.Console.Accent, {"Cyan"}, function(String)
         Config.Console.Accent = String
         Console.ForegroundColor = String
+    end)
+
+    Menu.Button("Settings", "Settings", "Refresh", function()
+        Menu:FindItem("Visuals", "World", "ComboBox", "Skybox"):SetValue(Config.Enviorment.Skybox.Value, Utils.GetFolders("ponyhook/Games/The Streets/bin/skyboxes/").Names)
+        HitSound = get_custom_asset("ponyhook/Games/The Streets/bin/sounds/hitsound.mp3") -- huh seems to automatically when file changes?
+        Crosshair = get_custom_asset("ponyhook/Games/The Streets/bin/crosshairs/crosshair.png")
+        Mouse.Icon = Crosshair
     end)
 
     Menu.TextBox("Settings", "Configs", "Config name", "")
@@ -5869,66 +5871,46 @@ do
 end
 
 
-function Initialize()
-    PlayerManager.PlayerAdded:Add(OnPlayerAdded)
-    PlayerManager.PlayerRemoved:Add(OnPlayerRemoving)
-    PlayerManager.CharacterAdded:Add(OnCharacterAdded)
+function InitializeConsole()
+    spawn(function()
+        pcall(function()
+            Console:Init()
+            Console.ForegroundColor = Config.Console.Accent
+            Console:Clear()
+            Console:Write([[                                                                                                      
+                                                    88                                     88         
+                                                    88                                     88         
+                                                    88                                     88         
+8b,dPPYba,    ,adPPYba,   8b,dPPYba,   8b       d8  88,dPPYba,    ,adPPYba,    ,adPPYba,   88   ,d8   
+88P'    "8a  a8"     "8a  88P'   `"8a  `8b     d8'  88P'    "8a  a8"     "8a  a8"     "8a  88 ,a8"    
+88       d8  8b       d8  88       88   `8b   d8'   88       88  8b       d8  8b       d8  8888[      
+88b,   ,a8"  "8a,   ,a8"  88       88    `8b,d8'    88       88  "8a,   ,a8"  "8a,   ,a8"  88`"Yba,   
+88`YbbdP"'    `"YbbdP"'   88       88      Y88'     88       88   `"YbbdP"'    `"YbbdP"'   88   `Y8a  
+88                                         d8'                                                        
+88                                        d8'                                                                                                                                                                                                                                                                                                                                                   
+]])
+            Console:Write("\nBy: " .. table.concat(UserTable.Developers, ", "))
+            Console:Write(string.format("Script Version: %s", get_script_version()))
+            Console:Write("\nType 'cmds' to see the commands!")
 
-    ESP:Init()
-    Menu:Init()
-    PlayerManager:Init()
+            local GetInput
+            function GetInput()
+                local Message = string.lower(Console:Read(">"))
+                local Output = Commands.Check(Message)
+                if not Output then
+                    Console:Write("Warning: Command does not exist!", "Yellow")
+                end
 
-    Lighting:Init()
-    Lighting:UpdateSkybox(Config.Enviorment.Skybox.Value)
-    Events.Reset.Event:Connect(ResetCharacter)
-    
-    pcall(function()
-        ChatFrame = PlayerGui.Chat.Frame.ChatChannelParentFrame
-        ChatFrame.Position = UDim2.new(0, 0, 1, Config.Interface.Chat.Position)
-        ChatFrame.Visible = Config.Interface.Chat.Enabled
+                GetInput()
+            end
+
+            GetInput()
+        end)
     end)
-
-    --[[
-        427729412, -- JUMP
-        376654657, -- DIVE
-        429404922, -- SIT
-        413255557, -- ARM HOLD
-        413612350, -- 2 ARM HOLD
-        401045066, -- DRINK
-        400468322, -- ANTI HEAD HIT
-        433903719 -- Levitate Lol || Ghost
-        8587081257; 376653421; 1357408709 -- default run
-    ]]
+end
 
 
-    AimbotIndicator = DrawCross(20, 4)
-    AimbotIndicator:Rotate(90)
-
-    FlyVelocity.Velocity = Vector3.new()
-    FlyVelocity.MaxForce = Vector3.new(9e9, 9e9, 9e9)
-
-    FlyAngularVelocity.AngularVelocity = Vector3.new() 
-    FlyAngularVelocity.MaxTorque = Vector3.new(9e9, 9e9, 9e9)
-
-    FloatPart.Name = "ponyhook.Float"
-    FloatPart.Transparency = 1
-    FloatPart.Anchored = true
-    FloatPart.CanCollide = Float
-    FloatPart.Size = Vector3.new(100, 1, 100)
-    FloatPart.Parent = workspace
-
-
-    local AnimationIds = {
-        BackFlip = 363364837, Chill = 526821274, Dab = 526812070, Kick = 376851671, Lay = 526815097, Pushups = 526813828, Sit = 178130996, Sit2 = 0, Situps = 526814775, Slide = 1461265895, Roll = 376654657,
-        Gun = 889968874, Gun2 = 229339207, Gun3 = 889390949, Run = 8587081257, Run2 = 458506542, Run3 = 1484589375, Crouch = 8533780211, AntiAim = 215384594, AntiAim2 = 242203091,
-        GlockIdle = 503285264, GlockFire = 503287783, GlockReload = 8533765435, ShottyIdle = 889390949, ShottyFire = 889391270, ShottyReload = 8533763280
-    }
-
-    Humanoid = Character:WaitForChild("Humanoid")
-    for Name, Id in pairs(AnimationIds) do
-        SetAnimation(Name, Id)
-    end
-
+function InitializeWorkspace()
     for Name, Pad in pairs(GetBuyPads()) do
         local Part = Pad.Part
         local Price = Pad.Price
@@ -5982,42 +5964,108 @@ function Initialize()
         end
     end
 
-    spawn(function()
-        pcall(function()
-            Console:Init()
-            Console.ForegroundColor = Config.Console.Accent
-            Console:Clear()
-            Console:Write([[                                                                                                      
-                                                    88                                     88         
-                                                    88                                     88         
-                                                    88                                     88         
-8b,dPPYba,    ,adPPYba,   8b,dPPYba,   8b       d8  88,dPPYba,    ,adPPYba,    ,adPPYba,   88   ,d8   
-88P'    "8a  a8"     "8a  88P'   `"8a  `8b     d8'  88P'    "8a  a8"     "8a  a8"     "8a  88 ,a8"    
-88       d8  8b       d8  88       88   `8b   d8'   88       88  8b       d8  8b       d8  8888[      
-88b,   ,a8"  "8a,   ,a8"  88       88    `8b,d8'    88       88  "8a,   ,a8"  "8a,   ,a8"  88`"Yba,   
-88`YbbdP"'    `"YbbdP"'   88       88      Y88'     88       88   `"YbbdP"'    `"YbbdP"'   88   `Y8a  
-88                                         d8'                                                        
-88                                        d8'                                                                                                                                                                                                                                                                                                                                                   
-]])
-            Console:Write("\nBy: " .. table.concat(UserTable.Developers, ", "))
-            Console:Write(string.format("Script Version: %s", get_script_version()))
-            Console:Write("\nType 'cmds' to see the commands!")
+    workspace.FallenPartsDestroyHeight = 0/0
+end
 
-            function GetInput()
-                local Message = string.lower(Console:Read(">"))
-                local Output = Commands.Check(Message)
-                if not Output then
-                    Console:Write("Warning: Command does not exist!", "Yellow")
-                end
 
-                GetInput()
-            end
+function InitializeConnections()
+    RunService.Heartbeat:Connect(Heartbeat)
+    RunService.Stepped:Connect(Stepped)
+    RunService.RenderStepped:Connect(RenderStepped)
+    UserInput.InputBegan:Connect(OnInput)
+    UserInput.InputEnded:Connect(OnInputEnded)
+    Player.Idled:Connect(OnIdle)
+    Menu.CommandBar.FocusLost:Connect(OnCommandBarFocusLost)
+    workspace.ChildAdded:Connect(OnWorkspaceChildAdded)
+    workspace.ChildRemoved:Connect(OnWorkspaceChildRemoved)
+    Lighting.Changed:Connect(OnLightingChanged)
 
-            GetInput()
-        end)
+    Network:Add(Enums.NETWORK.CHAT, OnNewMessageEvent)
+    if Utils.IsOriginal then
+        Character:WaitForChild("GetMouse").OnClientInvoke = OnGetMouseInvoke
+        Network:Add(Enums.NETWORK.TAG_REPLICATE, OnTagReplicateEvent)
+    end
+end
+
+
+function Initialize()
+    wait(0.2)
+
+    HookGame()
+    if not IsGameHooked then
+        return messagebox("Error 0x4; Failed to hook games anticheat!", "ponyhook.cc", 0)
+    end
+
+    wait(0.5)
+    InitializeCommands()
+    InitializeMenu()
+
+    PlayerManager.PlayerAdded:Add(OnPlayerAdded)
+    PlayerManager.PlayerRemoved:Add(OnPlayerRemoving)
+    PlayerManager.CharacterAdded:Add(OnCharacterAdded)
+
+    wait(0.2)
+    ESP:Init()
+    Menu:Init()
+    wait(0.2)
+    PlayerManager:Init()
+
+    wait(0.1)
+    InitializeConsole()
+    InitializeWorkspace()
+    wait(0.1)
+
+    Lighting:Init()
+    Lighting:UpdateSkybox(Config.Enviorment.Skybox.Value)
+    Events.Reset.Event:Connect(ResetCharacter)
+    
+    pcall(function()
+        ChatFrame = PlayerGui.Chat.Frame.ChatChannelParentFrame
+        ChatFrame.Position = UDim2.new(0, 0, 1, Config.Interface.Chat.Position)
+        ChatFrame.Visible = Config.Interface.Chat.Enabled
     end)
 
-    workspace.FallenPartsDestroyHeight = 0/0
+    --[[
+        427729412, -- JUMP
+        376654657, -- DIVE
+        429404922, -- SIT
+        413255557, -- ARM HOLD
+        413612350, -- 2 ARM HOLD
+        401045066, -- DRINK
+        400468322, -- ANTI HEAD HIT
+        433903719 -- Levitate Lol || Ghost
+        8587081257; 376653421; 1357408709 -- default run
+    ]]
+
+
+    AimbotIndicator = DrawCross(20, 4)
+    AimbotIndicator:Rotate(90)
+
+    FlyVelocity.Velocity = Vector3.new()
+    FlyVelocity.MaxForce = Vector3.new(9e9, 9e9, 9e9)
+
+    FlyAngularVelocity.AngularVelocity = Vector3.new() 
+    FlyAngularVelocity.MaxTorque = Vector3.new(9e9, 9e9, 9e9)
+
+    FloatPart.Name = "ponyhook.Float"
+    FloatPart.Transparency = 1
+    FloatPart.Anchored = true
+    FloatPart.CanCollide = Float
+    FloatPart.Size = Vector3.new(100, 1, 100)
+    FloatPart.Parent = workspace
+
+
+    local AnimationIds = {
+        BackFlip = 363364837, Chill = 526821274, Dab = 526812070, Kick = 376851671, Lay = 526815097, Pushups = 526813828, Sit = 178130996, Sit2 = 0, Situps = 526814775, Slide = 1461265895, Roll = 376654657,
+        Gun = 889968874, Gun2 = 229339207, Gun3 = 889390949, Run = 8587081257, Run2 = 458506542, Run3 = 1484589375, Crouch = 8533780211, AntiAim = 215384594, AntiAim2 = 242203091,
+        GlockIdle = 503285264, GlockFire = 503287783, GlockReload = 8533765435, ShottyIdle = 889390949, ShottyFire = 889391270, ShottyReload = 8533763280
+    }
+
+    Humanoid = Character:WaitForChild("Humanoid")
+    for Name, Id in pairs(AnimationIds) do
+        SetAnimation(Name, Id)
+    end
+
     Mouse.Icon = Crosshair
 
     -- Initialize Binds || I don't particularly like camel case but Roblox uses it so...
@@ -6409,9 +6457,12 @@ function Initialize()
         end
     end)
 
+    wait(0.1)
     for _, Thread in pairs(Threads) do
         Thread.Continue()
     end
+
+    InitializeConnections()
 
     RefreshMenu()
     Menu:SetVisible(true)
@@ -6420,23 +6471,3 @@ end
 
 
 Initialize()
-
-
--- Connections
-
-RunService.Heartbeat:Connect(Heartbeat)
-RunService.Stepped:Connect(Stepped)
-RunService.RenderStepped:Connect(RenderStepped)
-UserInput.InputBegan:Connect(OnInput)
-UserInput.InputEnded:Connect(OnInputEnded)
-Player.Idled:Connect(OnIdle)
-Menu.CommandBar.FocusLost:Connect(OnCommandBarFocusLost)
-workspace.ChildAdded:Connect(OnWorkspaceChildAdded)
-workspace.ChildRemoved:Connect(OnWorkspaceChildRemoved)
-Lighting.Changed:Connect(OnLightingChanged)
-
-Network:Add(Enums.NETWORK.CHAT, OnNewMessageEvent)
-if Utils.IsOriginal then
-    Character:WaitForChild("GetMouse").OnClientInvoke = OnGetMouseInvoke
-    Network:Add(Enums.NETWORK.TAG_REPLICATE, OnTagReplicateEvent)
-end
