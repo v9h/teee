@@ -19,7 +19,8 @@ local Config = {
 		
 	Prediction = {
 	    Method = "Default",
-	    VelocityPredictionAmount = 10
+	    VelocityPredictionAmount = 10,
+	    VelocityMultiplier = 1
 	}
     },
     AutoFire = {
