@@ -1361,7 +1361,7 @@ end
 
 function AddFirstPersonEventListeners()
     for _, v in ipairs(Events.FirstPerson) do 
-        v:Disconnect() 
+        v:Disconnect()
     end
 
     table.clear(Events.FirstPerson)
@@ -4775,7 +4775,7 @@ end
 function InitializeMenu()
     Menu.Accent = Config.Menu.Accent
 
-    Menu.AddAudioButton = function(Id)
+    function Menu.AddAudioButton(Id: number)
         local Asset = GetAssetInfo(Id)
         local Name = Asset and Asset.Name
 
@@ -5780,43 +5780,43 @@ function InitializeMenu()
         end)
     end)
 
-    do
-        local BoomboxText = Instance.new("TextLabel")
-        local BoomboxList = Instance.new("ScrollingFrame")
-        local BoomboxLayout = Instance.new("UIListLayout")
 
-        Menu.BoomboxFrame.ClipsDescendants = true
-        Menu.BoomboxFrame.Visible = false
-        Menu.BoomboxFrame.Position = UDim2.new(0.375, 0, 0.65, 0)
-        Menu.BoomboxFrame.Size = UDim2.new(0.25, 0, 0.25, 0)
-        Menu.BoomboxFrame.Style = Enum.FrameStyle.RobloxRound
-        Menu.BoomboxFrame.Parent = Menu.Screen
+    local BoomboxText = Instance.new("TextLabel")
+    local BoomboxList = Instance.new("ScrollingFrame")
+    local BoomboxLayout = Instance.new("UIListLayout")
 
-        BoomboxText.Name = "Text"
-        BoomboxText.BackgroundTransparency = 1
-        BoomboxText.Position = UDim2.new(0, 0, 0, -8)
-        BoomboxText.Size = UDim2.new(1, 0, 0, 20)
-        BoomboxText.Text = "Recently Played"
-        BoomboxText.TextColor3 = Color3.new(1, 1, 1)
-        BoomboxText.TextStrokeTransparency = 0
-        BoomboxText.Font = Enum.Font.SourceSans
-        BoomboxText.TextSize = 24
-        BoomboxText.Parent = Menu.BoomboxFrame
+    Menu.BoomboxFrame.ClipsDescendants = true
+    Menu.BoomboxFrame.Visible = false
+    Menu.BoomboxFrame.Position = UDim2.new(0.375, 0, 0.65, 0)
+    Menu.BoomboxFrame.Size = UDim2.new(0.25, 0, 0.25, 0)
+    Menu.BoomboxFrame.Style = Enum.FrameStyle.RobloxRound
+    Menu.BoomboxFrame.Parent = Menu.Screen
 
-        BoomboxList.Name = "List"
-        BoomboxList.Active = true
-        BoomboxList.BackgroundTransparency = 1
-        BoomboxList.BorderSizePixel = 0
-        BoomboxList.Position = UDim2.new(0, 0, 0, 20)
-        BoomboxList.Size = UDim2.new(1, 0, 0, 150)
-        BoomboxList.CanvasSize = UDim2.new()
-        BoomboxList.ScrollBarThickness = 0
-        BoomboxList.Parent = Menu.BoomboxFrame
+    BoomboxText.Name = "Text"
+    BoomboxText.BackgroundTransparency = 1
+    BoomboxText.Position = UDim2.new(0, 0, 0, -8)
+    BoomboxText.Size = UDim2.new(1, 0, 0, 20)
+    BoomboxText.Text = "Recently Played"
+    BoomboxText.TextColor3 = Color3.new(1, 1, 1)
+    BoomboxText.TextStrokeTransparency = 0
+    BoomboxText.Font = Enum.Font.SourceSans
+    BoomboxText.TextSize = 24
+    BoomboxText.Parent = Menu.BoomboxFrame
 
-        BoomboxLayout.SortOrder = Enum.SortOrder.LayoutOrder
-        BoomboxLayout.Padding = UDim.new(0, 5)
-        BoomboxLayout.Parent = BoomboxList
-    end
+    BoomboxList.Name = "List"
+    BoomboxList.Active = true
+    BoomboxList.BackgroundTransparency = 1
+    BoomboxList.BorderSizePixel = 0
+    BoomboxList.Position = UDim2.new(0, 0, 0, 20)
+    BoomboxList.Size = UDim2.new(1, 0, 0, 150)
+    BoomboxList.CanvasSize = UDim2.new()
+    BoomboxList.ScrollBarThickness = 0
+    BoomboxList.Parent = Menu.BoomboxFrame
+
+    BoomboxLayout.SortOrder = Enum.SortOrder.LayoutOrder
+    BoomboxLayout.Padding = UDim.new(0, 5)
+    BoomboxLayout.Parent = BoomboxList
+
 
     Menu.CommandBar.BackgroundColor3 = Color3.fromRGB(15, 15, 15)
     Menu.CommandBar.BackgroundTransparency = 0.2

@@ -5,7 +5,6 @@ local spawn = task.spawn
 
 
 local Utils = import "Utils"
-local Events = import "Libraries/Events"
 
 
 local Players = game:GetService("Players")
@@ -14,10 +13,10 @@ local RunService = game:GetService("RunService")
 
 PlayerManager.LocalPlayer = Players.LocalPlayer or not Players:GetPropertyChangedSignal("LocalPlayer"):Wait() and Players.LocalPlayer
 
-PlayerManager.PlayerAdded = Events.new()
-PlayerManager.PlayerRemoved = Events.new()
-PlayerManager.CharacterAdded = Events.new()
-PlayerManager.CharacterRemoved = Events.new()
+PlayerManager.PlayerAdded = Instance.new("BindableEvent")
+PlayerManager.PlayerRemoved = Instance.new("BindableEvent")
+PlayerManager.CharacterAdded = Instance.new("BindableEvent")
+PlayerManager.CharacterRemoved = Instance.new("BindableEvent")
 
 
 local function AddPlayerListeners(Player: Player, Character: Model)
