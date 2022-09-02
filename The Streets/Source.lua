@@ -82,7 +82,6 @@ spawn(function() TimerClass = import("Libraries/TimerClass") end)
 spawn(function() PlayerManager = import("PlayerManager") end)
 
 while not ESP or not Menu or not Enums or not Utils or not Network or not Configs or not Raycast or not Console or not Commands or not ToolData or not DoorData or not Lighting or not TimerClass or not PlayerManager do wait() end -- waiting for the modules to load...
-getgenv().import = nil  -- won't be used anymore
 
 if (Utils.IsOriginal and game.PlaceVersion ~= 1520) or (Utils.IsPrison and game.PlaceVersion ~= 225) then
     return messagebox("Error 0x2; Script is not up to date with place version", "ponyhook.cc", 0)
@@ -211,7 +210,7 @@ local DeathPosition = CFrame.new()
 
 do
     Events.Reset = Instance.new("BindableEvent")
-    
+
     Menu.Watermark = Menu.Watermark()
     Menu.Indicators = Menu.Indicators()
     Menu.Keybinds = Menu.Keybinds()
@@ -6018,9 +6017,9 @@ function Initialize()
     InitializeCommands()
     InitializeMenu()
 
-    PlayerManager.PlayerAdded:Add(OnPlayerAdded)
-    PlayerManager.PlayerRemoved:Add(OnPlayerRemoving)
-    PlayerManager.CharacterAdded:Add(OnCharacterAdded)
+    PlayerManager.PlayerAdded:Connect(OnPlayerAdded)
+    PlayerManager.PlayerRemoved:Connect(OnPlayerRemoving)
+    PlayerManager.CharacterAdded:Connect(OnCharacterAdded)
 
     wait(0.2)
     ESP:Init()
