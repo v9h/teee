@@ -18,7 +18,8 @@ local Config = {
         Key = nil,
 		
 	Prediction = {
-	    Method = "Default", -- gonna add more stuff in this table
+	    Method = "Default",
+	    VelocityPredictionAmount = 10
 	}
     },
     AutoFire = {
