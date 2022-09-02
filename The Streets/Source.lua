@@ -6021,6 +6021,8 @@ function Initialize()
     PlayerManager.PlayerRemoved:Connect(OnPlayerRemoving)
     PlayerManager.CharacterAdded:Connect(OnCharacterAdded)
 
+    Events.Reset.Event:Connect(ResetCharacter)
+
     wait(0.2)
     ESP:Init()
     Menu:Init()
@@ -6034,7 +6036,6 @@ function Initialize()
 
     Lighting:Init()
     Lighting:UpdateSkybox(Config.Enviorment.Skybox.Value)
-    Events.Reset.Event:Connect(ResetCharacter)
     
     pcall(function()
         ChatFrame = PlayerGui.Chat.Frame.ChatChannelParentFrame

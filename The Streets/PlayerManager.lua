@@ -13,10 +13,17 @@ local RunService = game:GetService("RunService")
 
 PlayerManager.LocalPlayer = Players.LocalPlayer or not Players:GetPropertyChangedSignal("LocalPlayer"):Wait() and Players.LocalPlayer
 
-PlayerManager.PlayerAdded = Instance.new("BindableEvent")
-PlayerManager.PlayerRemoved = Instance.new("BindableEvent")
-PlayerManager.CharacterAdded = Instance.new("BindableEvent")
-PlayerManager.CharacterRemoved = Instance.new("BindableEvent")
+local Events = {
+    PlayerAdded = Instance.new("BindableEvent"),
+    PlayerRemoved = Instance.new("BindableEvent"),
+    CharacterAdded = Instance.new("BindableEvent"),
+    CharacterRemoved = Instance.new("BindableEvent")
+}
+
+PlayerManager.PlayerAdded = Events.PlayerAdded.Event
+PlayerManager.PlayerRemoved = Events.PlayerRemoved.Event
+PlayerManager.CharacterAdded = Events.CharacterAdded.Event
+PlayerManager.CharacterRemoved = Events.CharacterRemoved.Event
 
 
 local function AddPlayerListeners(Player: Player, Character: Model)
@@ -175,7 +182,7 @@ local function OnCharacterAdded(Player: Player, Character: Model)
     
     
         AddPlayerListeners(Player, Character)
-        PlayerManager.CharacterAdded:Fire(Player, Character)
+        Events.CharacterAdded:Fire(Player, Character)
     end)
 end
 
@@ -183,7 +190,7 @@ end
 local function OnCharacterRemoving(Player: Player, Character: Model)
     Player:SetAttribute("IsAlive", false)
     Player:SetAttribute("KnockedOut", false)
-    PlayerManager.CharacterRemoved:Fire(Player, Character)
+    Events.CharacterRemoved:Fire(Player, Character)
 end
 
 
@@ -193,7 +200,7 @@ local function OnPlayerAdded(Player: Player)
     Player:SetAttribute("Position", Vector3.new())
     Player:SetAttribute("BehindWall", false)
 
-    PlayerManager.PlayerAdded:Fire(Player)
+    Events.PlayerAdded:Fire(Player)
 
     if Player.Character then
         OnCharacterAdded(Player, Player.Character)
@@ -209,7 +216,7 @@ end
 
 
 local function OnPlayerRemoving(Player: Player)
-    PlayerManager.PlayerRemoved:Fire(Player)
+    Events.PlayerRemoved:Fire(Player)
 end
 
 
