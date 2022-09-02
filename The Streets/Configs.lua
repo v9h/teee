@@ -15,7 +15,13 @@ local Config = {
         HitBox = "Torso",
         Radius = 100,
         VelocityMultiplier = 1,
-        Key = nil
+        Key = nil,
+		
+	Prediction = {
+	    Method = "Default",
+	    VelocityPredictionAmount = 10,
+	    VelocityMultiplier = 1
+	}
     },
     AutoFire = {
         Enabled = false,
