@@ -344,7 +344,6 @@ function RefreshMenu()
     Menu:FindItem("Combat", "Aimbot", "Slider", "Auto fire max velocity"):SetValue(Config.AutoFire.VelocityCheck.MaxVelocity)
     Menu:FindItem("Combat", "Aimbot", "CheckBox", "Camera lock"):SetValue(Config.CameraLock.Enabled)
     Menu:FindItem("Combat", "Aimbot", "Hotkey", "Camera lock key"):SetValue(Config.CameraLock.Key)
-    Menu:FindItem("Combat", "Aimbot", "Slider", "Velocity multiplier"):SetValue(Config.Aimbot.VelocityMultiplier)
     Menu:FindItem("Combat", "Aimbot", "ComboBox", "Target hitbox"):SetValue(Config.Aimbot.HitBox)
     Menu:FindItem("Combat", "Aimbot", "ComboBox", "Target selection"):SetValue(Config.Aimbot.TargetSelection)
     
