@@ -347,6 +347,10 @@ function RefreshMenu()
     Menu:FindItem("Combat", "Aimbot", "Slider", "Velocity multiplier"):SetValue(Config.Aimbot.VelocityMultiplier)
     Menu:FindItem("Combat", "Aimbot", "ComboBox", "Target hitbox"):SetValue(Config.Aimbot.HitBox)
     Menu:FindItem("Combat", "Aimbot", "ComboBox", "Target selection"):SetValue(Config.Aimbot.TargetSelection)
+    
+    Menu:FindItem("Combat", "Prediction", "ComboBox", "Prediction method"):SetValue(Config.Aimbot.Prediction.Method)
+    Menu:FindItem("Combat", "Prediction", "Slider", "Velocity prediction amount"):SetValue(Config.Aimbot.Prediction.VelocityPredictionAmount)
+    Menu:FindItem("Combat", "Prediction", "Slider", "Velocity multiplier"):SetValue(Config.Aimbot.Prediction.VelocityMultiplier)
 
     Menu:FindItem("Combat", "Other", "CheckBox", "Always ground hit"):SetValue(Config.AlwaysGroundHit.Enabled)
     Menu:FindItem("Combat", "Other", "CheckBox", "Stomp spam"):SetValue(Config.StompSpam.Enabled)
@@ -692,20 +696,29 @@ end
 
 function GetAimbotCFrame(Randomize: boolean): CFrame
     local Character = Target and Target.Character
+    local Humanoid = Character and Character.FindFirstChildOfClass(Character, "Humanoid")
 
     local HitPart = Character and (Character.FindFirstChild(Character, Config.Aimbot.HitBox) or Character.FindFirstChildWhichIsA(Character, "BasePart"))
     if not HitPart then return Mouse.Hit end
 
-    local VectorVelocity = Target.GetAttribute(Target, "Velocity") or Vector3.new() -- Don't want to error the script
-    VectorVelocity *= Vector3.new(1, 0, 1) -- Making the y axis 0 due to over prediction
-    VectorVelocity *= Config.Aimbot.VelocityMultiplier
-
-    local Random = Vector3.new()
-    if Randomize then
-        Random = Vector3.new(math.random(-5, 5) / 10, math.random(-5, 5) / 10, math.random(-5, 5) / 10)
+    if Config.Aimbot.Prediction.Method == "Default" then 
+        local VectorVelocity = Target.GetAttribute(Target, "Velocity") or Vector3.new() -- Don't want to error the script
+        VectorVelocity *= Vector3.new(1, 0, 1) -- Making the y axis 0 due to over prediction
+        VectorVelocity *= Config.Aimbot.VelocityMultiplier
+        
+        local Random = Vector3.new()
+        if Randomize then
+            Random = Vector3.new(math.random(-5, 5) / 10, math.random(-5, 5) / 10, math.random(-5, 5) / 10)
+        end
+        
+        return HitPart.CFrame + Random + (VectorVelocity * Ping / 1000)
+    elseif Config.Aimbot.Prediction.Method == "MoveDirection" then 
+        return HitPart.CFrame + Humanoid.MoveDirection * (Ping / 1000)
+    elseif Config.Aimbot.Prediction.Method == "Velocity" then 
+        return HitPart.CFrame + (HitPart.Velocity / Config.Aimbot.Prediction.VelocityPredictionAmount)
     end
-
-    return HitPart.CFrame + Random + (VectorVelocity * Ping / 1000)
+    
+    return CFrame.new()
 end
 
 
@@ -4814,6 +4827,7 @@ function InitializeMenu()
     Menu.Tab("Settings")
 
     Menu.Container("Combat", "Aimbot", "Left")
+    Menu.Container("Combat", "Prediction", "Left")
     Menu.Container("Combat", "Other", "Right")
     Menu.Container("Player", "Movement", "Left")
     Menu.Container("Player", "Other", "Right")
@@ -4860,9 +4874,8 @@ function InitializeMenu()
         Config.AutoFire.VelocityCheck.Enabled = Bool
     end)
     Menu.Slider("Combat", "Aimbot", "Auto fire max velocity", 0, 100, Config.AutoFire.VelocityCheck.MaxVelocity, nil, 1, function(Value)
-	Config.AutoFire.VelocityCheck.MaxVelocity = Value
+	    Config.AutoFire.VelocityCheck.MaxVelocity = Value
     end)
-
     Menu.CheckBox("Combat", "Aimbot", "Camera lock", Config.CameraLock.Enabled, function(Bool)
         Config.CameraLock.Enabled = Bool
     end)
@@ -4873,14 +4886,20 @@ function InitializeMenu()
     Menu.Slider("Combat", "Aimbot", "Radius", 20, 300, Config.Aimbot.Radius, nil, 1, function(Value)
         Config.Aimbot.Radius = Value
     end)
-    Menu.Slider("Combat", "Aimbot", "Velocity multiplier", 1, 3, Config.Aimbot.VelocityMultiplier, "x", 1, function(Value)
-        Config.Aimbot.VelocityMultiplier = Value
-    end)
     Menu.ComboBox("Combat", "Aimbot", "Target hitbox", Config.Aimbot.HitBox, {"Head", "Torso", "Root"}, function(String)
         Config.Aimbot.HitBox = String
     end)
     Menu.ComboBox("Combat", "Aimbot", "Target selection", Config.Aimbot.TargetSelection, {"Near player", "Near mouse"}, function(String)
         Config.Aimbot.TargetSelection = String
+    end)
+    Menu.ComboBox("Combat", "Prediction", "Prediction method", Config.Aimbot.Prediction.Method, {"Velocity", "MoveDirection", "Default"}, function(String)
+        Config.Aimbot.Prediction.Method = String
+    end)
+    Menu.Slider("Combat", "Prediction", "Velocity prediction amount", 1, 15, Config.Aimbot.Prediction.VelocityPredictionAmount, "", 1, function(Value)
+        Config.Aimbot.Prediction.VelocityPredictionAmount = Value
+    end)
+    Menu.Slider("Combat", "Prediction", "Velocity multiplier", 1, 3, Config.Aimbot.Prediction.VelocityMultiplier, "x", 1, function(Value)
+        Config.Aimbot.Prediction.VelocityMultiplier = Value
     end)
     Menu.CheckBox("Combat", "Other", "Always ground hit", Config.AlwaysGroundHit.Enabled, function(Bool)
         Config.AlwaysGroundHit.Enabled = Bool
