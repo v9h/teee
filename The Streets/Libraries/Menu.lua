@@ -46,13 +46,13 @@ local wait = task.wait
 local delay = task.delay
 local spawn = task.spawn
 local protect_gui = function(Gui, Parent)
-    if syn and syn.protect_gui then
+    if gethui and syn and syn.protect_gui then 
+        Gui.Parent = gethui() 
+    elseif not gethui and syn and syn.protect_gui then 
         syn.protect_gui(Gui)
-        Gui.Parent = Parent
-    elseif gethui then
-        Gui.Parent = gethui()
-    else
-        Gui.Parent = Parent
+        Gui.Parent = Parent 
+    else 
+        Gui.Parent = Parent 
     end
 end
 
