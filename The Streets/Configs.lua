@@ -35,6 +35,7 @@ local Config = {
     },
     CameraLock = {
         Enabled = false,
+	Mode = "Smooth",
         Key = nil
     },
     Guns = {
