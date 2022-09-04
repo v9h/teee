@@ -343,6 +343,7 @@ function RefreshMenu()
     Menu:FindItem("Combat", "Aimbot", "Slider", "Auto fire max velocity"):SetValue(Config.AutoFire.VelocityCheck.MaxVelocity)
     Menu:FindItem("Combat", "Aimbot", "CheckBox", "Camera lock"):SetValue(Config.CameraLock.Enabled)
     Menu:FindItem("Combat", "Aimbot", "Hotkey", "Camera lock key"):SetValue(Config.CameraLock.Key)
+    Menu:FindItem("Combat", "Aimbot", "ComboBox", "Camera lock mode"):SetValue(Config.CameraLock.Mode)
     Menu:FindItem("Combat", "Aimbot", "ComboBox", "Target hitbox"):SetValue(Config.Aimbot.HitBox)
     Menu:FindItem("Combat", "Aimbot", "ComboBox", "Target selection"):SetValue(Config.Aimbot.TargetSelection)
     
@@ -715,7 +716,7 @@ function GetAimbotCFrame(Randomize: boolean): CFrame
     elseif Config.Aimbot.Prediction.Method == "Velocity" then 
         return HitPart.CFrame + (HitPart.Velocity / Config.Aimbot.Prediction.VelocityPredictionAmount)
     end
-    
+
     return CFrame.new()
 end
 
@@ -2862,8 +2863,9 @@ function Heartbeat(Step: number) -- after phys :: after heartbeat comes network 
 
     if Target and Target.Character then
         local _Root = Utils.GetRoot(Target)
+        local _Torso = Utils.GetTorso(Target)
 
-        if _Root then
+        if _Root and _Torso then
             if Config.AutoFire.Enabled then
                 if Tool and Tool:GetAttribute("Gun") then
                     if Target:GetAttribute("IsAlive") and Target:GetAttribute("Health") > 0 then
@@ -2898,7 +2900,13 @@ function Heartbeat(Step: number) -- after phys :: after heartbeat comes network 
             end
 
             if TargetLock then
-                if _Root then
+                if _Torso then
+                    if Config.CameraLock.Enabled and Config.CameraLock.Mode == "Heartbeat" then
+                        if _Torso and Humanoid and Player:GetAttribute("IsAlive") then
+                            Camera.CFrame = CFrame.new(Camera.CFrame.Position, _Torso.CFrame.Position)
+                        end
+                    end
+
                     if Config.Follow.Enabled then
                         local Position = Target:GetAttribute("Position")
                         local TargetDistance = Target:GetAttribute("Distance")
@@ -3054,6 +3062,7 @@ function Stepped(_, Step: number) -- before phys
             end
         end
 
+
         if Player:GetAttribute("Health") > 0 and Player:GetAttribute("IsAlive") then
             UpdatePlayerFlyState()
 
@@ -3074,6 +3083,13 @@ function Stepped(_, Step: number) -- before phys
                 local MoveDirection = Humanoid.MoveDirection
                 if not UserInput:GetFocusedTextBox() and (UserInput:IsKeyDown(Enum.KeyCode.W) or UserInput:IsKeyDown(Enum.KeyCode.S) or UserInput:IsKeyDown(Enum.KeyCode.A) or UserInput:IsKeyDown(Enum.KeyCode.D)) then
                     Root.CFrame += ((MoveDirection.Magnitude > 0 and MoveDirection or Root.CFrame.LookVector) * Config.Blink.Speed)
+                end
+            end
+
+            if TargetLock and Config.CameraLock.Enabled and Config.CameraLock.Mode == "Stepped" then
+                local _Torso = Utils.GetTorso(Target)
+                if _Torso then
+                    Camera.CFrame = CFrame.new(Camera.CFrame.Position, _Torso.CFrame.Position)
                 end
             end
 
@@ -4615,9 +4631,9 @@ function InitializeCommands()
         local Target = PlayerManager:FindPlayersByName(Arguments[1])
 
         for _, Target in ipairs(Target) do
-            local Root = Utils.GetRoot(Target)
-            if Root then
-                Teleport(Root.CFrame)
+            local Torso = Utils.GetTorso(Target)
+            if Torso then
+                Teleport(Torso.CFrame)
                 break
             end
         end
@@ -4881,6 +4897,9 @@ function InitializeMenu()
         Config.CameraLock.Key = KeyCode
         ContextAction:BindAction("cameraLockToggle", CameraLockToggle, false, Config.CameraLock.Key)
     end)
+    Menu.ComboBox("Combat", "Aimbot", "Camera lock mode", Config.CameraLock.Mode, {"RenderStepped", "Stepped", "Heartbeat"}, function(String)
+        Config.CameraLock.Mode = String
+    end)
     Menu.Slider("Combat", "Aimbot", "Radius", 20, 300, Config.Aimbot.Radius, nil, 1, function(Value)
         Config.Aimbot.Radius = Value
     end)
@@ -4893,7 +4912,7 @@ function InitializeMenu()
     Menu.ComboBox("Combat", "Prediction", "Prediction method", Config.Aimbot.Prediction.Method, {"Velocity", "MoveDirection", "Default"}, function(String)
         Config.Aimbot.Prediction.Method = String
     end)
-    Menu.Slider("Combat", "Prediction", "Velocity prediction amount", 1, 15, Config.Aimbot.Prediction.VelocityPredictionAmount, "", 1, function(Value)
+    Menu.Slider("Combat", "Prediction", "Velocity prediction amount", 0, 15, Config.Aimbot.Prediction.VelocityPredictionAmount, "", 1, function(Value)
         Config.Aimbot.Prediction.VelocityPredictionAmount = Value
     end)
     Menu.Slider("Combat", "Prediction", "Velocity multiplier", 1, 3, Config.Aimbot.Prediction.VelocityMultiplier, "x", 1, function(Value)
@@ -6099,11 +6118,11 @@ function Initialize()
     ContextAction:BindAction("menuToggle", MenuToggle, false, Config.Menu.Key)
 
     RunService:BindToRenderStep("cameraLock", Enum.RenderPriority.Camera.Value - 1, function()
-        if TargetLock and Config.CameraLock.Enabled then
+        if TargetLock and Config.CameraLock.Enabled and Config.CameraLock.Mode == "RenderStepped" then
             if Root and Humanoid and Player:GetAttribute("IsAlive") then
-                local _Root = Utils.GetRoot(Target)
-                if _Root then
-                    Camera.CFrame = CFrame.new(Camera.CFrame.Position, _Root.CFrame.Position)
+                local _Torso = Utils.GetTorso(Target) -- I changed the Root to Torso because it bugs out when they turn on tp bypass
+                if _Torso then
+                    Camera.CFrame = CFrame.new(Camera.CFrame.Position, _Torso.CFrame.Position)
                 end
             end
         end
