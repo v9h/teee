@@ -35,7 +35,7 @@ local Config = {
     },
     CameraLock = {
         Enabled = false,
-	Mode = "Smooth",
+	Mode = "RenderStepped",
         Key = nil
     },
     Guns = {
