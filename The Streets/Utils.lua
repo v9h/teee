@@ -81,6 +81,14 @@ function Utils.GetRoot(Player: Player): Part
 end
 
 
+function Utils.GetTorso(Player: Player): Part
+    local Character = Player and Player.Character
+    local Torso = Character and Character:FindFirstChild("Torso")
+
+    return Torso
+end
+
+
 function Utils.UserOwnsAsset(Player: Player, AssetId: string, AssetType: string): boolean
     --https://inventory.roblox.com/docs#!/Inventory/get_v1_users_userId_items_itemType_itemTargetId
     -- AssetType : "GamePass", "Asset", "Badge", "Bundle"
