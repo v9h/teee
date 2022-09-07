@@ -809,7 +809,7 @@ end
 
 
 function GetFramerate(): number
-    return 1000 / Stats.FrameRateManager.RenderAverage:GetValue()
+    return math.round(1000 / Stats.FrameRateManager.RenderAverage:GetValue())
 end
 
 
