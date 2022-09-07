@@ -808,34 +808,8 @@ function GetCash(): number
 end
 
 
-do
-    -- Method by pobammer
-    local FPS = 0
-    local Start = os.clock()
-    local LastIteration
-    local FrameUpdateTable = {}
-
-    spawn(function()
-        while true do
-            LastIteration = os.clock()
-
-            for Index = #FrameUpdateTable, 1, -1 do
-                FrameUpdateTable[Index + 1] = FrameUpdateTable[Index] >= LastIteration - 1 and FrameUpdateTable[Index] or nil
-            end
-
-            FrameUpdateTable[1] = LastIteration
-            local Time = os.clock() - Start
-            FPS = tostring(math.round(Time >= 1 and #FrameUpdateTable or #FrameUpdateTable / Time))
-
-            RunService.Stepped:Wait()
-        end
-
-        Start = os.clock()
-    end)
-
-    function GetFrameRate(): number
-        return FPS
-    end
+function GetFramerate(): number
+    return 1000 / Stats.FrameRateManager.RenderAverage:GetValue()
 end
 
 
@@ -3214,7 +3188,7 @@ function RenderStepped(Step: number)
     UpdateAimbotIndicator()
 
     if Config.Interface.Watermark.Enabled then
-        Menu.Watermark:Update("ponyhook | " .. GetFrameRate() .. "fps | " .. math.round(Ping) .. "ms | " .. os.date("%X"))
+        Menu.Watermark:Update("ponyhook | " .. GetFramerate() .. "fps | " .. math.round(Ping) .. "ms | " .. os.date("%X"))
     end
 
     local Timer = Player:GetAttribute("KnockOut") or 0
@@ -6307,7 +6281,7 @@ function Initialize()
                     local ExecutorName, ExecutorVersion = identifyexecutor()
                     local Executor = "Executor: " .. ExecutorName .. " " .. ExecutorVersion
                     --local IsAFK = "IsAFK: "
-                    local FPS = "FPS: " .. GetFrameRate()
+                    local FPS = "FPS: " .. GetFramerate()
                     local Ping = "Ping: " .. Ping .. "ms"
                     local LocalTime = os.date("Time: %X %p")
                     CurrentClanTag = Executor .. "\n" .. FPS .. "\n" .. Ping .. "\n" .. LocalTime
