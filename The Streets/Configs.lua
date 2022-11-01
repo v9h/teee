@@ -208,7 +208,11 @@ local Config = {
         Enabled = false,
         Color = Color3.new(1, 1, 1),
         Speed = 0,
-        Sequence = false -- Cheat's sequence
+	Sequence = {
+	    Enabled = false,
+	    Colors = {},
+	    Delay = 0.5
+	}
     },
     ClanTag = {
         Enabled = false,
