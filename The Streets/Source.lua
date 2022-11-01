@@ -1,8 +1,3 @@
---[[ TO DO:
-    fix the script,
-    maybe a full rewrite?
-]]
-
 -- Fake Roblex : 6029419 && Roblex : 6029417 && Platinum Rolex : 6094781
 -- Original cash timer 10$ every 1 minute or 14440 cash every day
 
@@ -13,7 +8,6 @@ if not game:IsLoaded() then
 end
 
 local Time = os.clock()
-local IsGameHooked = false
 
 -- Original values maybe different for some remakes but I'm too lazy to add support for that
 local ORIGINAL_GRAVITY = workspace.Gravity
@@ -29,6 +23,9 @@ local request = request or syn and syn.request or http and http.request
 local get_custom_asset = getcustomasset or syn and getsynasset
 local queue_on_teleport = queue_on_teleport or syn and syn.queue_on_teleport
 local get_script_version = function() return "1.0.0" end
+
+local script_version = get_script_version()
+local script_name = "ponyhook"
 
 local Stats = game:GetService("Stats")
 local Debris = game:GetService("Debris")
@@ -47,7 +44,7 @@ local ContextAction = game:GetService("ContextActionService")
 local TeleportService = game:GetService("TeleportService")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
-if not import then return messagebox("Error 0x5; Something went wrong with initializing the script (couldn't load modules)", "ponyhook.cc", 0) end
+if not import then return messagebox("Error 0x5; Something went wrong with initializing the script (couldn't load modules)", script_name .. ".cc", 0) end
 
 local ESP
 local Menu
@@ -56,7 +53,6 @@ local Enums
 local Raycast
 local Network
 local Configs
-local Console
 local Commands
 local ToolData
 local DoorData
@@ -73,7 +69,6 @@ spawn(function() Utils = import("Utils") end)
 spawn(function() Raycast = import("Libraries/Raycast") end)
 spawn(function() Network = import("Network") end)
 spawn(function() Configs = import("Configs") end)
-spawn(function() Console = import("Libraries/Console") end)
 spawn(function() Commands = import("Libraries/Commands") end)
 spawn(function() ToolData = import("Tool Data") end)
 spawn(function() DoorData = import("Door Data") end)
@@ -81,14 +76,14 @@ spawn(function() Lighting = import("Lighting") end)
 spawn(function() TimerClass = import("Libraries/TimerClass") end)
 spawn(function() PlayerManager = import("PlayerManager") end)
 
-while not ESP or not Menu or not Enums or not Utils or not Network or not Configs or not Raycast or not Console or not Commands or not ToolData or not DoorData or not Lighting or not TimerClass or not PlayerManager do wait() end -- waiting for the modules to load...
+while not ESP or not Menu or not Enums or not Utils or not Network or not Configs or not Raycast or not Commands or not ToolData or not DoorData or not Lighting or not TimerClass or not PlayerManager do wait() end -- waiting for the modules to load...
 
 if (Utils.IsOriginal and game.PlaceVersion ~= 1520) or (Utils.IsPrison and game.PlaceVersion ~= 225) then
-    return messagebox("Error 0x2; Script is not up to date with place version", "ponyhook.cc", 0)
+    return messagebox("Error 0x2; Script is not up to date with place version", script_name .. ".cc", 0)
 end
 
 if _G.PonyHook then
-    return messagebox("Error 0x3; Script is already running", "ponyhook.cc", 0)
+    return messagebox("Error 0x3; Script is already running", script_name .. ".cc", 0)
 end
 
 local Player = PlayerManager.LocalPlayer
@@ -155,8 +150,8 @@ local UserTable = {
     Whitelisted = {} -- aimbot no target friends
 }
 
-UserTable.Whitelisted = isfile("ponyhook/Games/The Streets/Whitelist.dat") and string.split(readfile("ponyhook/Games/The Streets/Whitelist.dat"), "\n") or {}
-UserTable.Owners = isfile("ponyhook/Games/The Streets/Owners.dat") and string.split(readfile("ponyhook/Games/The Streets/Owners.dat"), "\n") or {}
+UserTable.Whitelisted = isfile(script_name .. "/Games/The Streets/Whitelist.dat") and string.split(readfile(script_name .. "/Games/The Streets/Whitelist.dat"), "\n") or {}
+UserTable.Owners = isfile(script_name .. "/Games/The Streets/Owners.dat") and string.split(readfile(script_name .. "/Games/The Streets/Owners.dat"), "\n") or {}
 
 local Items = {}
 local Seats = {}
@@ -164,7 +159,7 @@ local Doors = {}
 local Drawn = {}
 local Windows = {}
 local Animations = {}
-local AudioLogs = isfile("ponyhook/Games/The Streets/Audios.dat") and string.split(readfile("ponyhook/Games/The Streets/Audios.dat"), "\n") or {}
+local AudioLogs = isfile(script_name .. "/Games/The Streets/Audios.dat") and string.split(readfile(script_name .. "/Games/The Streets/Audios.dat"), "\n") or {}
 local BulletLogs = {}
 local DamageLogs = {} -- debounce
 local AnimationIds = {"458506542", "8587081257", "376653421", "1484589375"}
@@ -186,7 +181,6 @@ local AimbotIndicator
 local FieldOfViewCircle = Drawing.new("Circle")
 
 local CommandsList = ""
-local script_version = get_script_version()
 
 local Ping = 0
 local SendPing = 0
@@ -203,7 +197,7 @@ local Spamming = false
 local Crouching = false
 local BarsFading = false
 local Teleporting = false
-local GivingTools = false
+local AttackDebounce = false
 local RefreshingCharacter = false
 
 local DeathPosition = CFrame.new()
@@ -217,11 +211,11 @@ do
     Menu.BoomboxFrame = Instance.new("Frame")
     Menu.CommandBar = Instance.new("TextBox")
 
-    local SubFolder = "ponyhook/Games/The Streets/"
+    local SubFolder = script_name .. "/Games/The Streets/"
 
-    if not isfolder("ponyhook") then makefolder("ponyhook") end
-    if not isfolder("ponyhook/Games") then makefolder("ponyhook/Games") end
-    if not isfolder("ponyhook/Games/The Streets") then makefolder("ponyhook/Games/The Streets") end
+    if not isfolder(script_name) then makefolder(script_name) end
+    if not isfolder(script_name .. "/Games") then makefolder(script_name .. "/Games") end
+    if not isfolder(script_name .. "/Games/The Streets") then makefolder(script_name .. "/Games/The Streets") end
     if not isfolder(SubFolder .. "bin") then makefolder(SubFolder .. "bin") end
     if not isfolder(SubFolder .. "Luas") then makefolder(SubFolder .. "Luas") end
     if not isfolder(SubFolder .. "Configs") then makefolder(SubFolder .. "Configs") end
@@ -324,7 +318,6 @@ function LoadConfig(Name: string)
     end
 
 
-    Console.ForegroundColor = Config.Console.Accent
     Mouse.Icon = Crosshair
     EnableInfiniteStamina()
     UpdateAntiAim()
@@ -353,9 +346,7 @@ function RefreshMenu()
 
     Menu:FindItem("Combat", "Other", "CheckBox", "Always ground hit"):SetValue(Config.AlwaysGroundHit.Enabled)
     Menu:FindItem("Combat", "Other", "CheckBox", "Stomp spam"):SetValue(Config.StompSpam.Enabled)
-    Menu:FindItem("Combat", "Other", "CheckBox", "Auto attack"):SetValue(false)
     Menu:FindItem("Combat", "Other", "CheckBox", "Auto stomp"):SetValue(Config.AutoStomp.Enabled)
-    Menu:FindItem("Combat", "Other", "CheckBox", "Stomp spam"):SetValue(Config.StompSpam.Enabled)
     Menu:FindItem("Combat", "Other", "Slider", "Auto stomp range"):SetValue(Config.AutoStomp.Range)
     Menu:FindItem("Combat", "Other", "ComboBox", "Auto stomp target"):SetValue(Config.AutoStomp.Target)
 
@@ -367,7 +358,6 @@ function RefreshMenu()
     Menu:FindItem("Visuals", "ESP", "ColorPicker", "Whitelist color"):SetValue(Config.ESP.WhitelistOverride.Color, 1 - Config.ESP.WhitelistOverride.Transparency)
     Menu:FindItem("Visuals", "ESP", "CheckBox", "Box"):SetValue(Config.ESP.Box.Enabled)
     Menu:FindItem("Visuals", "ESP", "ColorPicker", "Box color"):SetValue(Config.ESP.Box.Color, 1 - Config.ESP.Box.Transparency)
-    Menu:FindItem("Visuals", "ESP", "ComboBox", "Box type"):SetValue(Config.ESP.Box.Type)
     Menu:FindItem("Visuals", "ESP", "CheckBox", "Skeleton"):SetValue(Config.ESP.Skeleton.Enabled)
     Menu:FindItem("Visuals", "ESP", "ColorPicker", "Skeleton color"):SetValue(Config.ESP.Skeleton.Color, 1 - Config.ESP.Skeleton.Transparency)
     Menu:FindItem("Visuals", "ESP", "CheckBox", "Chams"):SetValue(Config.ESP.Chams.Enabled)
@@ -491,7 +481,6 @@ function RefreshMenu()
     Menu:FindItem("Player", "Other", "CheckBox", "No slow"):SetValue(Config.NoSlow.Enabled)
     Menu:FindItem("Player", "Other", "CheckBox", "Anti ground hit"):SetValue(Config.AntiGroundHit.Enabled)
     Menu:FindItem("Player", "Other", "CheckBox", "Anti fling"):SetValue(Config.AntiFling.Enabled)
-    Menu:FindItem("Player", "Other", "CheckBox", "Hide tools"):SetValue(false)
     Menu:FindItem("Player", "Other", "CheckBox", "Death teleport"):SetValue(Config.DeathTeleport.Enabled)
     Menu:FindItem("Player", "Other", "CheckBox", "Flipped"):SetValue(Config.Flipped.Enabled)
 
@@ -512,7 +501,6 @@ function RefreshMenu()
     --Menu:FindItem("Misc", "Main", "CheckBox", "Chat spam"):SetValue(Spamming)
     Menu:FindItem("Misc", "Main", "CheckBox", "Event logs"):SetValue(Config.EventLogs.Enabled)
     Menu:FindItem("Misc", "Main", "MultiSelect", "Event log flags"):SetValue(Config.EventLogs.Flags)
-    Menu:FindItem("Misc", "Main", "CheckBox", "Hide sprays"):SetValue(Config.HideSprays.Enabled)
     Menu:FindItem("Misc", "Main", "CheckBox", "Close doors"):SetValue(Config.CloseDoors.Enabled)
     Menu:FindItem("Misc", "Main", "CheckBox", "Open doors"):SetValue(Config.OpenDoors.Enabled)
     Menu:FindItem("Misc", "Main", "CheckBox", "Knock doors"):SetValue(Config.KnockDoors.Enabled)
@@ -564,8 +552,7 @@ function RefreshMenu()
     Menu:FindItem("Settings", "Menu", "ColorPicker", "Menu accent"):SetValue(Config.Menu.Accent)
     Menu:FindItem("Settings", "Menu", "Hotkey", "Prefix"):SetValue(Config.Prefix)
     Menu:FindItem("Settings", "Menu", "Hotkey", "Menu key"):SetValue(Config.Menu.Key)
-    Menu:FindItem("Settings", "Menu", "ComboBox", "Console font color"):SetValue(Config.Console.Accent, {"Cyan", "Blue", "Green", "Red", "Magenta", "Yellow", "White"})
-
+    
     Menu.Keybinds.List.Aimbot:Update(Config.Aimbot.Enabled and "on" or "off")
     Menu.Keybinds.List["Camera Lock"]:Update(Config.CameraLock.Enabled and "on" or "off")
     Menu.Keybinds.List.Flight:Update(Config.Flight.Enabled and "on" or "off")
@@ -601,6 +588,8 @@ function GetTarget(): Player
 
     local Whitelisted = {Player.UserId, unpack(PlayerManager:GetPlayersWithUserIds(UserTable.Whitelisted))}
     for _, _Player in ipairs(PlayerManager:GetPlayers(Whitelisted)) do
+        if _Player == Player then continue end
+
         if _Player.Character then
             local _Root = Root -- _Root is equal to local player root
             local Root = Utils.GetRoot(_Player) -- Target root
@@ -984,7 +973,7 @@ function GetAssetInfo(AssetId: number): table
     end)
 
     if not Success then
-        Console:Write(string.format("[Main::GetAssetInfo(%d)]: %s", AssetId, Result), "Red")
+        warn(string.format("[Main::GetAssetInfo(%d)]: %s", AssetId, Result))
         wait(3)
         return GetAssetInfo(AssetId)
     end
@@ -1478,7 +1467,6 @@ function AddPlayerESP(Player: Player)
         Velocity = ESP.Text(Head),
 
         Box = ESP.Box(Torso),
-        --CornerBox = ESP.CornerBox(Torso),
         Skeleton = ESP.Skeleton(),
 
         HealthBar = ESP.Bar(Torso),
@@ -1763,8 +1751,7 @@ function UpdateESP()
                 v.Velocity:SetText(string.format("Velocity: [%s u/s]", Velocity), FONT, FONT_SIZE, FONT_COLOR, FONT_TRANSPARENCY, true)
             end
 
-            v.Box.Visible = IS_VISIBLE() and ESP_Box.Enabled and ESP_Box.Type == "Default" or false
-            --v.CornerBox.Visible = IS_VISIBLE() and ESP_Box.Enabled and ESP_Box.Type == "Corners" or false
+            v.Box.Visible = IS_VISIBLE() and ESP_Box.Enabled
             v.Snapline.Visible = IS_VISIBLE() and ESP_Snaplines.Enabled
             v.Snapline.OffScreen = ESP_Snaplines.OffScreen
             v.Arrow.Visible = IS_VISIBLE() and ESP_Arrows.Enabled
@@ -1804,25 +1791,21 @@ function UpdateESP()
                 v.Skeleton:SetColor(Admin.Color, ESP_Skeleton.Transparency)
                 v.Snapline:SetColor(Admin.Color, ESP_Snaplines.Transparency)
                 v.Box:SetColor(Admin.Color, ESP_Box.Transparency)
-                --v.CornerBox:SetColor(Admin.Color, ESP_Box.Transparency)
                 v.Arrow:SetColor(Admin.Color, ESP_Arrows.Transparency)
             elseif Whitelisted and ESP.WhitelistOverride.Enabled then
                 v.Skeleton:SetColor(ESP.WhitelistOverride.Color, ESP_Skeleton.Transparency)
                 v.Snapline:SetColor(ESP.WhitelistOverride.Color, ESP_Snaplines.Transparency)
                 v.Box:SetColor(ESP.WhitelistOverride.Color, ESP_Box.Transparency)
-                --v.CornerBox:SetColor(ESP.WhitelistOverride.Color, ESP_Box.Transparency)
                 v.Arrow:SetColor(ESP.WhitelistOverride.Color, ESP_Arrows.Transparency)
             elseif Target and ESP.TargetOverride.Enabled then
                 v.Skeleton:SetColor(ESP.TargetOverride.Color, ESP_Skeleton.Transparency)
                 v.Snapline:SetColor(ESP.TargetOverride.Color, ESP_Snaplines.Transparency)
                 v.Box:SetColor(ESP.TargetOverride.Color, ESP_Box.Transparency)
-                --v.CornerBox:SetColor(ESP.TargetOverride.Color, ESP_Box.Transparency)
                 v.Arrow:SetColor(ESP.TargetOverride.Color, ESP_Arrows.Transparency)
             else
                 v.Skeleton:SetColor(ESP_Skeleton.Color, ESP_Skeleton.Transparency)
                 v.Snapline:SetColor(ESP_Snaplines.Color, ESP_Snaplines.Transparency)
                 v.Box:SetColor(ESP_Box.Color, ESP_Box.Transparency)
-                --v.CornerBox:SetColor(ESP_Box.Color, ESP_Box.Transparency)
                 v.Arrow:SetColor(ESP_Arrows.Color, ESP_Arrows.Transparency)
             end
         elseif Type == "Item" then
@@ -2456,82 +2439,11 @@ function ResetCharacter()
 end
 
 
-function GiveToolsPlayer(Target: Player)
-    local Tool = Character:FindFirstChild("Punch") or Backpack:FindFirstChild("Punch")
-
-    if not Tool then
-        Tool = Backpack.ChildAdded:Wait()
-        wait()
-    end
-
-    local function DisableGivingTools()
-        Menu.Notify("Please select a valid target to give tools to!", 5)
-        Menu:FindItem("Misc", "Players", "CheckBox", "Give Tools"):SetValue(false)
-
-        GivingTools = false
-    end
-
-    local tCharacter = typeof(Target) == "Instance" and Target:IsA("Player") and Target.Character
-    if not tCharacter then return DisableGivingTools() end
-    
-    local tHumanoid = tCharacter:FindFirstChild("Humanoid")
-    local tRoot = tHumanoid and tHumanoid.RootPart
-    if not tRoot then return DisableGivingTools() end
-
-    local function LoadHandles()
-        Humanoid:UnequipTools()
-        for _, v in ipairs(Backpack:GetChildren()) do
-            if v:IsA("Tool") and v ~= Tool then
-                v.Parent = Character
-                wait()
-                v.Parent = Backpack
-            end
-        end
-    end
-
-    local function SetToolsParent()
-        LoadHandles()
-        Humanoid:UnequipTools()
-        wait(0.1)
-
-        for _, v in ipairs(Backpack:GetChildren()) do
-            if v:IsA("Tool") and v ~= Tool then
-              -- not exactly sure what this is but we need this for replicating the parent to the tool; test it yourself using roblox studio
-                v.Parent = Character
-                v.Parent = Tool
-                v.Parent = Backpack
-                v.Parent = Tool
-            end
-            
-            wait()
-        end
-    end
-
-    SetToolsParent()
-    
-    local Tools = {}
-    for _, Tool in ipairs(Tool:GetChildren()) do
-        if not Tool:IsA("Tool") then continue end
-        table.insert(Tools, Tool)
-    end
-
-    Tool.Parent = Character
-
-    for _, Tool in ipairs(Tools) do
-        local Handle = Tool:WaitForChild("Handle")
-        firetouchinterest(Handle, tRoot, 0)
-        firetouchinterest(Handle, tRoot, 1)
-    end
-
-    ResetCharacter()
-end
-
-
 function Attack(CF: CFrame, Release: boolean)
     if not Tool then return end
+    if AttackDebounce then return end
     
     CF = Target and Config.Aimbot.Enabled and GetAimbotCFrame(true) or CF
-    Release = typeof(Release) == "boolean" and Release or true
 
     -- if AttackCooldown then return end
     -- AttackCooldown = true
@@ -2542,12 +2454,15 @@ function Attack(CF: CFrame, Release: boolean)
         if TagSystem.has(Character, "reloading") then return end
 
 
-
+        AttackDebounce = true
         Network:Send(Enums.NETWORK.ATTACK, 1, CF, UserInput:IsKeyDown(Enum.KeyCode.LeftShift), Root.AssemblyLinearVelocity.Magnitude)
         --if Release then
             Network:Send(Enums.NETWORK.ATTACK, 2, CF, UserInput:IsKeyDown(Enum.KeyCode.LeftShift), Root.AssemblyLinearVelocity.Magnitude)
         --else
         --end
+        task.delay(0.1, function()
+            AttackDebounce = false
+        end)
     else
         if Tool:GetAttribute("Gun") then
             if not Tool.CD then return end -- Cooldown
@@ -3188,7 +3103,7 @@ function RenderStepped(Step: number)
     UpdateAimbotIndicator()
 
     if Config.Interface.Watermark.Enabled then
-        Menu.Watermark:Update("ponyhook | " .. GetFramerate() .. "fps | " .. math.round(Ping) .. "ms | " .. os.date("%X"))
+        Menu.Watermark:Update(script_name .. " | " .. GetFramerate() .. "fps | " .. math.round(Ping) .. "ms | " .. os.date("%X"))
     end
 
     local Timer = Player:GetAttribute("KnockOut") or 0
@@ -3285,16 +3200,18 @@ function OnInput(Input: InputObject, Process: boolean)
 
     if CheckInput(Enum.KeyCode.E) then
         if Process then return end
-
-        delay(0.1, function()
-            if not UserInput:IsKeyDown(Key) then
-                if Character and not Dragging and Config.StompSpam.Enabled then
-                    if GetStompTarget() then
-                        Stomp(Utils.IsOriginal and 50 or 200)
+	
+    	if not Utils.IsOriginal then
+            delay(0.1, function()
+            	if not UserInput:IsKeyDown(Key) then
+                    if Character and not Dragging and Config.StompSpam.Enabled then
+                        if GetStompTarget() then
+                            Stomp(200)
+                        end
                     end
                 end
-            end
-        end)
+            end)
+    	end
     end
 
     if CheckInput(Enum.UserInputType.MouseButton1) then
@@ -3323,7 +3240,7 @@ function OnInput(Input: InputObject, Process: boolean)
         if Object and Config.DoorMenu.Enabled then
             local Door = Object:FindFirstAncestor("Door")
 
-            if Door and Object.Name == "Door" then
+            if Door then
                 local Distance = Player:DistanceFromCharacter(Object.Position)
                 if Distance < 8 and not Menu.Screen:FindFirstChild("DoorMenu") then
                     ShowDoorMenu(Door)
@@ -3361,13 +3278,11 @@ function OnCommandBarFocusLost()
     CommandBar:ReleaseFocus()
     CommandBar:TweenPosition(UDim2.new(0.5, -100, 1, 5), nil, nil, 0.2, true)
 
-    local Success, Result = pcall(function()
-        Commands.Check(CommandBar.Text)
-    end)
-
+    local Success, Result = pcall(Commands.Check, CommandBar.Text)
     if not Success then
-        Console:Write(string.format("[Main::OnCommandBarFocusLost()]: %s", Result), "Red")
+        warn(string.format("[Main::OnCommandBarFocusLost()]: %s", Result))
     end
+
     CommandBar.Text = ""
 end
 
@@ -3408,14 +3323,8 @@ function OnCharacterAdded(Player: Player, _Character: Model)
                 if Config.TeleportBypass.Enabled then
                     Root.CFrame = DeathPosition
                 else
-                    delay(1, function() 
-                        Teleport(DeathPosition) 
-                    end)
+                    delay(1, Teleport, DeathPosition)
                 end
-            end
-
-            if GivingTools then
-                delay(0.3, GiveToolsPlayer, GetSelectedTarget())
             end
 
             TeleportBypass()
@@ -3722,19 +3631,24 @@ end
 
 function OnPlayerAdded(Player: Player)
     if Player == PlayerManager.LocalPlayer then
+	local LastHealth = 0
+	local LastStamina = 0
+
         local function OnHealthChange(Health: number)
             if typeof(Health) ~= "number" then return end
-            if Health < Player:GetAttribute("Health") then -- if current health is less than last time then we give player the health_tick attribute
+            if LastHealth < Health then -- if current health is less than last time then we give player the health_tick attribute
                 Player:SetAttribute("HealthTick", os.clock())
             end
+	    LastHealth = Health
         end
         
         
         local function OnStaminaChanged(Stamina: number)
             if typeof(Stamina) ~= "number" then return end
-            if Stamina < Player:GetAttribute("Stamina") then -- if current stamina is less than last time then we give player the stamina_tick attribute
+            if LastStamina < Stamina then -- if current stamina is less than last time then we give player the stamina_tick attribute
                 Player:SetAttribute("StaminaTick", os.clock())
             end
+	    LastStamina = Stamina
         end
 
         OnHealthChange(Player:GetAttribute("Health"))
@@ -3747,6 +3661,7 @@ function OnPlayerAdded(Player: Player)
         Player:GetAttributeChangedSignal("Stamina"):Connect(function()
             OnStaminaChanged(Player:GetAttribute("Stamina"))
         end)
+
         return
     end
 
@@ -3774,10 +3689,6 @@ function OnPlayerRemoving(Player: Player)
 
     if Player == Target then
         Target = nil
-    end
-
-    if Player == PlayerManager.LocalPlayer then
-        Console:Clear()
     end
 end
 
@@ -4407,7 +4318,7 @@ function HookGame()
 
                 if not table.find(AudioLogs, LastAudio) then
                     table.insert(AudioLogs, LastAudio)
-                    writefile("ponyhook/Games/The Streets/Audios.dat", table.concat(AudioLogs, "\n"))
+                    writefile(script_name .. "/Games/The Streets/Audios.dat", table.concat(AudioLogs, "\n"))
                 end
             end
         end
@@ -4488,7 +4399,8 @@ function HookGame()
 
     OldFunctionHook = hookfunction(PostMessage.fire, PostMessageHook)
     --local mt = getrawmetatable(game); setreadonly(mt, false); local old_namecall = mt.__namecall; mt.__namecall = function(...) return old_namecall(...) end
-    IsGameHooked = true
+    
+    return true
 end
 
 
@@ -4648,7 +4560,7 @@ function InitializeCommands()
         end)
     end)
 
-    Commands.Add("bypass", {}, "[prison only] - Attempts to give you tool and teleport bypass", function()
+    Commands.Add("bypass", {}, "[prison only] - Attempts to give you tool- and teleport-bypass", function()
         if not Utils.IsOriginal then
             queue_on_teleport([[
                 if not game:IsLoaded() then game.Loaded:Wait() end -- Synapse is shit
@@ -4692,30 +4604,6 @@ function InitializeCommands()
     Commands.Add("unkey", {"unbind"}, "[keybind name] - unbinds 'keybind name'", function(Arguments)
         local Name = Arguments[1]
         if Name then BindKey(string.lower(Name), "Remove") end
-    end)
-
-    Commands.Add("commands", {"cmds"}, "- prints all the commands in the rconsole", function()
-        Console:Write("\n")
-        Console:Write(CommandsList)
-    end)
-
-    Commands.Add("clear", {"cls"}, "- clears the rconsole of all text", function()
-        Console:Clear()
-        Console:Write([[                                                                    
-                                                        88                                     88         
-                                                        88                                     88         
-                                                        88                                     88         
-    8b,dPPYba,    ,adPPYba,   8b,dPPYba,   8b       d8  88,dPPYba,    ,adPPYba,    ,adPPYba,   88   ,d8   
-    88P'    "8a  a8"     "8a  88P'   `"8a  `8b     d8'  88P'    "8a  a8"     "8a  a8"     "8a  88 ,a8"    
-    88       d8  8b       d8  88       88   `8b   d8'   88       88  8b       d8  8b       d8  8888[      
-    88b,   ,a8"  "8a,   ,a8"  88       88    `8b,d8'    88       88  "8a,   ,a8"  "8a,   ,a8"  88`"Yba,   
-    88`YbbdP"'    `"YbbdP"'   88       88      Y88'     88       88   `"YbbdP"'    `"YbbdP"'   88   `Y8a  
-    88                                         d8'                                                        
-    88                                        d8'                                                                                                                                                                                                                                                                                                                                                          
-    ]])
-        Console:Write("\nBy: " .. table.concat(UserTable.Developers, ", "))
-        Console:Write(string.format("Script Version: %s", get_script_version()))
-        Console:Write("\nType 'cmds' to see the commands!")
     end)
 
     Commands.Add("steal", {"st", "log"}, "([audio]/[decal]) [player] - steals the selected audio or decal from 'player'", function(Arguments)
@@ -4805,8 +4693,8 @@ function InitializeMenu()
     end
     
 
-    Menu.Screen.Name = "ponyhook"
-    Menu.SetTitle(Menu, "ponyhook" .. Utils.GetRichTextColor(".cc", Config.Menu.Accent:ToHex())) -- Can't namecall since synapse is shit
+    Menu.Screen.Name = script_name
+    Menu.SetTitle(Menu, script_name .. Utils.GetRichTextColor(".cc", Config.Menu.Accent:ToHex())) -- Can't namecall since synapse is shit
 
     Menu.Tab("Combat")
     Menu.Tab("Visuals")
@@ -4895,12 +4783,9 @@ function InitializeMenu()
     Menu.CheckBox("Combat", "Other", "Always ground hit", Config.AlwaysGroundHit.Enabled, function(Bool)
         Config.AlwaysGroundHit.Enabled = Bool
     end)
-    Menu.CheckBox("Combat", "Other", "Stomp spam", Config.StompSpam.Enabled, function(Bool)
+    Menu.GetItem(Menu, Menu.CheckBox("Combat", "Other", "Stomp spam", Config.StompSpam.Enabled, function(Bool)
         Config.StompSpam.Enabled = Bool
-    end)
-    Menu.CheckBox("Combat", "Other", "Auto attack", false, function(Bool)
-        Config.AutoAttack.Enabled = Bool
-    end)
+    end)):SetVisible(not Utils.IsOriginal)
     Menu.CheckBox("Combat", "Other", "Auto stomp", Config.AutoStomp.Enabled, function(Bool)
         Config.AutoStomp.Enabled = Bool
         --Menu.Indicators.List["Automatic Stomp"]:Update(Config.AutoStomp.Enabled)
@@ -4975,16 +4860,12 @@ function InitializeMenu()
     Menu.CheckBox("Player", "Other", "Anti fling", Config.AntiFling.Enabled, function(Bool)
         Config.AntiFling.Enabled = Bool
     end)
-    Menu.CheckBox("Player", "Other", "Hide tools", HideTools, function(Bool) -- ??
-        HideTools = Bool
-    end)
     Menu.CheckBox("Player", "Other", "Death teleport", Config.DeathTeleport.Enabled, function(Bool)
         Config.DeathTeleport.Enabled = Bool
     end)
     Menu.CheckBox("Player", "Other", "Flipped", Config.Flipped.Enabled, function(Bool)
         Config.Flipped.Enabled = Bool
     end)
-
     Menu.CheckBox("Player", "Anti-aim", "Enabled", Config.AntiAim.Enabled, function(Bool)
         AntiAimToggle()
         UpdateAntiAim()
@@ -5025,9 +4906,6 @@ function InitializeMenu()
     Menu.ColorPicker("Visuals", "ESP", "Box color", Config.ESP.Box.Color, 1 - Config.ESP.Box.Transparency, function(Color, Transparency)
         Config.ESP.Box.Color = Color
         Config.ESP.Box.Transparency = 1 - Transparency
-    end)
-    Menu.ComboBox("Visuals", "ESP", "Box type", Config.ESP.Box.Type, {"Default", "Corners"}, function(String)
-        Config.ESP.Box.Type = Value
     end)
     Menu.CheckBox("Visuals", "ESP", "Skeleton", Config.ESP.Skeleton.Enabled, function(Bool)
         Config.ESP.Skeleton.Enabled = Bool
@@ -5288,7 +5166,7 @@ function InitializeMenu()
     Menu.CheckBox("Visuals", "World", "Disable bullet trails", Config.BulletTracers.DisableTrails, function(Bool)
         Config.BulletTracers.DisableTrails = Bool
     end)
-    Menu.ComboBox("Visuals", "World", "Skybox", Config.Enviorment.Skybox.Value, Utils.GetFolders("ponyhook/Games/The Streets/bin/skyboxes/").Names, function(String)
+    Menu.ComboBox("Visuals", "World", "Skybox", Config.Enviorment.Skybox.Value, Utils.GetFolders(script_name .. "/Games/The Streets/bin/skyboxes/").Names, function(String)
         Config.Enviorment.Skybox.Value = String
         Lighting:UpdateSkybox(Config.Enviorment.Skybox.Value)
     end)
@@ -5448,8 +5326,8 @@ function InitializeMenu()
             Threads.ChatSpam.Continue()
         end
 
-        if not isfile("ponyhook/Games/The Streets/Spam.dat") then
-            writefile("ponyhook/Games/The Streets/Spam.dat", "")
+        if not isfile(script_name .. "/Games/The Streets/Spam.dat") then
+            writefile(script_name .. "/Games/The Streets/Spam.dat", "")
         end
     end)
     Menu.CheckBox("Misc", "Main", "Event logs", Config.EventLogs.Enabled, function(Bool)
@@ -5457,11 +5335,6 @@ function InitializeMenu()
     end)
     Menu.MultiSelect("Misc", "Main", "Event log flags", Config.EventLogs.Flags, function(Flags)
         Config.EventLogs.Flags = Flags
-    end)
-    Menu.CheckBox("Misc", "Main", "Hide sprays", Config.HideSprays.Enabled, function(Bool)
-        Config.HideSprays.Enabled = Bool
-        if Bool then
-        end
     end)
     Menu.CheckBox("Misc", "Main", "Close doors", Config.CloseDoors.Enabled, function(Bool)
         Config.CloseDoors.Enabled = Bool
@@ -5617,12 +5490,6 @@ function InitializeMenu()
     Menu.Slider("Misc", "Players", "Priority", 0, 3, 1, "", 0, function(Value)
         -- 0 don't attack target; > 0 attack target higher priority target
     end)
-    Menu.CheckBox("Misc", "Players", "Give Tools", false, function(Bool)
-        GivingTools = Bool
-        if GivingTools then
-            GiveToolsPlayer(GetSelectedTarget())
-        end
-    end)
     Menu.CheckBox("Misc", "Players", "Attach", Config.Attach.Enabled, function(Bool)
         Config.Attach.Enabled = Bool
         if Bool then 
@@ -5653,7 +5520,7 @@ function InitializeMenu()
         else
             table.insert(UserTable.Whitelisted, UserId)
         end
-        writefile("ponyhook/Games/The Streets/Whitelist.dat", table.concat(UserTable.Whitelisted, "\n"))
+        writefile(script_name .. "/Games/The Streets/Whitelist.dat", table.concat(UserTable.Whitelisted, "\n"))
     end)
     Menu.CheckBox("Misc", "Players", "Owner", false, function(Bool)
         local UserId = tostring(GetSelectedTarget().UserId)
@@ -5663,7 +5530,7 @@ function InitializeMenu()
         else
             table.insert(UserTable.Owners, UserId)
         end
-        writefile("ponyhook/Games/The Streets/Owners.dat", table.concat(UserTable.Owners, "\n"))
+        writefile(script_name .. "/Games/The Streets/Owners.dat", table.concat(UserTable.Owners, "\n"))
     end)
     do
         local Player_Info_Items = {}
@@ -5745,36 +5612,32 @@ function InitializeMenu()
     Menu.ColorPicker("Settings", "Menu", "Menu accent", Config.Menu.Accent, 0, function(Color)
         Menu.Accent = Color
         Config.Menu.Accent = Color
-	    Menu:SetTitle("ponyhook" .. Utils.GetRichTextColor(".cc", Color:ToHex()))
-    end)
-    Menu.ComboBox("Settings", "Menu", "Console font color", Config.Console.Accent, {"Cyan"}, function(String)
-        Config.Console.Accent = String
-        Console.ForegroundColor = String
+	    Menu:SetTitle(script_name .. Utils.GetRichTextColor(".cc", Color:ToHex()))
     end)
 
     Menu.Button("Settings", "Settings", "Refresh", function()
-        Menu:FindItem("Visuals", "World", "ComboBox", "Skybox"):SetValue(Config.Enviorment.Skybox.Value, Utils.GetFolders("ponyhook/Games/The Streets/bin/skyboxes/").Names)
-        HitSound = get_custom_asset("ponyhook/Games/The Streets/bin/sounds/hitsound.mp3") -- huh seems to automatically when file changes?
-        Crosshair = get_custom_asset("ponyhook/Games/The Streets/bin/crosshairs/crosshair.png")
+        Menu:FindItem("Visuals", "World", "ComboBox", "Skybox"):SetValue(Config.Enviorment.Skybox.Value, Utils.GetFolders(script_name .. "/Games/The Streets/bin/skyboxes/").Names)
+        HitSound = get_custom_asset(script_name .. "/Games/The Streets/bin/sounds/hitsound.mp3") -- huh seems to automatically when file changes?
+        Crosshair = get_custom_asset(script_name .. "/Games/The Streets/bin/crosshairs/crosshair.png")
         Mouse.Icon = Crosshair
     end)
 
     Menu.TextBox("Settings", "Configs", "Config name", "")
-    Menu.ListBox("Settings", "Configs", "Configs", false, Utils.GetFiles("ponyhook/Games/The Streets/Configs/").Names, function(cfg_name)
+    Menu.ListBox("Settings", "Configs", "Configs", false, Utils.GetFiles(script_name .. "/Games/The Streets/Configs/").Names, function(cfg_name)
         Menu:FindItem("Settings", "Configs", "TextBox", "Config name"):SetValue(cfg_name)
     end)
     Menu.Button("Settings", "Configs", "Create", function()
         local cfg_name = Menu:FindItem("Settings", "Configs", "TextBox", "Config name"):GetValue()
         -- file already exists?
         Configs:Save(cfg_name)
-        Menu:FindItem("Settings", "Configs", "ListBox", "Configs"):SetValue(cfg_name .. ".cfg", Utils.GetFiles("ponyhook/Games/The Streets/Configs").Names)
+        Menu:FindItem("Settings", "Configs", "ListBox", "Configs"):SetValue(cfg_name .. ".cfg", Utils.GetFiles(script_name .. "/Games/The Streets/Configs").Names)
     end)
     Menu.Button("Settings", "Configs", "Save", function()
         local cfg_name = Menu:FindItem("Settings", "Configs", "ListBox", "Configs"):GetValue()
         Menu.Prompt("Are you sure you want to overwrite save  of  '" .. cfg_name .. "' ?", function() -- 2 spaces since the font makes it look like no spaces
             cfg_name = string.gsub(cfg_name, ".cfg", "")
             Configs:Save(cfg_name)
-            Menu:FindItem("Settings", "Configs", "ListBox", "Configs"):SetValue(cfg_name .. ".cfg", Utils.GetFiles("ponyhook/Games/The Streets/Configs").Names)
+            Menu:FindItem("Settings", "Configs", "ListBox", "Configs"):SetValue(cfg_name .. ".cfg", Utils.GetFiles(script_name .. "/Games/The Streets/Configs").Names)
         end)
     end)
     Menu.Button("Settings", "Configs", "Load", function()
@@ -5785,8 +5648,8 @@ function InitializeMenu()
     Menu.Button("Settings", "Configs", "Delete", function()
         local cfg_name = Menu:FindItem("Settings", "Configs", "ListBox", "Configs"):GetValue()
         Menu.Prompt("Are you sure you want to delete '" .. cfg_name .. "' ?", function()
-            delfile("ponyhook/Games/The Streets/Configs/" .. cfg_name)
-            Menu:FindItem("Settings", "Configs", "ListBox", "Configs"):SetValue("", Utils.GetFiles("ponyhook/Games/The Streets/Configs").Names)
+            delfile(script_name .. "/Games/The Streets/Configs/" .. cfg_name)
+            Menu:FindItem("Settings", "Configs", "ListBox", "Configs"):SetValue("", Utils.GetFiles(script_name .. "/Games/The Streets/Configs").Names)
         end)
     end)
 
@@ -5881,45 +5744,6 @@ function InitializeMenu()
 end
 
 
-function InitializeConsole()
-    spawn(function()
-        pcall(function()
-            Console:Init()
-            Console.ForegroundColor = Config.Console.Accent
-            Console:Clear()
-            Console:Write([[                                                                                                      
-                                                    88                                     88         
-                                                    88                                     88         
-                                                    88                                     88         
-8b,dPPYba,    ,adPPYba,   8b,dPPYba,   8b       d8  88,dPPYba,    ,adPPYba,    ,adPPYba,   88   ,d8   
-88P'    "8a  a8"     "8a  88P'   `"8a  `8b     d8'  88P'    "8a  a8"     "8a  a8"     "8a  88 ,a8"    
-88       d8  8b       d8  88       88   `8b   d8'   88       88  8b       d8  8b       d8  8888[      
-88b,   ,a8"  "8a,   ,a8"  88       88    `8b,d8'    88       88  "8a,   ,a8"  "8a,   ,a8"  88`"Yba,   
-88`YbbdP"'    `"YbbdP"'   88       88      Y88'     88       88   `"YbbdP"'    `"YbbdP"'   88   `Y8a  
-88                                         d8'                                                        
-88                                        d8'                                                                                                                                                                                                                                                                                                                                                   
-]])
-            Console:Write("\nBy: " .. table.concat(UserTable.Developers, ", "))
-            Console:Write(string.format("Script Version: %s", get_script_version()))
-            Console:Write("\nType 'cmds' to see the commands!")
-
-            local GetInput
-            function GetInput()
-                local Message = string.lower(Console:Read(">"))
-                local Output = Commands.Check(Message)
-                if not Output then
-                    Console:Write("Warning: Command does not exist!", "Yellow")
-                end
-
-                GetInput()
-            end
-
-            GetInput()
-        end)
-    end)
-end
-
-
 function InitializeWorkspace()
     for Name, Pad in pairs(GetBuyPads()) do
         local Part = Pad.Part
@@ -6001,9 +5825,8 @@ end
 function Initialize()
     wait(0.2)
 
-    HookGame()
-    if not IsGameHooked then
-        return messagebox("Error 0x4; Failed to hook games anticheat!", "ponyhook.cc", 0)
+    if not HookGame() then
+        return messagebox("Error 0x4; Failed to hook games anticheat!", script_name .. ".cc", 0)
     end
 
     wait(0.5)
@@ -6023,7 +5846,6 @@ function Initialize()
     PlayerManager:Init()
 
     wait(0.1)
-    InitializeConsole()
     InitializeWorkspace()
     wait(0.1)
 
@@ -6058,7 +5880,7 @@ function Initialize()
     FlyAngularVelocity.AngularVelocity = Vector3.new() 
     FlyAngularVelocity.MaxTorque = Vector3.new(9e9, 9e9, 9e9)
 
-    FloatPart.Name = "ponyhook.Float"
+    FloatPart.Name = script_name .. ".Float"
     FloatPart.Transparency = 1
     FloatPart.Anchored = true
     FloatPart.CanCollide = Float
@@ -6068,7 +5890,7 @@ function Initialize()
 
     local AnimationIds = {
         BackFlip = 363364837, Chill = 526821274, Dab = 526812070, Kick = 376851671, Lay = 526815097, Pushups = 526813828, Sit = 178130996, Sit2 = 0, Situps = 526814775, Slide = 1461265895, Roll = 376654657,
-        Gun = 889968874, Gun2 = 229339207, Gun3 = 889390949, Run = 8587081257, Run2 = 458506542, Run3 = 1484589375, Crouch = 8533780211, AntiAim = 215384594, AntiAim2 = 242203091,
+        Gun = 889968874, Gun2 = 229339207, Gun3 = 889390949, Run = 8587081257, Run2 = 10153231863, Run3 = 1484589375, Crouch = 8533780211, AntiAim = 215384594, AntiAim2 = 242203091,
         GlockIdle = 503285264, GlockFire = 503287783, GlockReload = 8533765435, ShottyIdle = 889390949, ShottyFire = 889391270, ShottyReload = 8533763280
     }
 
@@ -6106,12 +5928,9 @@ function Initialize()
         local Thread = coroutine.create(Function)
         Threads[Name] = {
             Continue = function()
-                local Success, Result = pcall(function()
-                    coroutine.resume(Thread)
-                end)
-
+                local Success, Result = pcall(coroutine.resume, Thread)
                 if not Success then
-                    Console:Write(string.format("[%s] " .. Result), string.upper(Name), "Red")
+                    warn(string.format("[%s] " .. Result), string.upper(Name))
                 end
             end,
             Thread = Thread
@@ -6213,10 +6032,14 @@ function Initialize()
                 if Type == "Static" then
                     CurrentClanTag = Tag
                 elseif Type == "Cheat" then
-                    local TagSequences = {
-                        "___________", "p__________", "po_________", "pon________", "pony_______", "ponyh______", 
-                        "ponyho_____", "ponyhoo____", "ponyhook___", "ponyhook.__", "ponyhook.c_", "ponyhook.cc"
-                    }
+                    local Cheat = script_name .. ".cc"
+                    
+                    -- this probably can be just a string, but im too lazy to think rn
+                    local TagSequences = {}
+                    for i = #Cheat, 0, -1 do
+                        table.insert(TagSequences, string.sub(Cheat, 1, #Cheat - i) .. string.rep('_', i))
+                    end
+                    
                     ClanTagIteration = math.clamp(ClanTagIteration + 1, 0, #TagSequences + 1)
                     CurrentClanTag = TagSequences[ClanTagIteration]
                     if ClanTagIteration == #TagSequences then ClanTagIteration = 0 end
@@ -6278,8 +6101,7 @@ function Initialize()
                         CurrentClanTag = "Listening to\n" .. Name .. "\nBy: " .. Artist .. "\n" .. "[" .. Time .. "]"
                     end
                 elseif Type == "Info" then
-                    local ExecutorName, ExecutorVersion = identifyexecutor()
-                    local Executor = "Executor: " .. ExecutorName .. " " .. ExecutorVersion
+                    local Executor = string.format("Executor: %s %s", identifyexecutor())
                     --local IsAFK = "IsAFK: "
                     local FPS = "FPS: " .. GetFramerate()
                     local Ping = "Ping: " .. Ping .. "ms"
@@ -6359,7 +6181,7 @@ function Initialize()
             if not Spamming then coroutine.yield() end
             
             pcall(function()
-                local Messages = string.split(readfile("ponyhook/Games/The Streets/Spam.dat"), "\n")
+                local Messages = string.split(readfile(script_name .. "/Games/The Streets/Spam.dat"), "\n")
                 Chat(string.gsub(Messages[math.random(1, #Messages)], "%c", ""))
             end)
             
@@ -6477,7 +6299,7 @@ function Initialize()
 
     RefreshMenu()
     Menu:SetVisible(true)
-    Menu.Notify(string.format("ponyhook.cc took %s seconds to load in", Utils.GetRichTextColor(Utils.math_round((os.clock() - Time), 2), Config.Menu.Accent:ToHex()), 10))
+    Menu.Notify(string.format(script_name .. ".cc took %s seconds to load in", Utils.GetRichTextColor(Utils.math_round((os.clock() - Time), 2), Config.Menu.Accent:ToHex()), 10))
 end
 
 
