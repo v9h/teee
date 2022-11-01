@@ -213,13 +213,13 @@ local Config = {
     ClanTag = {
         Enabled = false,
         Visualize = false,
-        Tag = "pony-hook.pw",
-        Type = "Static", --Forward || Reverse || Static || Blink || Normal || Cheat || Sequences({Tag = "nigger"}, {Tag=  "balls"}) || Boombox || Wave test 
+        Tag = "",
+        Type = "Cheat", --Forward || Reverse || Static || Blink || Normal || Cheat || Sequences({Tag = "???"}, {Tag=  "???"}) || Boombox || Wave test 
         Prefix = "",
         Suffix = "",
         SpotifyToken = "",
         Speed = 0.2
-        -- Maybe animation rules like "balls neverlose.cc": animate at #"balls" + 1 to #tag default 0 to #tag
+        -- Maybe animation rules like "??? neverlose.cc": animate at #"???" + 1 to #tag default 0 to #tag
     },
     ESP = {
         Enabled = false,
