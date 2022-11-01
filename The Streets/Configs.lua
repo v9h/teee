@@ -571,7 +571,7 @@ function Configs:Load(Name: string): table
 
     local function DeepPatch(Original: table, Copy: table)
         for k, v in pairs(Original) do
-            if typeof(Copy[k]) == "nil" then
+            if typeof(Copy[k]) ~= typeof(Original[k]) then
                 Copy[k] = v
             end
 
@@ -586,9 +586,9 @@ function Configs:Load(Name: string): table
 
     Iterate(_Config)
     DeepPatch(self.Config, _Config) -- if player made a config a while a go and the script got updated then the config will be invalid we need to patch the cfg
-    Configs.Config = _Config
+    self.Config = _Config
 
-    return Configs.Config
+    return self.Config
 end
 
 
