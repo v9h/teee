@@ -163,6 +163,7 @@ local AudioLogs = isfile(script_name .. "/Games/The Streets/Audios.dat") and str
 local BulletLogs = {}
 local DamageLogs = {} -- debounce
 local AnimationIds = {"458506542", "8587081257", "376653421", "1484589375"}
+local HatChangerColorSequenceColorPickers = {}
 
 local BuyPart
 local Target
@@ -325,7 +326,41 @@ function LoadConfig(Name: string)
 end
 
 
+function AddHatChangerColorSequenceColorPicker(Color: string?)
+    local Index = #HatChangerColorSequenceColorPickers + 1
+    local ColorPicker = Menu:GetItem(Menu.ColorPicker("Visuals", "Hats", "Color #" .. Index, Color and Color3.fromHex(Color), nil, function(Color)
+        Config.HatChanger.Sequence.Colors[Index] = Color:ToHex()
+    end))
+    Config.HatChanger.Sequence.Colors[Index] = Color or "000000"
+    table.insert(HatChangerColorSequenceColorPickers, ColorPicker)
+end
+
+
+function RemoveHatChangerColorSequenceColorPicker()
+    local Index = #HatChangerColorSequenceColorPickers
+    if Index < 1 then return end
+
+    local ColorPicker = table.remove(HatChangerColorSequenceColorPickers, Index)
+    ColorPicker:SetVisible(false) -- no current method to destroy? LOL
+    
+    if #Config.HatChanger.Sequence.Colors == Index then
+        table.remove(Config.HatChanger.Sequence.Colors, Index)
+    end
+end
+
+
+function RefreshHatChangerColorSequence()
+    for _ = 1, #HatChangerColorSequenceColorPickers do
+        RemoveHatChangerColorSequenceColorPicker()
+    end
+    for i, Color in next, Config.HatChanger.Sequence.Colors do
+        AddHatChangerColorSequenceColorPicker(Color)
+    end
+end
+
+
 function RefreshMenu()
+    RefreshHatChangerColorSequence()
     -- There ARE LIKE 200 MENU ITEMS TO UPDATE???
 
     Menu:FindItem("Combat", "Aimbot", "CheckBox", "Enabled"):SetValue(Config.Aimbot.Enabled)
@@ -456,9 +491,9 @@ function RefreshMenu()
     Menu:FindItem("Visuals", "Weapons", "ComboBox", "Chams material"):SetValue(Config.GunChams.Material)
 
     Menu:FindItem("Visuals", "Hats", "CheckBox", "Hat color changer"):SetValue(Config.HatChanger.Enabled)
-    Menu:FindItem("Visuals", "Hats", "CheckBox", "Hat color sequence"):SetValue(Config.HatChanger.Sequence)
-    Menu:FindItem("Visuals", "Hats", "Slider", "Hat color rate"):SetValue(Config.HatChanger.Speed)
     Menu:FindItem("Visuals", "Hats", "ColorPicker", "Hat color"):SetValue(Config.HatChanger.Color)
+    Menu:FindItem("Visuals", "Hats", "CheckBox", "Hat color sequence"):SetValue(Config.HatChanger.Sequence.Enabled)
+    Menu:FindItem("Visuals", "Hats", "Slider", "Hat color sequence delay"):SetValue(Config.HatChanger.Sequence.Delay)
 
     Menu:FindItem("Player", "Movement", "Slider", "Walk speed"):SetValue(Config.WalkSpeed.Value)
     Menu:FindItem("Player", "Movement", "Slider", "Jump power"):SetValue(Config.JumpPower.Value)
@@ -5277,18 +5312,20 @@ function InitializeMenu()
             Threads.HatChanger.Continue()
         end
     end)
-    Menu.CheckBox("Visuals", "Hats", "Hat color sequence", Config.HatChanger.Sequence, function(Bool)
-        Config.HatChanger.Sequence = Utils.IsOriginal and Bool
-    end)
-    Menu.Slider("Visuals", "Hats", "Hat color rate", 0, 5, Config.HatChanger.Speed, "s", 1, function(Value)
-        Config.HatChanger.Speed = Value
-    end)
     Menu.ComboBox("Visuals", "Hats", "Hat", "None", {"None", {}}, function(Hat)
         SetHat(Hat)
     end)
     Menu.ColorPicker("Visuals", "Hats", "Hat color", Config.HatChanger.Color, 0, function(Color)
         Config.HatChanger.Color = Color
     end)
+    Menu.CheckBox("Visuals", "Hats", "Hat color sequence", Config.HatChanger.Sequence.Enabled, function(Bool)
+        Config.HatChanger.Sequence.Enabled = Utils.IsOriginal and Bool
+    end)
+    Menu.Slider("Visuals", "Hats", "Hat color sequence delay", 0.1, 3, Config.HatChanger.Sequence.Delay, 's', 1, function(Value)
+        Config.HatChanger.Sequence.Delay = Value
+    end)
+    Menu.Button("Visuals", "Hats", "Add color to sequence", AddHatChangerColorSequenceColorPicker)
+    Menu.Button("Visuals", "Hats", "Remove last color from sequence", RemoveHatChangerColorSequenceColorPicker)
 
     Menu.CheckBox("Misc", "Main", "Auto cash", Config.AutoCash.Enabled, function(Bool)
         Config.AutoCash.Enabled = Bool
@@ -5590,7 +5627,7 @@ function InitializeMenu()
     Menu.TextBox("Misc", "Clan tag", "Suffix", Config.ClanTag.Suffix, function(Suffix)
         Config.ClanTag.Suffix = Suffix
     end)
-    Menu.Slider("Misc", "Clan tag", "Tag speed", 0, 5, Config.ClanTag.Speed, "s", 2, function(Speed)
+    Menu.Slider("Misc", "Clan tag", "Tag speed", 0, 5, Config.ClanTag.Speed, 's', 2, function(Speed)
         Config.ClanTag.Speed = Speed
     end)
     Menu.ComboBox("Misc", "Clan tag", "Tag type", Config.ClanTag.Type, {"Static", "Blink", "Normal", "Forward", "Reverse", "Cheat", "Custom", "Info", "Boombox", "Spotify"}, function(Type)
@@ -5941,19 +5978,6 @@ function Initialize()
     if Utils.IsOriginal then
         CreateThread("HatChanger", function()
             -- feeling emo rn
-            local Sequence = {
-                "#ff0000",
-                "#960000",
-                "#780000",
-                "#500000",
-                "#1e0000",
-                "#000000",
-                "#ffffff",
-                "#000000",
-                "#ffffff",
-                "#000000",
-                "#ffffff"
-            }
             local CurrentStep = 1
 
             while true do
@@ -5961,14 +5985,14 @@ function Initialize()
                 if not Config.HatChanger.Enabled then coroutine.yield() end
                 --BrickColor.random().Color
 
-                if Config.HatChanger.Sequence then
-                    if CurrentStep >= #Sequence then CurrentStep = 1 end
-                    SetHatColor(Color3.fromHex(Sequence[CurrentStep]))
+                if Config.HatChanger.Sequence.Enabled and #Config.HatChanger.Sequence.Colors > 0 then
+                    if CurrentStep > #Config.HatChanger.Sequence.Colors then CurrentStep = 1 end
+                    SetHatColor(Color3.fromHex(Config.HatChanger.Sequence.Colors[CurrentStep]))
                     CurrentStep += 1
                 else
                     SetHatColor(Config.HatChanger.Color)
                 end
-                wait(Config.HatChanger.Speed)
+                wait(Config.HatChanger.Sequence.Delay)
             end
         end)
 
