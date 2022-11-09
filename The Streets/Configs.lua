@@ -97,6 +97,7 @@ local Config = {
         Enabled = false,
         Key = nil
     },
+    TeleportBack = {Enabled = false},
     DisableToolCollision = {Enabled = false},
     RunSpeed = {Value = 24.5},
     WalkSpeed = {Value = 16},
