@@ -164,12 +164,7 @@ function Network:Send(Type: Enum_Item, ...)
         --elseif Interactable.Name == "Window" then
            --Interactable.Mod.Knock.ClickDetector.RemoteEvent:FireServer()
         end
-    elseif Type == Enums.NETWORK.TELEPORT_BACK then 	
-		local LastCFrame = Arguments[1]
-		local TeleportFunction = Arguments[2]
-
-		TeleportFunction(LastCFrame)
-	end
+    end
 end
 
 
