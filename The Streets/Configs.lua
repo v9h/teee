@@ -79,6 +79,8 @@ local Config = {
         Key = nil,
 
 		Motionless = { -- still technically velocity but it doesn't fling you every where
+			AutomaticallySetAxisValues = true, 
+			
 			X = {Minimum = -1000, Maximum = 1000},
 			Y = {Minimum = -1000, Maximum = 1000},
 			Z = {Minimum = -1000, Maximum = 1000}
