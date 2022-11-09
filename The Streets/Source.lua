@@ -44,41 +44,6 @@ local ContextAction = game:GetService("ContextActionService")
 local TeleportService = game:GetService("TeleportService")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
-local ScriptName = "The Streets" -- Script Name here; ex : The Streets
-
-
-local request = request or syn and syn.request
-
-
-local FilePath = string.gsub(ScriptName, "%s", "%%20")
-local RepositoryPath = "https://raw.githubusercontent.com/elde-n/roblox-the-streets-pony-script/main/" .. FilePath .. "/"
-
-
-local Cached = {}
-function import(Name: string, ...)
-    Name = string.gsub(Name, "%s", "%%20")
-    if Cached[Name] then return Cached[Name] end
-    
-    local Url = RepositoryPath .. Name .. ".lua"
-    local Response = request({Url = Url})
-    
-    local Source, Result = loadstring(Response.Body, Name)
-    if not Source then
-        return warn(Result)
-    end
-    
-    local Success, Result, Traceback = xpcall(Source, function(Error: string)
-        warn(string.format("[%s]: %s", File, string.match(Error, "%d+.+")))
-        return false, Error, debug.traceback()
-    end, ...)
-    if not Success then return end
-
-    Cached[Name] = Result
-    return Result
-end
-
-getgenv().import = import
-
 if not import then return messagebox("Error 0x5; Something went wrong with initializing the script (couldn't load modules)", script_name .. ".cc", 0) end
 
 local ESP
@@ -291,7 +256,6 @@ function LoadConfig(Name: string)
     ContextAction:BindAction("antiAimToggle", AntiAimToggle, false, Config.AntiAim.Key)
     ContextAction:BindAction("commandBarToggle", CommandBarToggle, false, Config.Prefix)
     ContextAction:BindAction("menuToggle", MenuToggle, false, Config.Menu.Key)
-	ContextAction:BindAction("buyAmmoKey", BuyAmmoToggle, false, Config.BuyAmmo.Key)
 
 
     pcall(function()
@@ -558,12 +522,6 @@ function RefreshMenu()
     Menu:FindItem("Player", "Anti-aim", "CheckBox", "Enabled"):SetValue(Config.AntiAim.Enabled)
     Menu:FindItem("Player", "Anti-aim", "Hotkey", "Anti aim key"):SetValue(Config.AntiAim.Key)
     Menu:FindItem("Player", "Anti-aim", "ComboBox", "Anti aim type"):SetValue(Config.AntiAim.Type)
-	Menu:FindItem("Player", "Anti-aim", "Slider", "X Minimum"):SetValue(Config.AntiAim.Motionless.X.Minimum)
-	Menu:FindItem("Player", "Anti-aim", "Slider", "X Maximum"):SetValue(Config.AntiAim.Motionless.X.Maximum)
-	enu:FindItem("Player", "Anti-aim", "Slider", "Y Minimum"):SetValue(Config.AntiAim.Motionless.Y.Minimum)
-	enu:FindItem("Player", "Anti-aim", "Slider", "Y Maximum"):SetValue(Config.AntiAim.Motionless.Y.Maximum)
-	enu:FindItem("Player", "Anti-aim", "Slider", "Z Minimum"):SetValue(Config.AntiAim.Motionless.Z.Minimum)
-	enu:FindItem("Player", "Anti-aim", "Slider", "Z Maximum"):SetValue(Config.AntiAim.Motionless.Z.Maximum)
 
     Menu:FindItem("Misc", "Main", "CheckBox", "Auto cash"):SetValue(Config.AutoCash.Enabled)
     Menu:FindItem("Misc", "Main", "CheckBox", "Auto farm"):SetValue(Config.AutoFarm.Enabled)
@@ -873,10 +831,6 @@ function GetCash(): number
     return Cash or 0
 end
 
-function GetRandomNumberBetween(Minimum: number, Maximum: number)
-	math.randomseed(tick())
-	return math.random(Minimum, Maximum)
-end 
 
 function GetFramerate(): number
     return math.round(1000 / Stats.FrameRateManager.RenderAverage:GetValue())
@@ -2001,8 +1955,6 @@ function UpdateAntiAim()
         if Config.AntiAim.Type == "Velocity" then
             Menu.Indicators.List["Fake Velocity"]:SetVisible(true)
             Threads.FakeVelocity.Continue()
-		elseif Config.AntiAim.Type == "Motionless" then 
-			Menu.Indicators.List["Fake Velocity"]:SetVisible(true)
         elseif Config.AntiAim.Type == "Desync" then
             local DesyncKeyPoints = {1, 2, 6}
         end
@@ -2901,24 +2853,6 @@ function Heartbeat(Step: number) -- after phys :: after heartbeat comes network 
     end
 
     if Root and Humanoid and not Player:GetAttribute("KnockedOut") then
-		if Config.AntiAim.Enabled and Config.AntiAim.Type == "Motionless" then 
-			local LastVelocity = Root.Velocity 
-
-			for Index, Part in next, Character:GetChildren() do
-				if Part and part:IsA("BasePart") then 
-					Part.Velocity = Vector3.new(GetRandomNumberBetween(Config.AntiAim.Motionless.X.Minimum, Config.AntiAim.Motionless.X.Maximum), GetRandomNumberBetween(Config.AntiAim.Motionless.Y.Minimum, Config.AntiAim.Motionless.Y.Maximum), GetRandomNumberBetween(Config.AntiAim.Motionless.Z.Minimum, Config.AntiAim.Motionless.Z.Maximum))
-				end
-			end
-
-			RunService.RenderStepped:Wait();
-
-			for Index, Part in next, Character:GetChildren() do
-				if Part and Part:IsA("BasePart") then 
-					Part.Velocity = LastVelocity
-				end
-			end
-		end 
-
         if Config.AutoFarm.Enabled then
             for _, Item in pairs(Items) do
                 if Config.AutoFarm.Table[Item:GetAttribute("Item")] then
@@ -4206,13 +4140,6 @@ function AntiAimToggle(Action_Name: string, State: EnumItem, Input: InputObject)
 end
 
 
-function BuyAmmoToggle(Action_Name: string, State: EnumItem, Input: InputObject)
-	if not State or State == Enum.UserInputState.Begin then 
-		BuyItem("Ammo")
-	end
-end
-
-
 function CommandBarToggle(Action_Name: string, State: EnumItem, Input: InputObject)
     if not State or State == Enum.UserInputState.Begin then
         local CommandBar = Menu.CommandBar
@@ -4807,7 +4734,6 @@ function InitializeMenu()
     Menu.Tab("Combat")
     Menu.Tab("Visuals")
     Menu.Tab("Player")
-	Menu.Tab("Teleports")SetVisible(Utils.IsOriginal)
     Menu.Tab("Misc")
     Menu.Tab("Settings")
 
@@ -4826,8 +4752,6 @@ function InitializeMenu()
     Menu.Container("Visuals", "World", "Right")
     Menu.Container("Visuals", "Weapons", "Right")
     Menu.Container("Visuals", "Hats", "Right"):SetVisible(Utils.IsOriginal)
-	Menu.Container("Teleports", "Buyables", "Left")
-	Menu.Container("Teleports", "Other", "Left")
     Menu.Container("Misc", "Main", "Left")
     Menu.Container("Misc", "Animations", "Left")
     Menu.Container("Misc", "Exploits", "Left")
@@ -4837,68 +4761,17 @@ function InitializeMenu()
     Menu.Container("Settings", "Settings", "Left")
     Menu.Container("Settings", "Configs", "Right")
 
-	Menu.CheckBox("Teleports", "Buyables", "Teleport back to last position", Config.TeleportBack.Enabled, function(Bool)
-		Config.TeleportBack.Enabled = Bool
-	end)
-
-	for Index, Buyable in next, {"Uzi", "Glock", "Sawed Off", "Ammo"} do 
-		Menu.Button("Teleports", "Buyables", "Buy " .. Buyable, function()
-			local Found, BuyableCFrame = false, nil
-			if not Character then return end 
-
-			local LastCFrame = Character:GetPivot()
-
-			for _, Item in pairs(Items) do
-				if string.lower(Item:GetAttribute("Item")) == Buyable then
-					Found, BuyableCFrame = true, Item.CFrame
-
-					if Config.TeleportBypass.Enabled then 
-						Teleport(BuyableCFrame)
-					else 
-						task.spawn(function()	
-							repeat 
-								task.wait()
-								SetCharacterServerCFrame(BuyableCFrame)
-							until Backpack:FindFirstChild(Buyable) or not Character or Humanoid.Health == 0
-						end)
-					end
-
-					break
-				end
-			end
-	
-			if Utils.IsOriginal and not Found then 
-				if Config.TeleportBypass.Enabled then 
-					BuyItem(Buyable)
-				else 
-					task.spawn(function()
-						BuyItem(Buyable)
-
-						repeat 
-							task.wait()
-							SetCharacterServerCFrame(BuyableCFrame)
-						until Backpack:FindFirstChild(Buyable) or not Character or Humanoid.Health == 0
-					end)
-				end
-			end
-
-			if Config.TeleportBack.Enabled then 
-				Teleport(LastCFrame)
-			end
-		end)
-	end
-
-	Menu.Hotkey("Teleports", "Buyables", "Buy ammo key", function(KeyCode, State)
-		Config.BuyAmmo.Key = KeyCode 
-		ContextAction:BindAction("buyAmmoKey", BuyAmmoToggle, false, KeyCode)
-	end)
-
     Menu.CheckBox("Combat", "Aimbot", "Enabled", Config.Aimbot.Enabled, function(Bool)
         AimbotToggle()
     end)
 
     Menu.Hotkey("Combat", "Aimbot", "Aimbot key", Config.Aimbot.Key, function(KeyCode, State)
         Config.Aimbot.Key = KeyCode
+        --[[
+        Config.Keybinds.Client = {
+            Key = KeyCode,
+            State = State
+        }]]
         ContextAction:BindAction("aimbotToggle", AimbotToggle, false, KeyCode)
     end)
 
@@ -4935,16 +4808,13 @@ function InitializeMenu()
     end)
     Menu.ComboBox("Combat", "Prediction", "Prediction method", Config.Aimbot.Prediction.Method, {"Velocity", "MoveDirection", "Default"}, function(String)
         Config.Aimbot.Prediction.Method = String
-	
-		Menu:FindItem("Combat", "Prediction", "Slider", "Velocity multiplier"):SetVisible(String == "Default")
-		Menu:FindItem("Combat", "Prediction", "Slider", "Velocity prediction amount"):SetVisible(String == "Velocity")
     end)
-    Menu.GetItem(Menu, Menu.Slider("Combat", "Prediction", "Velocity prediction amount", 0, 15, Config.Aimbot.Prediction.VelocityPredictionAmount, "", 1, function(Value)
+    Menu.Slider("Combat", "Prediction", "Velocity prediction amount", 0, 15, Config.Aimbot.Prediction.VelocityPredictionAmount, "", 1, function(Value)
         Config.Aimbot.Prediction.VelocityPredictionAmount = Value
-    end)):SetVisible(Config.Aimbot.Prediction.Method == "Velocity")
-    Menu.GetItem(Menu, Menu.Slider("Combat", "Prediction", "Velocity multiplier", 1, 3, Config.Aimbot.Prediction.VelocityMultiplier, "x", 1, function(Value)
+    end)
+    Menu.Slider("Combat", "Prediction", "Velocity multiplier", 1, 3, Config.Aimbot.Prediction.VelocityMultiplier, "x", 1, function(Value)
         Config.Aimbot.Prediction.VelocityMultiplier = Value
-    end)):SetVisible(Config.Aimbot.Prediction.Method == "Default")
+    end)
     Menu.CheckBox("Combat", "Other", "Always ground hit", Config.AlwaysGroundHit.Enabled, function(Bool)
         Config.AlwaysGroundHit.Enabled = Bool
     end)
@@ -5039,38 +4909,12 @@ function InitializeMenu()
         Config.AntiAim.Key = KeyCode
         ContextAction:BindAction("antiAimToggle", AntiAimToggle, false, Config.AntiAim.Key)
     end)
-    Menu.ComboBox("Player", "Anti-aim", "Anti aim type", Config.AntiAim.Type, {"Velocity", "Motionless"}, function(String)
+    Menu.ComboBox("Player", "Anti-aim", "Anti aim type", Config.AntiAim.Type, {"Velocity"}, function(String)
         Config.AntiAim.Type = String
         Menu.Keybinds.List["Anti Aim"]:Update("[" .. Config.AntiAim.Type .. "]")
         UpdateAntiAim()
-
-		Menu:FindItem("Player", "Anti-aim", "Slider", "X Minimum"):SetVisible(String == "Motionless")
-		Menu:FindItem("Player", "Anti-aim", "Slider", "X Maximum"):SetVisible(String == "Motionless")
-
-		Menu:FindItem("Player", "Anti-aim", "Slider", "Y Minimum"):SetVisible(String == "Motionless")
-		Menu:FindItem("Player", "Anti-aim", "Slider", "Y Maximum"):SetVisible(String == "Motionless")
-
-		Menu:FindItem("Player", "Anti-aim", "Slider", "Z Minimum"):SetVisible(String == "Motionless")
-		Menu:FindItem("Player", "Anti-aim", "Slider", "Z Maximum"):SetVisible(String == "Motionless")
     end)
-	Menu.GetItem(Menu, Menu.Slider("Player", "Anti-aim", "X Minimum", -2000, 2000, 0, nil, 1, function(Value)
-		Config.AntiAim.Motionless.X.Minimum = Value
-	end)):SetVisible(Config.AntiAim.Type == "Motionless")
-	Menu.GetItem(Menu, Menu.Slider("Player", "Anti-aim", "X Maximum", -2000, 2000, 0, nil, 1, function(Value)
-		Config.AntiAim.Motionless.X.Maximum = Value
-	end)):SetVisible(Config.AntiAim.Type == "Motionless")
-	Menu.GetItem(Menu, Menu.Slider("Player", "Anti-aim", "Y Minimum", -2000, 2000, 0, nil, 1, function(Value)
-		Config.AntiAim.Motionless.Y.Minimum = Value
-	end)):SetVisible(Config.AntiAim.Type == "Motionless")
-	Menu.GetItem(Menu, Menu.Slider("Player", "Anti-aim", "Y Maximum", -2000, 2000, 0, nil, 1, function(Value)
-		Config.AntiAim.Motionless.Y.Maximum = Value
-	end)):SetVisible(Config.AntiAim.Type == "Motionless")
-	Menu.GetItem(Menu, Menu.Slider("Player", "Anti-aim", "Z Minimum", -2000, 2000, 0, nil, 1, function(Value)
-		Config.AntiAim.Motionless.Z.Minimum = Value
-	end)):SetVisible(Config.AntiAim.Type == "Motionless")
-	Menu.GetItem(Menu, Menu.Slider("Player", "Anti-aim", "Z Maximum", -2000, 2000, 0, nil, 1, function(Value)
-		Config.AntiAim.Motionless.Z.Maximum = Value
-	end)):SetVisible(Config.AntiAim.Type == "Motionless")
+
     Menu.CheckBox("Visuals", "ESP", "Enabled", Config.ESP.Enabled, function(Bool)
         Config.ESP.Enabled = Bool
     end)
@@ -6105,7 +5949,6 @@ function Initialize()
     ContextAction:BindAction("antiAimToggle", AntiAimToggle, false, Config.AntiAim.Key)
     ContextAction:BindAction("commandBarToggle", CommandBarToggle, false, Config.Prefix)
     ContextAction:BindAction("menuToggle", MenuToggle, false, Config.Menu.Key)
-	ContextAction:BindAction("buyAmmoKey", BuyAmmoToggle, false, Config.BuyAmmo.Key)
 
     RunService:BindToRenderStep("cameraLock", Enum.RenderPriority.Camera.Value - 1, function()
         if TargetLock and Config.CameraLock.Enabled and Config.CameraLock.Mode == "RenderStepped" then
