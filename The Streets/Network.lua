@@ -134,6 +134,7 @@ function Network:Send(Type: Enum_Item, ...)
     elseif Type == Enums.NETWORK.SET_SIGN_IMAGE then
     elseif Type == Enums.NETWORK.SPRAY_IMAGE then
         local Tool = table.remove(Arguments, 1)
+
         assert(typeof(Tool == "Instance" and Tool:IsA("Tool")), "Tool expected for #arguments 1, got '" .. typeof(Tool) .. "'")
         assert(Tool.Name == "Spray", "Spray expected for #arguments 1, got '" .. Tool.Name .. "'")
     elseif Type == Enums.NETWORK.INTERACTABLE_LOCK then
@@ -163,7 +164,12 @@ function Network:Send(Type: Enum_Item, ...)
         --elseif Interactable.Name == "Window" then
            --Interactable.Mod.Knock.ClickDetector.RemoteEvent:FireServer()
         end
-    end
+    elseif Type == Enums.NETWORK.TELEPORT_BACK then 	
+		local LastCFrame = Arguments[1]
+		local TeleportFunction = Arguments[2]
+
+		TeleportFunction(LastCFrame)
+	end
 end
 
 
