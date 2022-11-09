@@ -76,7 +76,13 @@ local Config = {
     AntiAim = { -- Sorry what?
         Enabled = false,
         Type = "Velocity",
-        Key = nil
+        Key = nil,
+
+		Motionless = { -- still technically velocity but it doesn't fling you every where
+			X = {Minimum = -1000, Maximum = 1000},
+			Y = {Minimum = -1000, Maximum = 1000},
+			Z = {Minimum = -1000, Maximum = 1000}
+		}
     },
     Flight = {
         Enabled = false,
