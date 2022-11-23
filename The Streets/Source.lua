@@ -4729,9 +4729,13 @@ function InitializeMenu()
 
 
     function Menu:IsMouseInBounds()
-        local Location = UserInput.GetMouseLocation(UserInput)
-        return (Location.X > self.Position.X and Location.X < (self.Position.X + self.Size.X)) and (Location.Y > self.Position.Y and Location.Y <
-            (self.Position.Y + self.Size.Y))
+        local Location = UserInput.GetMouseLocation(UserInput) - Vector2.new(0, 36)
+    
+        local o = 5
+        local x2, y2 = Location.X, Location.Y
+        local x, y, sx, sy = self.Position.X, self.Position.Y, self.Size.X, self.Size.Y
+
+        return ((x2 + o) > x and (x2 - 5) < (x + sx)) and ((y2 + o) > y and (y2 - o) < (y + sy))
     end
 
 
