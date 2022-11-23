@@ -92,6 +92,9 @@ Menu.Hue = 0
 Menu.IsVisible = false
 Menu.ScreenSize = Vector2.new()
 
+Menu.Size = Vector2.new()
+Menu.Position = Vector2.new()
+
 
 local function AddEventListener(self: GuiObject, Update: any)
     table.insert(EventObjects, {
@@ -2684,11 +2687,14 @@ function Menu:Init()
         else
             MenuScaler_Button.BackgroundColor3 = Color3.fromRGB(10, 10, 10)
         end
-    
+
         Menu.Hue += math.clamp(Step / 100, 0, 1)
         if Menu.Hue >= 1 then Menu.Hue = 0 end
-    
-        if ToolTip.Enabled == true then
+
+	Menu.Size = Menu_Frame.AbsoluteSize
+	Menu.Position = Menu_Frame.AbsolutePosition
+
+        if ToolTip.Enabled == true and Menu.IsVisible then
             ToolTip_Label.Text = ToolTip.Content
             ToolTip_Label.Position = UDim2.fromOffset(ToolTip.Item.AbsolutePosition.X, ToolTip.Item.AbsolutePosition.Y + 25)
         end
