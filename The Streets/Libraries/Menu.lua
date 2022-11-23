@@ -70,7 +70,7 @@ setmetatable(Menu, {
     __newindex = function(self, Key, Value)
         __Menu[Key] = Value
         
-        if Key == "Hue" or Key == "ScreenSize" then return end
+        if Key == "Hue" or Key == "ScreenSize" or Key == "Size" or Key == "Position" then return end
 
         for _, Object in pairs(EventObjects) do Object:Update() end
         for _, Notification in pairs(Notifications) do Notification:Update() end
@@ -513,6 +513,7 @@ function Menu:SetSize(Size: Vector2)
     end
 
     Menu_Frame.Size = UDim2.fromOffset(X, Y)
+    Menu.Size = Vector2.new(X, Y)
     UpdateTabs()
 end
 
@@ -2650,6 +2651,9 @@ end
 
 
 function Menu:Init()
+    self.Size = Menu_Frame.AbsoluteSize
+    self.Position = Menu_Frame.AbsolutePosition
+
     UserInput.InputBegan:Connect(function(Input: InputObject, Process: boolean) end)
     UserInput.InputEnded:Connect(function(Input: InputObject)
         if (Input.UserInputType == Enum.UserInputType.MouseButton1) then
@@ -2657,7 +2661,7 @@ function Menu:Init()
         end
     end)
     RunService.RenderStepped:Connect(function(Step: number)
-        local Menu_Frame = Menu.Screen.Menu
+        local Menu_Frame = self.Screen.Menu
         Menu_Frame.Position = UDim2.fromOffset(
             math.clamp(Menu_Frame.AbsolutePosition.X,   0, math.clamp(Menu.ScreenSize.X - Menu_Frame.AbsoluteSize.X, 0, Menu.ScreenSize.X    )),
             math.clamp(Menu_Frame.AbsolutePosition.Y, -36, math.clamp(Menu.ScreenSize.Y - Menu_Frame.AbsoluteSize.Y, 0, Menu.ScreenSize.Y - 36))
@@ -2668,6 +2672,7 @@ function Menu:Init()
             local Offset = Selected.Offset or UDim2.fromOffset()
             local Position = UDim2.fromOffset(Selected_Item.AbsolutePosition.X, Selected_Item.AbsolutePosition.Y)
             Selected_Frame.Position = Position + Offset
+            self.Position = Menu_Frame.AbsolutePosition
         end
     
         if Scaling.True then
@@ -2690,9 +2695,6 @@ function Menu:Init()
 
         Menu.Hue += math.clamp(Step / 100, 0, 1)
         if Menu.Hue >= 1 then Menu.Hue = 0 end
-
-	Menu.Size = Menu_Frame.AbsoluteSize
-	Menu.Position = Menu_Frame.AbsolutePosition
 
         if ToolTip.Enabled == true and Menu.IsVisible then
             ToolTip_Label.Text = ToolTip.Content
