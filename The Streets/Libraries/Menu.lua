@@ -217,7 +217,7 @@ local function SetDraggable(self: GuiObject)
             local OffsetY = math.clamp(GuiOrigin.Y.Offset + Delta.Y + ScaleY, -36, ScreenSize.Y - self.AbsoluteSize.Y)
             
             local Position = UDim2.fromOffset(OffsetX, OffsetY)
-			self.Position = Position
+            self.Position = Position
         end
     end)
 end
@@ -2663,8 +2663,8 @@ function Menu:Init()
     RunService.RenderStepped:Connect(function(Step: number)
         local Menu_Frame = self.Screen.Menu
         Menu_Frame.Position = UDim2.fromOffset(
-            math.clamp(Menu_Frame.AbsolutePosition.X,   0, math.clamp(Menu.ScreenSize.X - Menu_Frame.AbsoluteSize.X, 0, Menu.ScreenSize.X    )),
-            math.clamp(Menu_Frame.AbsolutePosition.Y, -36, math.clamp(Menu.ScreenSize.Y - Menu_Frame.AbsoluteSize.Y, 0, Menu.ScreenSize.Y - 36))
+            math.clamp(Menu_Frame.AbsolutePosition.X,   0, math.clamp(self.ScreenSize.X - Menu_Frame.AbsoluteSize.X, 0, self.ScreenSize.X    )),
+            math.clamp(Menu_Frame.AbsolutePosition.Y, -36, math.clamp(self.ScreenSize.Y - Menu_Frame.AbsoluteSize.Y, 0, self.ScreenSize.Y - 36))
         )
         local Selected_Frame = Selected.Frame
         local Selected_Item = Selected.Item
@@ -2672,7 +2672,6 @@ function Menu:Init()
             local Offset = Selected.Offset or UDim2.fromOffset()
             local Position = UDim2.fromOffset(Selected_Item.AbsolutePosition.X, Selected_Item.AbsolutePosition.Y)
             Selected_Frame.Position = Position + Offset
-            self.Position = Menu_Frame.AbsolutePosition
         end
     
         if Scaling.True then
@@ -2684,25 +2683,27 @@ function Menu:Init()
                 local Location = UserInput:GetMouseLocation()
                 local NewSize = Location + (Size - Origin)
     
-                Menu:SetSize(Vector2.new(
-                    math.clamp(NewSize.X, Menu.MinSize.X, Menu.MaxSize.X),
-                    math.clamp(NewSize.Y, Menu.MinSize.Y, Menu.MaxSize.Y)
+                self:SetSize(Vector2.new(
+                    math.clamp(NewSize.X, self.MinSize.X, self.MaxSize.X),
+                    math.clamp(NewSize.Y, self.MinSize.Y, self.MaxSize.Y)
                 ))
             end
         else
             MenuScaler_Button.BackgroundColor3 = Color3.fromRGB(10, 10, 10)
         end
 
-        Menu.Hue += math.clamp(Step / 100, 0, 1)
-        if Menu.Hue >= 1 then Menu.Hue = 0 end
+        self.Hue += math.clamp(Step / 100, 0, 1)
+        if self.Hue >= 1 then self.Hue = 0 end
+			
+        self.Position = Menu_Frame.AbsolutePosition
 
-        if ToolTip.Enabled == true and Menu.IsVisible then
+        if ToolTip.Enabled == true and self.IsVisible then
             ToolTip_Label.Text = ToolTip.Content
             ToolTip_Label.Position = UDim2.fromOffset(ToolTip.Item.AbsolutePosition.X, ToolTip.Item.AbsolutePosition.Y + 25)
         end
     end)
-    Menu.Screen:GetPropertyChangedSignal("AbsoluteSize"):Connect(function()
-        Menu.ScreenSize = Menu.Screen.AbsoluteSize
+    self.Screen:GetPropertyChangedSignal("AbsoluteSize"):Connect(function()
+        self.ScreenSize = self.Screen.AbsoluteSize
     end)
 end
 
