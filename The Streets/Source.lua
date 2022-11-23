@@ -2790,7 +2790,7 @@ function Heartbeat(Step: number) -- after phys :: after heartbeat comes network 
         local _Torso = Utils.GetTorso(Target)
 
         if _Root and _Torso then
-            if Config.AutoFire.Enabled then
+            if Config.Aimbot.Enabled and Config.AutoFire.Enabled then
                 if Tool and Tool:GetAttribute("Gun") then
                     if Target:GetAttribute("IsAlive") and Target:GetAttribute("Health") > 0 then
                         if Target:GetAttribute("KnockOut") < (Ping / 1000) and not Target.Character:FindFirstChild("ForceField") then
@@ -3022,7 +3022,7 @@ function Stepped(_, Step: number) -- before phys
                     Root.AssemblyLinearVelocity = Vector3.new()
                 end
 
-                for _, Player in ipairs(Players:GetPlayers({Player})) do
+                for _, Player in ipairs(PlayerManager:GetPlayers({Player})) do
                     local Root = Utils.GetRoot(Player)
                     local Character = Player.Character
                     local Head = Character and Character:FindFirstChild("Head")
@@ -4305,7 +4305,7 @@ function HookGame()
                 end 
 
                 if Key == "ml" or Key == "moff1" then 
-                    if not Caller and Menu.IsVisible then 
+                    if not Caller and Menu.IsVisible and Menu:IsMouseInBounds() then 
                         return 
                     end
 
@@ -4329,7 +4329,7 @@ function HookGame()
             end
 
             if (Utils.IsPrison and Name == "Fire") then 
-                if not Caller and Menu.IsVisible then 
+                if not Caller and Menu.IsVisible and Menu:IsMouseInBounds() then 
                     return 
                 end 
 
@@ -4726,7 +4726,14 @@ function InitializeMenu()
             return AudioButton
         end
     end
-    
+
+
+    function Menu:IsMouseInBounds()
+        local Location = UserInput.GetMouseLocation(UserInput)
+        return (Location.X > self.Position.X and Location.X < (self.Position.X + self.Size.X)) and (Location.Y > self.Position.Y and Location.Y <
+            (self.Position.Y + self.Size.Y))
+    end
+
 
     Menu.Screen.Name = script_name
     Menu.SetTitle(Menu, script_name .. Utils.GetRichTextColor(".cc", Config.Menu.Accent:ToHex())) -- Can't namecall since synapse is shit
@@ -5478,7 +5485,7 @@ function InitializeMenu()
     Menu.CheckBox("Misc", "Exploits", "Teleport bypass", Config.TeleportBypass.Enabled, function(Bool)
         Config.TeleportBypass.Enabled = Bool
         TeleportBypass()
-    end)
+    end, Utils.IsOriginal and "Must have clan tag changer disabled and must respawn after enabling")
     Menu.GetItem(Menu, Menu.CheckBox("Misc", "Exploits", "God", Config.God.Enabled, function(Bool) -- Can't namecall synapse compiler retarded
         Config.God.Enabled = Bool
     end)):SetVisible(not Utils.IsOriginal)
