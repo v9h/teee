@@ -847,61 +847,47 @@ end
 do
     local Buyers = {}
 
-    local function get_name(Name: string, Count: number): string
-        if Buyers[Name] then
-            if Count then
-                local temp = Name .. Count
-
-                if Buyers[temp] then
-                    return get_name(Name, Count + 1)
-                end
-
-                Name = temp
-            else
-                return get_name(Name, 2)
-            end
-        end
-
-        return Name
+    function GetBuyPads(): table
+        return Buyers
     end
 
-    local function add_to_pad_list(ItemName: string, self: Instance)
-        local Name = string.lower(self.Name)
-
-        if Name == "bought!" then
+    local ValidNames = {
+        ["Buy Ammo"] = "Ammo",
+        ["Sawed Off"] = "Sawed-Off"
+    }
+    
+    local function AddPadToList(Object: Instance)
+        if Object.Name == "Bought!" then
             local Event
-            Event = self:GetPropertyChangedSignal("Name"):Connect(function()
-                add_to_pad_list(ItemName, self)
+            Event = Object:GetPropertyChangedSignal("Name"):Connect(function()
+                AddPadToList(Object)
             end)
 
             delay(20, function()
                 Event:Disconnect()
             end) -- if the buy pad is broken
-        elseif string.find(Name, " | ") and string.find(Name, string.lower(ItemName)) then
-            local BuyerName = get_name(string.lower(ItemName))
-            Buyers[BuyerName] = { -- string_lower who cares
-                Part = self.Head,
-                Price = self.Head.ShopData.Price.Value
-            }
+        elseif string.match(Object.Name, "%a+%s?%a+ | %$%d+") then
+            local Head = Object:FindFirstChild("Head")
+            local ShopData = Head and Head:FindFirstChild("ShopData")
+            
+            local Name = string.match(Object.Name, "%a+%s?%a+")
+            if ValidNames[Name] then
+                Name = ValidNames[Name]
+            end
+
+            if ShopData then
+                table.insert(Buyers, {
+                    Name = string.lower(Name),
+                    Part = Head,
+                    Price = ShopData.Price.Value
+                })
+            end
         end
     end
 
-    local Items = {"Uzi", "Glock", "Sawed Off", "Pipe", "Machete", "Golf Club", "Bat", "Bottle", "Spray", "Burger", "Chicken", "Drink", "Greenbull", "Ammo"}
-    for _, ItemName in ipairs(Items) do
-        for _, v in ipairs(workspace:GetChildren()) do
-            add_to_pad_list(ItemName, v)
-        end
+    for _, v in next, workspace:GetChildren() do
+        AddPadToList(v)
     end
-
-    function GetBuyPads(): table
-        return Buyers
-    end
-end
-
-
-function GetItem(Name: string): Part--, number
-    local Item = GetBuyPads()[string.lower(Name)]
-    return Item.Part, Item.Price
 end
 
 
@@ -2096,55 +2082,58 @@ function LogEvent(Flag: string, Message: string, Time: number)
 end
 
 
-function BuyItem(Item_Name: string)
-    local Item_Name = string.lower(Item_Name)
-    local Items = {"Uzi", "Glock", "Sawed Off", "Pipe", "Machete", "Golf Club", "Bat", "Bottle", "Spray", "Burger", "Chicken", "Drink", "Ammo"}
+function BuyItem(Name: string)
+    Name = string.lower(Name)
 
-    local Part, Price
-    for _, v in ipairs(Items) do
-        if string.find(string.lower(v), Item_Name) then
-            for _, v2 in ipairs(workspace:GetChildren()) do
-                local Name = string.lower(v2.Name)
-
-                if string.find(Name, " | ") and string.find(Name, Item_Name) then
-                    pcall(function()
-                        Part = v2.Head
-                        Price = Part.ShopData.Price.Value
-                    end)
-                    
-                    break
-                end
-            end
-
-            if not Part then
-                local Color = Config.EventLogs.Colors.Error:ToHex()
-                return Menu.Notify(Utils.GetRichTextColor("Item '" .. Item_Name .. "' was not found", Color))
-            end
-
-            if Price > GetCash() then
-                local Color = Config.EventLogs.Colors.Error:ToHex()
-                return Menu.Notify(Utils.GetRichTextColor("Not enough cash...", Color))
-            end
-
-            if Part then
-                Buying = true
-                BuyPart = Part
-
-                delay(5, function()
-                    Buying = false
-                    BuyPart = nil
-                end)
-
-                spawn(function()
-                    Part.Changed:Wait()
-                    Buying = false
-                    BuyPart = nil
-                end)
-
-                break -- This might be a line down Lol
+    local b_Pad
+    local Closest = math.huge
+    for _, Pad in next, GetBuyPads() do
+        if string.find(Pad.Name, string.gsub(Name, "([%(%)%.%%%+%-%*%?%[%^%$])", "%%%1")) then
+            local Distance = (Root.Position - Pad.Part.Position).Magnitude
+            if Distance < Closest then
+                b_Pad = Pad
+                Closest = Distance
             end
         end
     end
+
+    if not b_Pad then
+        local Color = Config.EventLogs.Colors.Error:ToHex()
+        return Menu.Notify(Utils.GetRichTextColor("Item '" .. Name .. "' was not found", Color))
+    end
+
+    if b_Pad.Price > GetCash() then
+        local Color = Config.EventLogs.Colors.Error:ToHex()
+        return Menu.Notify(Utils.GetRichTextColor("Not enough cash...", Color))
+    end
+
+    Buying = true
+    BuyPart = b_Pad.Part
+
+    delay(5, function()
+        Buying = false
+        BuyPart = nil
+    end)
+
+    spawn(function()
+        b_Pad.Part.Changed:Wait()
+        Buying = false
+        BuyPart = nil
+    end)
+end
+
+
+function GetItem(Name: string)
+    local Found, Part, Price
+    for _, Item in next, Items do
+        if string.lower(Item:GetAttribute("Item")) == Name then
+            Found = true
+            Teleport(Item.CFrame)
+            break
+        end
+    end
+
+    if Utils.IsOriginal and not Found then BuyItem(Name) end
 end
 
 
@@ -2863,7 +2852,7 @@ function Heartbeat(Step: number) -- after phys :: after heartbeat comes network 
 
     if Root and Humanoid and not Player:GetAttribute("KnockedOut") then
         if Config.AutoFarm.Enabled then
-            for _, Item in pairs(Items) do
+            for _, Item in next, Items do
                 if Config.AutoFarm.Table[Item:GetAttribute("Item")] then
                     Teleport(Item.CFrame)
                 end
@@ -4577,18 +4566,8 @@ function InitializeCommands()
     end)
 
     Commands.Add("item", {"get"}, "[name] - if the item is found then it teleports you to the item", function(Arguments)
-        local Found, Part, Price
-        local Item_Name = string.lower(table.concat(Arguments, " "))
-
-        for _, Item in pairs(Items) do
-            if string.lower(Item:GetAttribute("Item")) == Item_Name then
-                Found = true
-                Teleport(Item.CFrame)
-                break
-            end
-        end
-
-        if Utils.IsOriginal and not Found then BuyItem(Item_Name) end
+        local Name = string.lower(table.concat(Arguments, " "))
+        GetItem(Name)
     end)
 
     Commands.Add("play", {}, "[id] - mass plays the selected 'id'", function(Arguments)
@@ -5885,7 +5864,7 @@ end
 
 
 function InitializeWorkspace()
-    for Name, Pad in pairs(GetBuyPads()) do
+    for _, Pad in next, GetBuyPads() do
         local Part = Pad.Part
         local Price = Pad.Price
         
@@ -5902,7 +5881,7 @@ function InitializeWorkspace()
             Debounce = true
 
             local Color = Config.EventLogs.Colors.Buy:ToHex()
-            local Message = string.format("%s bought a %s for %s", Utils.GetRichTextColor(Player.Name, Color), Utils.GetRichTextColor(Name, Color), Utils.GetRichTextColor("$" .. Price, Color))
+            local Message = string.format("%s bought a %s for %s", Utils.GetRichTextColor(Player.Name, Color), Utils.GetRichTextColor(Pad.Name, Color), Utils.GetRichTextColor("$" .. Price, Color))
 
             LogEvent("Buy", Message, tick())
         end)
