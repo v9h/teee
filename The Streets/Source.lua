@@ -164,6 +164,7 @@ local BulletLogs = {}
 local DamageLogs = {} -- debounce
 local AnimationIds = {"458506542", "8587081257", "376653421", "1484589375"}
 local HatChangerColorSequenceColorPickers = {}
+local LastVelocityTable = {}
 
 local BuyPart
 local Target
@@ -2850,7 +2851,26 @@ function Heartbeat(Step: number) -- after phys :: after heartbeat comes network 
         end
     end
 
-    if Root and Humanoid and not Player:GetAttribute("KnockedOut") then
+    if Character and Root and Humanoid and not Player:GetAttribute("KnockedOut") then
+		if Config.AntiAim.Enabled and Config.AntiAim.Type == "Motionless" then 
+			for _, Part in next, Character:GetChildren() do
+				if Part:IsA("BasePart") then
+					LastVelocityTable[Part] = Part.Velocity
+					Part.Velocity = Config.AntiAim.Motionless.AutomaticallySetAxisValues and Vector3.new(math.random(-9e9, 9e9), math.random(-9e9, 9e9), math.random(-9e9, 9e9)) or Vector3.new(math.random(Config.AntiAim.Motionless.X.Minimum or 0, Config.AntiAim.Motionless.X.Maximum or 0), math.random(Config.AntiAim.Motionless.Y.Minimum or 0, Config.AntiAim.Motionless.Y.Maximum or 0), math.random(Config.AntiAim.Motionless.Z.Minimum or 0, Config.AntiAim.Motionless.Z.Maximum or 0))
+				end
+			end
+			
+			RunService.RenderStepped:Wait()
+
+			for _, Part in next, Character:GetChildren() do
+				if Part:IsA("BasePart") then
+					Part.Velocity = LastVelocityTable[Part]
+				end
+			end
+
+			table.clear(LastVelocityTable)
+		end
+
         if Config.AutoFarm.Enabled then
             for _, Item in next, Items do
                 if Config.AutoFarm.Table[Item:GetAttribute("Item")] then
@@ -2967,7 +2987,7 @@ function Stepped(_, Step: number) -- before phys
     debug.profilebegin("[Source.lua]::Stepped()")
     UpdateESP()
 
-    if Root and Humanoid then
+    if Character and Root and Humanoid then
         if Config.Float.Enabled then
             if not Player:GetAttribute("KnockedOut") then
                 if Config.Flipped.Enabled then
@@ -2983,7 +3003,6 @@ function Stepped(_, Step: number) -- before phys
                 end
             end
         end
-
 
         if Player:GetAttribute("Health") > 0 and Player:GetAttribute("IsAlive") then
             UpdatePlayerFlyState()
@@ -4817,14 +4836,17 @@ function InitializeMenu()
     end)
     Menu.ComboBox("Combat", "Prediction", "Prediction method", Config.Aimbot.Prediction.Method, {"Velocity", "MoveDirection", "Default"}, function(String)
         Config.Aimbot.Prediction.Method = String
+
+		Menu:FindItem("Combat", "Prediction", "Slider", "Velocity prediction amount"):SetVisible(String == "Velocity")
+		Menu:FindItem("Combat", "Prediction", "Slider", "Velocity multiplier"):SetVisible(String == "Default")
     end)
-    Menu.Slider("Combat", "Prediction", "Velocity prediction amount", 0, 15, Config.Aimbot.Prediction.VelocityPredictionAmount, "", 1, function(Value)
+    Menu:GetItem(Menu.Slider("Combat", "Prediction", "Velocity prediction amount", 0, 15, Config.Aimbot.Prediction.VelocityPredictionAmount, "", 1, function(Value)
         Config.Aimbot.Prediction.VelocityPredictionAmount = Value
-    end)
-    Menu.Slider("Combat", "Prediction", "Velocity multiplier", 1, 3, Config.Aimbot.Prediction.VelocityMultiplier, "x", 1, function(Value)
+    end)):SetVisible(Config.Aimbot.Prediction.Method == "Velocity")
+	Menu:GetItem(Menu.Slider("Combat", "Prediction", "Velocity multiplier", 1, 3, Config.Aimbot.Prediction.VelocityMultiplier, "x", 1, function(Value)
         Config.Aimbot.Prediction.VelocityMultiplier = Value
-    end)
-    Menu.CheckBox("Combat", "Other", "Always ground hit", Config.AlwaysGroundHit.Enabled, function(Bool)
+    end)):SetVisible(Config.Aimbot.Prediction.Method == "Default")
+	Menu.CheckBox("Combat", "Other", "Always ground hit", Config.AlwaysGroundHit.Enabled, function(Bool)
         Config.AlwaysGroundHit.Enabled = Bool
     end)
     Menu:GetItem(Menu.CheckBox("Combat", "Other", "Stomp spam", Config.StompSpam.Enabled, function(Bool)
@@ -4923,6 +4945,7 @@ function InitializeMenu()
         Menu.Keybinds.List["Anti Aim"]:Update("[" .. Config.AntiAim.Type .. "]")
         UpdateAntiAim()
         
+		Menu:FindItem("Player", "Anti-aim", "CheckBox", "Automatically set axis values"):SetVisible(String == "Motionless")
 		Menu:FindItem("Player", "Anti-aim", "Slider", "X Minimum"):SetVisible(String == "Motionless")
 		Menu:FindItem("Player", "Anti-aim", "Slider", "X Maximum"):SetVisible(String == "Motionless")
 		Menu:FindItem("Player", "Anti-aim", "Slider", "Y Minimum"):SetVisible(String == "Motionless")
@@ -4930,25 +4953,34 @@ function InitializeMenu()
 		Menu:FindItem("Player", "Anti-aim", "Slider", "Z Minimum"):SetVisible(String == "Motionless")
 		Menu:FindItem("Player", "Anti-aim", "Slider", "Z Maximum"):SetVisible(String == "Motionless")
     end)
-	Menu:GetItem(Menu.Slider("Player", "Anti-aim", "X Minimum", -2000, 2000, 0, nil, 1, function(Value)
-		Config.AntiAim.Motionless.X.Minimum = Value
-	end)):SetVisible(Config.AntiAim.Type == "Motionless")
-	Menu:GetItem(Menu.Slider("Player", "Anti-aim", "X Maximum", -2000, 2000, 0, nil, 1, function(Value)
-		Config.AntiAim.Motionless.X.Maximum = Value
-	end)):SetVisible(Config.AntiAim.Type == "Motionless")
-	Menu:GetItem(Menu.Slider("Player", "Anti-aim", "Y Minimum", -2000, 2000, 0, nil, 1, function(Value)
-		Config.AntiAim.Motionless.Y.Minimum = Value
-	end)):SetVisible(Config.AntiAim.Type == "Motionless")
-	Menu:GetItem(Menu.Slider("Player", "Anti-aim", "Y Maximum", -2000, 2000, 0, nil, 1, function(Value)
-		Config.AntiAim.Motionless.Y.Maximum = Value
-	end)):SetVisible(Config.AntiAim.Type == "Motionless")
-	Menu:GetItem(Menu.Slider("Player", "Anti-aim", "Z Minimum", -2000, 2000, 0, nil, 1, function(Value)
-		Config.AntiAim.Motionless.Z.Minimum = Value
-	end)):SetVisible(Config.AntiAim.Type == "Motionless")
-	Menu:GetItem(Menu.Slider("Player", "Anti-aim", "Z Maximum", -2000, 2000, 0, nil, 1, function(Value)
-		Config.AntiAim.Motionless.Z.Maximum = Value
-	end)):SetVisible(Config.AntiAim.Type == "Motionless")
+	Menu:GetItem(Menu.CheckBox("Player", "Anti-aim", "Automatically set axis values", Config.AntiAim.Motionless.AutomaticallySetAxisValues, function(Bool)
+		Config.AntiAim.Motionless.AutomaticallySetAxisValues = Bool
 
+		Menu:FindItem("Player", "Anti-aim", "Slider", "X Minimum"):SetVisible(Bool == false)
+		Menu:FindItem("Player", "Anti-aim", "Slider", "X Maximum"):SetVisible(Bool == false)
+		Menu:FindItem("Player", "Anti-aim", "Slider", "Y Minimum"):SetVisible(Bool == false)
+		Menu:FindItem("Player", "Anti-aim", "Slider", "Y Maximum"):SetVisible(Bool == false)
+		Menu:FindItem("Player", "Anti-aim", "Slider", "Z Minimum"):SetVisible(Bool == false)
+		Menu:FindItem("Player", "Anti-aim", "Slider", "Z Maximum"):SetVisible(Bool == false)
+	end)):SetVisible(Config.AntiAim.Type == "Motionless" and Config.AntiAim.Motionless.AutomaticallySetAxisValues == false)
+	Menu:GetItem(Menu.Slider("Player", "Anti-aim", "X Minimum", -2000, 0, 0, nil, 1, function(Value)
+		Config.AntiAim.Motionless.X.Minimum = Value
+	end)):SetVisible(Config.AntiAim.Type == "Motionless" and Config.AntiAim.Motionless.AutomaticallySetAxisValues == false)
+	Menu:GetItem(Menu.Slider("Player", "Anti-aim", "X Maximum", 1, 2000, 0, nil, 1, function(Value)
+		Config.AntiAim.Motionless.X.Maximum = Value
+	end)):SetVisible(Config.AntiAim.Type == "Motionless" and Config.AntiAim.Motionless.AutomaticallySetAxisValues == false)
+	Menu:GetItem(Menu.Slider("Player", "Anti-aim", "Y Minimum", -2000, 0, 0, nil, 1, function(Value)
+		Config.AntiAim.Motionless.Y.Minimum = Value
+	end)):SetVisible(Config.AntiAim.Type == "Motionless" and Config.AntiAim.Motionless.AutomaticallySetAxisValues == false)
+	Menu:GetItem(Menu.Slider("Player", "Anti-aim", "Y Maximum", 1, 2000, 0, nil, 1, function(Value)
+		Config.AntiAim.Motionless.Y.Maximum = Value
+	end)):SetVisible(Config.AntiAim.Type == "Motionless" and Config.AntiAim.Motionless.AutomaticallySetAxisValues == false)
+	Menu:GetItem(Menu.Slider("Player", "Anti-aim", "Z Minimum", -2000, 0, 0, nil, 1, function(Value)
+		Config.AntiAim.Motionless.Z.Minimum = Value
+	end)):SetVisible(Config.AntiAim.Type == "Motionless" and Config.AntiAim.Motionless.AutomaticallySetAxisValues == false)
+	Menu:GetItem(Menu.Slider("Player", "Anti-aim", "Z Maximum", 1, 2000, 0, nil, 1, function(Value)
+		Config.AntiAim.Motionless.Z.Maximum = Value
+	end)):SetVisible(Config.AntiAim.Type == "Motionless" and Config.AntiAim.Motionless.AutomaticallySetAxisValues == false)
     Menu.CheckBox("Visuals", "ESP", "Enabled", Config.ESP.Enabled, function(Bool)
         Config.ESP.Enabled = Bool
     end)
@@ -5512,6 +5544,11 @@ function InitializeMenu()
     Menu.CheckBox("Misc", "Main", "Door menu", Config.DoorMenu.Enabled, function(Bool)
         Config.DoorMenu.Enabled = Bool
     end)
+	Menu.Button("Misc", "Main", "Remove ice", function() 
+		if workspace.winter then 
+			workspace.winter:ClearAllChildren()
+		end
+	end)
 
     Menu.CheckBox("Misc", "Animations", "Run", Config.Animations.Run.Enabled, function(Bool)
         Config.Animations.Run.Enabled = Bool
@@ -6370,30 +6407,12 @@ function Initialize()
     end)
 
     CreateThread("AntiAim", function()
-        local LastVelocityTable = {}
-
         while true do
             RunService.Stepped:Wait()
             
             if Config.AntiAim.Enabled then 
                 if Config.AntiAim.Type == "Velocity" then
                     SetCharacterServerVelocity(Vector3.new(100, 100, 100) * math.random(-10, 10), Vector3.new(100, 100, 100) * math.random(-10, 10))
-                elseif Config.AntiAim.Type == "Motionless" then
-        			for _, Part in next, Character:GetChildren() do
-        				if Part:IsA("BasePart") then
-        				    LastVelocityTable[Part] = Part.Velocity
-        					Part.Velocity = Vector3.new(math.random(Config.AntiAim.Motionless.X.Minimum or 0, Config.AntiAim.Motionless.X.Maximum or 0), math.random(Config.AntiAim.Motionless.Y.Minimum or 0, Config.AntiAim.Motionless.Y.Maximum or 0), math.random(Config.AntiAim.Motionless.Z.Minimum or 0, Config.AntiAim.Motionless.Z.Maximum or 0))
-        				end
-        			end
-        			
-        			RunService.RenderStepped:Wait()
-        			for _, Part in next, Character:GetChildren() do
-        			    if Part:IsA("BasePart") then
-        			        Part.Velocity = LastVelocityTable[Part]
-    			        end
-    			    end
-
-    			    table.clear(LastVelocityTable)
 		        end
             else
                 coroutine.yield()
