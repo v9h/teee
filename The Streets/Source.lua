@@ -159,7 +159,7 @@ local AudioLogs = isfile(script_name .. "/Games/The Streets/Audios.dat") and str
 local BulletLogs = {}
 local DamageLogs = {} -- debounce
 local Placeholder = {}
-local AnimationIds = {"458506542", "8587081257", "376653421", "1484589375"}
+local AnimationIds = {"376653421", "458506542", "8587081257", "1484589375", "10153231863", "10153228164"}
 local LastVelocityTable = {}
 local HatChangerColorSequenceColorPickers = {}
 
@@ -187,7 +187,7 @@ local ReceivePing = 0
 local LastAudio = 0
 local FireTick = 0
 local BulletTick = 0
-local ToolEquippedTick = os.clock()
+local ToolEquippedTick = 0
 
 local Buying = false
 local Healing = false
@@ -5224,6 +5224,8 @@ function InitializeMenu()
         Config.ESP.Flags.KnockedOut.Enabled = Value["Knocked out"]
         Config.ESP.Flags.Distance.Enabled = Value["Distance"]
         Config.ESP.Flags.Velocity.Enabled = Value["Velocity"]
+
+        UpdateESPState()
     end)
     Menu.ComboBox("Visuals", "ESP", "Font", Config.ESP.Font.Font, {"UI", "System", "Plex", "Monospace"}, function(String)
         Config.ESP.Font.Font = String
@@ -5669,8 +5671,8 @@ function InitializeMenu()
     		end
     	else
     	    if Placeholder.WinterDecorations then
-    	        Placeholder.WinterDecorations = nil
     	        Placeholder.WinterDecorations.Parent = workspace
+    	        Placeholder.WinterDecorations = nil
 	       end
     	end
 	end)
