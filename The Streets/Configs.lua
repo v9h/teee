@@ -177,6 +177,8 @@ local Config = {
     },
     LagOnDragged = {Enabled = false},
     HideSprays = {Enabled = false},
+    BetterSprayQuality = {Enabled = false},
+    CircularSprays = {Enabled = false},
     OpenDoors = {Enabled = false},
     CloseDoors = {Enabled = false},
     KnockDoors = {Enabled = false},

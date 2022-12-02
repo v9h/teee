@@ -16,20 +16,13 @@ local ORIGINAL_SPEED = 0 -- if this gets read first before write then umm :rainb
 local ORIGINAL_HIPHEIGHT = 2
 local ORIGINAL_JUMPPOWER = game:GetService("StarterPlayer").CharacterJumpPower
 
-local request = request or syn and syn.request or http and http.request
-local get_custom_asset = getcustomasset or syn and getsynasset
-local queue_on_teleport = queue_on_teleport or syn and syn.queue_on_teleport
-local get_script_version = function() return "1.0.0" end
-
-local script_version = get_script_version()
-local script_name = "ponyhook"
-
 local Stats = game:GetService("Stats")
 local Debris = game:GetService("Debris")
 local Players = game:GetService("Players")
 local CoreGui = game:GetService("CoreGui")
 local UserInput = game:GetService("UserInputService")
 local RunService = game:GetService("RunService")
+local GuiService = game:GetService("GuiService")
 local StarterGui = game:GetService("StarterGui")
 local Marketplace = game:GetService("MarketplaceService")
 local VirtualUser = game:GetService("VirtualUser")
@@ -40,6 +33,19 @@ local ScriptContext = game:GetService("ScriptContext")
 local ContextAction = game:GetService("ContextActionService")
 local TeleportService = game:GetService("TeleportService")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
+
+local request = request or syn and syn.request or http and http.request
+local get_custom_asset = getcustomasset or syn and getsynasset
+local queue_on_teleport = queue_on_teleport or syn and syn.queue_on_teleport
+local get_script_version = function()
+    local Response = request({Url = "https://api.github.com/repos/elde-n/roblox-the-streets-pony-script/commits"})
+    if Response.StatusCode == 200 then
+        return HttpService:JSONDecode(Response.Body)[1].sha
+    end
+end
+
+local script_name = "ponyhook"
+local script_version = get_script_version()
 
 if not import then return messagebox("Error 0x5; Something went wrong with initializing the script (couldn't load modules)", script_name .. ".cc", 0) end
 
@@ -54,6 +60,7 @@ local Commands
 local ToolData
 local DoorData
 local Lighting
+local UserTable
 local TimerClass
 local PlayerManager
 
@@ -70,10 +77,11 @@ task.spawn(function() Commands = import("Libraries/Commands") end)
 task.spawn(function() ToolData = import("Tool Data") end)
 task.spawn(function() DoorData = import("Door Data") end)
 task.spawn(function() Lighting = import("Lighting") end)
+task.spawn(function() UserTable = import("Users") end)
 task.spawn(function() TimerClass = import("Libraries/TimerClass") end)
 task.spawn(function() PlayerManager = import("PlayerManager") end)
 
-while not ESP or not Menu or not Enums or not Utils or not Network or not Configs or not Raycast or not Commands or not ToolData or not DoorData or not Lighting or not TimerClass or not PlayerManager do task.wait() end -- waiting for the modules to load...
+while not ESP or not Menu or not Enums or not Utils or not Network or not Configs or not Raycast or not Commands or not ToolData or not DoorData or not Lighting or not UserTable or not TimerClass or not PlayerManager do task.wait() end -- waiting for the modules to load...
 
 if (Utils.IsOriginal and game.PlaceVersion ~= 1520) or (Utils.IsPrison and game.PlaceVersion ~= 225) then
     return messagebox("Error 0x2; Script is not up to date with place version", script_name .. ".cc", 0)
@@ -106,48 +114,6 @@ _G.PonyHook = true
 local Config = Configs.Config
 
 local Events = {FirstPerson = {}, Reset = nil}
-
-local UserTable = {
-    Developers = {"Elden", "xaxa", "f6oor"},
-    Admin = {
-        [1892264393] = {
-            Tag = "Elden", -- AverageID:Elden (regularid)
-            Color = Color3.fromRGB(115, 65, 190)
-        },
-        [3139503587] = {
-            Tag = "Elden", -- irregularlife (regularid)
-            Color = Color3.fromRGB(115, 65, 190)
-        },
-
-        [156878502] = {
-            Tag = "f6oor",
-            Color = Color3.fromRGB(40, 80, 180)
-        },
-        [1552377192] = {
-            Tag = "nixon",
-            Color = Color3.fromRGB(40, 40, 40)
-        },
-
-        [481234921] = {
-            Tag = "reestart", -- reestart:DramaAlert
-            Color = Color3.fromRGB(105, 200, 40)
-        },
-        [880466877] = {
-            Tag = "reestart", -- MasabiI:Frank (reestart)
-            Color = Color3.fromRGB(105, 200, 40)
-        },
-
-        [1395537172] = {
-            Tag = "xaxa",
-            Color = Color3.fromRGB(210, 60, 75)
-        }
-    },
-    Owners = {}, -- Bot usage
-    Whitelisted = {} -- aimbot no target friends
-}
-
-UserTable.Whitelisted = isfile(script_name .. "/Games/The Streets/Whitelist.dat") and string.split(readfile(script_name .. "/Games/The Streets/Whitelist.dat"), "\n") or {}
-UserTable.Owners = isfile(script_name .. "/Games/The Streets/Owners.dat") and string.split(readfile(script_name .. "/Games/The Streets/Owners.dat"), "\n") or {}
 
 local Items = {}
 local Seats = {}
@@ -213,6 +179,10 @@ do
     Menu.CommandBar = Instance.new("TextBox")
 
     local SubFolder = script_name .. "/Games/The Streets/"
+
+
+    UserTable.Whitelisted = isfile(SubFolder .. "Whitelist.dat") and string.split(readfile(SubFolder .. "Whitelist.dat"), "\n") or {}
+    UserTable.Owners = isfile(SubFolder .. "Owners.dat") and string.split(readfile(SubFolder .. "Owners.dat"), "\n") or {}
 
     if not isfolder(script_name) then makefolder(script_name) end
     if not isfolder(script_name .. "/Games") then makefolder(script_name .. "/Games") end
@@ -521,6 +491,9 @@ function RefreshMenu()
     Menu:FindItem("Misc", "Main", "CheckBox", "No seats"):SetValue(Config.NoSeats.Enabled)
     Menu:FindItem("Misc", "Main", "CheckBox", "Door aura"):SetValue(Config.DoorAura.Enabled)
     Menu:FindItem("Misc", "Main", "CheckBox", "Door menu"):SetValue(Config.DoorMenu.Enabled)
+    --Menu:FindItem("Misc", "Main", "CheckBox", "Hide sprays"):SetValue(Config.HideSprays.Enabled)
+    Menu:FindItem("Misc", "Main", "CheckBox", "Better spray quality"):SetValue(Config.BetterSprayQuality.Enabled)
+    Menu:FindItem("Misc", "Main", "CheckBox", "Circular sprays"):SetValue(Config.CircularSprays.Enabled)
 
     Menu:FindItem("Misc", "Animations", "CheckBox", "Run"):SetValue(Config.Animations.Run.Enabled)
     Menu:FindItem("Misc", "Animations", "ComboBox", "Run animation"):SetValue(Config.Animations.Run.Style)
@@ -4427,13 +4400,18 @@ function HookGame()
                     return
                 end
             end
+            
+            if Name == "SprayIt" then
+                if Config.BetterSprayQuality.Enabled then
+                    Arguments[2] ..= "&w=768&h=432"
+                end
+                if Config.CircularSprays.Enabled then
+                    Arguments[2] ..= "&filters=circular"
+                end
+            end
 
             if Name == "Input" then
                 local Key = Arguments[1]
-
-                if table.find({"bv", "hb", "ws", "strafe"}, Key) then
-                    return
-                end
 
                 if Key == "ml" or Key == "moff1" then
                     if not Caller and Menu.IsVisible and Menu:IsMouseInBounds() then
@@ -4456,6 +4434,13 @@ function HookGame()
                     end
 
                     FireTick = os.clock()
+                elseif Key == 'e' or Key == "drag" or Key == "dragoff" then
+                    Arguments = {Key, {}}
+                elseif Key == "checkin1" or Key == "checkin2" or Key == "checkin3" then
+                    
+                else
+                    -- unless u want to get banned
+                    return
                 end
             end
 
@@ -4465,7 +4450,6 @@ function HookGame()
                 end
 
                 Arguments[1] = Mouse.Hit or CFrame.new()
-
                 if Target and Config.Aimbot.Enabled then
                     Arguments[1] = GetAimbotCFrame(true) or Mouse.Hit
                 end
@@ -5676,6 +5660,15 @@ function InitializeMenu()
 	       end
     	end
 	end)
+	--Menu.CheckBox("Misc", "Main", "Hide sprays", Config.HideSprays.Enabled, function(Bool)
+        --Config.HideSprays.Enabled = Bool
+	--end)
+	Menu.CheckBox("Misc", "Main", "Better spray quality", Config.BetterSprayQuality.Enabled, function(Bool)
+	    Config.BetterSprayQuality.Enabled = Bool
+	end)
+    Menu.CheckBox("Misc", "Main", "Circular sprays", Config.CircularSprays.Enabled, function(Bool)
+        Config.CircularSprays.Enabled = Bool
+    end)
     Menu.CheckBox("Misc", "Animations", "Run", Config.Animations.Run.Enabled, function(Bool)
         Config.Animations.Run.Enabled = Bool
     end)
@@ -5883,7 +5876,10 @@ function InitializeMenu()
     end)
 
     Menu.Button("Settings", "Settings", "Refresh", function()
+        local cfg_name = Menu:FindItem("Settings", "Configs", "ListBox", "Configs"):GetValue()
         Menu:FindItem("Visuals", "World", "ComboBox", "Skybox"):SetValue(Config.Enviorment.Skybox.Value, Utils.GetFolders(script_name .. "/Games/The Streets/bin/skyboxes/").Names)
+        Menu:FindItem("Settings", "Configs", "ListBox", "Configs"):SetValue(cfg_name .. ".cfg", Utils.GetFiles(script_name .. "/Games/The Streets/Configs").Names)
+        
         HitSound = get_custom_asset(script_name .. "/Games/The Streets/bin/sounds/hitsound.mp3") -- huh seems to automatically when file changes?
         Crosshair = get_custom_asset(script_name .. "/Games/The Streets/bin/crosshairs/crosshair.png")
         Mouse.Icon = Crosshair
@@ -6512,17 +6508,29 @@ function Initialize()
     -- coroutine.wrap(function()
     --     while true do
     --         task.wait(60)
-
-    --         local Version = get_script_version()
-    --         if Version ~= script_version then
+    --         if get_script_version() ~= script_version then
     --             local Message = "Your version of the script is outdated, rejoin to get the latest build"
     --             Menu.Notify(Message, math.huge)
     --         end
     --     end
     -- end)()
 
-    task.wait(0.1)
+    coroutine.wrap(function()
+        while true do
+            task.wait()
+            if Config.AutoReconnect.Enabled then
+                if GuiService:GetErrorMessage() ~= '' then
+                    TeleportToPlace(game.PlaceId, game.JobId)
+                    queue_on_teleport([[
+                        loadstring(game:HttpGet("https://raw.githubusercontent.com/elde-n/roblox-the-streets-pony-script/main/loadstring.lua"))("The Streets")
+                    ]])
+                    coroutine.yield()
+                end
+            end
+        end
+    end)()
 
+    task.wait(0.1)
     InitializeConnections()
 
     RefreshMenu()

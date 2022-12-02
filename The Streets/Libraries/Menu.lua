@@ -104,7 +104,7 @@ local function AddEventListener(self: GuiObject, Update: any)
 end
 
 
-local function CreateCorner(Parent: Instance, Pixels: number): UICorner
+local function CreateCorner(Parent: Instance, Pixels: number)
     local UICorner = Instance.new("UICorner")
     UICorner.Name = "Corner"
     UICorner.Parent = Parent
@@ -112,7 +112,7 @@ local function CreateCorner(Parent: Instance, Pixels: number): UICorner
 end
 
 
-local function CreateStroke(Parent: Instance, Color: Color3, Thickness: number, Transparency: number): UIStroke
+local function CreateStroke(Parent: Instance, Color: Color3, Thickness: number, Transparency: number)
     local UIStroke = Instance.new("UIStroke")
     UIStroke.Name = "Stroke"
     UIStroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
@@ -126,7 +126,7 @@ local function CreateStroke(Parent: Instance, Color: Color3, Thickness: number, 
 end 
 
 
-local function CreateLine(Parent: Instance, Size: UDim2, Position: UDim2, Color: Color3): Frame
+local function CreateLine(Parent: Instance, Size: UDim2, Position: UDim2, Color: Color3)
     local Line = Instance.new("Frame")
     Line.Name = "Line"
     Line.BackgroundColor3 = typeof(Color) == "Color3" and Color or Menu.Accent
@@ -143,7 +143,7 @@ local function CreateLine(Parent: Instance, Size: UDim2, Position: UDim2, Color:
 end
 
 
-local function CreateLabel(Parent: Instance, Name: string, Text: string, Size: UDim2, Position: UDim2): TextLabel
+local function CreateLabel(Parent: Instance, Name: string, Text: string, Size: UDim2, Position: UDim2)
     local Label = Instance.new("TextLabel")
     Label.Name = Name
     Label.BackgroundTransparency = 1
@@ -188,7 +188,7 @@ local function SetDraggable(self: GuiObject)
     local DragOrigin
     local GuiOrigin
 
-    self.InputBegan:Connect(function(Input: InputObject, Process: boolean)
+    self.InputBegan:Connect(function(Input, Process)
         if (not Dragging.Gui and not Dragging.True) and (Input.UserInputType == Enum.UserInputType.MouseButton1) then
             for _, v in ipairs(Draggables) do
                 v.ZIndex = 1
@@ -201,7 +201,7 @@ local function SetDraggable(self: GuiObject)
         end
     end)
 
-    UserInput.InputChanged:Connect(function(Input: InputObject, Process: boolean)
+    UserInput.InputChanged:Connect(function(Input, Process)
         if Dragging.Gui ~= self then return end
         if not (UserInput:IsMouseButtonPressed(Enum.UserInputType.MouseButton1)) then
             Dragging = {Gui = nil, True = false}
@@ -1225,7 +1225,7 @@ function Menu.Slider(Tab_Name: string, Container_Name: string, Name: string, Min
     ValueLabel.TextSize = 14
     ValueLabel.Parent = ValueBar
 
-    Button.InputBegan:Connect(function(Input: InputObject, Process: boolean)
+    Button.InputBegan:Connect(function(Input, Process)
         if (not Dragging.Gui and not Dragging.True) and (Input.UserInputType == Enum.UserInputType.MouseButton1) then
             Dragging = {Gui = Button, True = true}
             local InputPosition = Vector2.new(Input.Position.X, Input.Position.Y)
@@ -1235,7 +1235,7 @@ function Menu.Slider(Tab_Name: string, Container_Name: string, Name: string, Min
         end
     end)
 
-    UserInput.InputChanged:Connect(function(Input: InputObject, Process: boolean)
+    UserInput.InputChanged:Connect(function(Input, Process)
         if Dragging.Gui ~= Button then return end
         if not (UserInput:IsMouseButtonPressed(Enum.UserInputType.MouseButton1)) then
             Dragging = {Gui = nil, True = false}
@@ -1481,7 +1481,7 @@ function Menu.ColorPicker(Tab_Name: string, Container_Name: string, Name: string
         ColorPicker:Update()
     end
 
-    Saturation.InputBegan:Connect(function(Input: InputObject, Process: boolean)
+    Saturation.InputBegan:Connect(function(Input, Process)
         if (not Dragging.Gui and not Dragging.True) and (Input.UserInputType == Enum.UserInputType.MouseButton1) then
             Dragging = {Gui = Saturation, True = true}
             local InputPosition = Vector2.new(Input.Position.X, Input.Position.Y)
@@ -1490,7 +1490,7 @@ function Menu.ColorPicker(Tab_Name: string, Container_Name: string, Name: string
         end
     end)
 
-    Alpha.InputBegan:Connect(function(Input: InputObject, Process: boolean)
+    Alpha.InputBegan:Connect(function(Input, Process)
         if (not Dragging.Gui and not Dragging.True) and (Input.UserInputType == Enum.UserInputType.MouseButton1) then
             Dragging = {Gui = Alpha, True = true}
             local InputPosition = Vector2.new(Input.Position.X, Input.Position.Y)
@@ -1499,7 +1499,7 @@ function Menu.ColorPicker(Tab_Name: string, Container_Name: string, Name: string
         end
     end)
 
-    Hue.InputBegan:Connect(function(Input: InputObject, Process: boolean)
+    Hue.InputBegan:Connect(function(Input, Process)
         if (not Dragging.Gui and not Dragging.True) and (Input.UserInputType == Enum.UserInputType.MouseButton1) then
             Dragging = {Gui = Hue, True = true}
             local InputPosition = Vector2.new(Input.Position.X, Input.Position.Y)
@@ -1508,7 +1508,7 @@ function Menu.ColorPicker(Tab_Name: string, Container_Name: string, Name: string
         end
     end)
 
-    UserInput.InputChanged:Connect(function(Input: InputObject, Process: boolean)
+    UserInput.InputChanged:Connect(function(Input, Process)
         if (Dragging.Gui ~= Saturation and Dragging.Gui ~= Alpha and Dragging.Gui ~= Hue) then return end
         if not (UserInput:IsMouseButtonPressed(Enum.UserInputType.MouseButton1)) then
             Dragging = {Gui = nil, True = false}
@@ -2654,13 +2654,13 @@ function Menu:Init()
     self.Size = Menu_Frame.AbsoluteSize
     self.Position = Menu_Frame.AbsolutePosition
 
-    UserInput.InputBegan:Connect(function(Input: InputObject, Process: boolean) end)
-    UserInput.InputEnded:Connect(function(Input: InputObject)
+    UserInput.InputBegan:Connect(function(Input, Process) end)
+    UserInput.InputEnded:Connect(function(Input)
         if (Input.UserInputType == Enum.UserInputType.MouseButton1) then
             Dragging = {Gui = nil, True = false}
         end
     end)
-    RunService.RenderStepped:Connect(function(Step: number)
+    RunService.RenderStepped:Connect(function(Step)
         local Menu_Frame = self.Screen.Menu
         Menu_Frame.Position = UDim2.fromOffset(
             math.clamp(Menu_Frame.AbsolutePosition.X,   0, math.clamp(self.ScreenSize.X - Menu_Frame.AbsoluteSize.X, 0, self.ScreenSize.X    )),
