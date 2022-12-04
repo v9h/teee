@@ -990,7 +990,6 @@ end
 
 function IsInCar(): boolean
     local Jeep = workspace:FindFirstChild("Jeep")
-
     if Jeep then
         Jeep.Name = "_Jeep"
     else
@@ -1000,8 +999,7 @@ function IsInCar(): boolean
     local Jeep2 = workspace:FindFirstChild("Jeep")
     Jeep.Name = "Jeep"
 
-    local Jeeps = {Jeep, Jeep2}
-    for _, Jeep in next, Jeeps do
+    for _, Jeep in next, {Jeep, Jeep2} do
         local Seat = Jeep:FindFirstChild("DriveSeat")
         local IsSeated = IsOnSeat(Player, Seat) -- Don't use IsSeated that doesn't have Car Seats Cached
 
@@ -4283,7 +4281,7 @@ function HookGame()
 
     local Index, NewIndex, NameCall, OldFunctionHook
 
-    function OnIndex(self: Instance, Key: any)
+    local function OnIndex(self: Instance, Key: any)
         local Caller = checkcaller()
         local Name = tostring(self)
 
@@ -4332,7 +4330,7 @@ function HookGame()
         return Index(self, Key)
     end
 
-    function OnNewIndex(self: Instance, Key: any, Value: any)
+    local function OnNewIndex(self: Instance, Key: any, Value: any)
         local Caller = checkcaller()
 
         if Caller then
@@ -4385,7 +4383,7 @@ function HookGame()
         return NewIndex(self, Key, Value)
     end
 
-    function OnNameCall(self: Instance, ...)
+    local function OnNameCall(self: Instance, ...)
         local Arguments = {...}
         local Name = self.Name
         local Caller, Method = checkcaller(), (getnamecallmethod or get_namecall_method)()
@@ -4639,19 +4637,25 @@ function InitializeCommands()
 
     Commands.Add("car", {"bringcar"}, "[streets only] - brings a car to you", function()
         local Jeep = workspace:FindFirstChild("Jeep")
-
         if Jeep then
-            local Seat = Jeep:FindFirstChild("DriveSeat", true)
-            if Seat then
-                if Seat.Occupant then
-                    Menu.Notify("Car is occupied by someone else!", 5)
-                    return
-                end
-                if not IsSeated() then Seat:Sit(Humanoid) end
-            end
+            Jeep.Name = "_Jeep"
         else
-            Menu.Notify("Car not found!", 5)
+            return Menu.Notify("Car not found!", 5)
         end
+    
+        local Jeep2 = workspace:FindFirstChild("Jeep")
+        Jeep.Name = "Jeep"
+    
+        for _, Jeep in next, {Jeep, Jeep2} do
+            local Seat = Jeep:FindFirstChild("DriveSeat")
+            if Seat and not Seat.Occupant then
+                if not IsSeated() then
+                    return Seat:Sit(Humanoid)
+                end
+            end
+        end
+
+        Menu.Notify("Car(s) are occupied by someone else!", 5)
     end)
 
     Commands.Add("rejoin", {"rj"}, "- attempts to rejoin to the current server", function()
@@ -5875,6 +5879,7 @@ function InitializeMenu()
 	    Menu:SetTitle(script_name .. Utils.GetRichTextColor(".cc", Color:ToHex()))
     end)
 
+    Menu.Label("Settings", "Settings", "Build version: " .. script_version)
     Menu.Button("Settings", "Settings", "Refresh", function()
         local cfg_name = Menu:FindItem("Settings", "Configs", "ListBox", "Configs"):GetValue()
         Menu:FindItem("Visuals", "World", "ComboBox", "Skybox"):SetValue(Config.Enviorment.Skybox.Value, Utils.GetFolders(script_name .. "/Games/The Streets/bin/skyboxes/").Names)
@@ -6222,7 +6227,6 @@ function Initialize()
 
         local LastId = 0
         local LastName
-        -- WTF IS THIS SHIT IM GONNA PUKE
         local function GetAudioName(Id)
             if LastId == Id then return LastName end
             LastId = Id
@@ -6263,7 +6267,7 @@ function Initialize()
                 local Tag = Config.ClanTag.Tag
                 local Type = Config.ClanTag.Type
 
-                if Type == "Custom" then continue end -- Client.SetClanTag("")
+                if Type == "Custom" then continue end
                 if Type == "Static" then
                     CurrentClanTag = Tag
                 elseif Type == "Cheat" then
@@ -6511,6 +6515,7 @@ function Initialize()
             if get_script_version() ~= script_version then
                 local Message = "Your version of the script is outdated, rejoin to get the latest build"
                 Menu.Notify(Message, math.huge)
+                coroutine.yield()
             end
         end
     end)()
