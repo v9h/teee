@@ -6505,15 +6505,15 @@ function Initialize()
         end
     end)()
 
-    -- coroutine.wrap(function()
-    --     while true do
-    --         task.wait(60)
-    --         if get_script_version() ~= script_version then
-    --             local Message = "Your version of the script is outdated, rejoin to get the latest build"
-    --             Menu.Notify(Message, math.huge)
-    --         end
-    --     end
-    -- end)()
+    coroutine.wrap(function()
+        while true do
+            task.wait(60)
+            if get_script_version() ~= script_version then
+                local Message = "Your version of the script is outdated, rejoin to get the latest build"
+                Menu.Notify(Message, math.huge)
+            end
+        end
+    end)()
 
     coroutine.wrap(function()
         while true do

@@ -32,4 +32,4 @@ function import(Name: string, ...)
 end
 
 getgenv().import = import
-import "Source"
+import "Main"
