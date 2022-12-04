@@ -4437,7 +4437,7 @@ function HookGame()
                 elseif Key == 'e' or Key == "drag" or Key == "dragoff" then
                     Arguments = {Key, {}}
                 elseif Key == "checkin1" or Key == "checkin2" or Key == "checkin3" then
-                    
+                elseif Key == "buy" then
                 else
                     -- unless u want to get banned
                     return
