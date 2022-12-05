@@ -863,6 +863,7 @@ function GetBrickTrajectoryPoints(Brick: Tool): table
     local TimeStep = 0.1
     local TimeSteps = math.clamp(math.ceil(Time / TimeStep), 1, MaxPoints)
 
+    -- nice math.clamp
     local Clamped = {}
     local function ClampAxis(Position, Position2)
         if not Clamped.x then
@@ -3596,7 +3597,7 @@ function OnCharacterAdded(Player: Player, _Character: Model)
 
             if Config.God.Enabled then
                 if Utils.IsOriginal then
-                    -- Only 1 method by Cyrus, I know of
+                    -- Only 1 method by Cyrus, I know of, that got "patched"
                 else
                     -- Method by Reestart;
                     -- Thanks to nixon for giving it to me
@@ -4270,7 +4271,7 @@ function HookGame()
         end
     else
         local wait_hook;
-        wait_hook = hookfunction(getrenv().wait, function(constant) -- (note from xaxa) for info on why im writing getrenv()["wait"], please refer to line 69 in the source (literally not a coincidence, BLAME ELDEN)
+        wait_hook = hookfunction(wait, function(constant)
             if not checkcaller() and Config.NoGunDelay.Enabled and (constant == 0.5 or constant == 0.25 or constant == 0.33) then
                 constant = 0
             end
@@ -4416,7 +4417,7 @@ function HookGame()
                         return
                     end
 
-                    if not Arguments[2] then
+                    if typeof(Arguments[2]) ~= "table" then
                         Arguments[2] = {}
                     end
 
@@ -6514,7 +6515,7 @@ function Initialize()
             task.wait(60)
             if get_script_version() ~= script_version then
                 local Message = "Your version of the script is outdated, rejoin to get the latest build"
-                Menu.Notify(Message, math.huge)
+                Menu.Notify(Message, 10000000)
                 coroutine.yield()
             end
         end
