@@ -3206,10 +3206,10 @@ function Stepped(_, Step: number) -- before phys
 
                     if IsOpen then
                         if not Config.CloseDoors.Enabled then continue end
-                        Network:Send(Enums.NETWORK.INTERACTABLE.CLICK, Window)
+                        Network:Send(Enums.NETWORK.INTERACTABLE_CLICK, Window)
                     else
                         if not Config.OpenDoors.Enabled then continue end
-                        Network:Send(Enums.NETWORK.INTERACTABLE.CLICK, Window)
+                        Network:Send(Enums.NETWORK.INTERACTABLE_CLICK, Window)
                     end
                 end
             end
