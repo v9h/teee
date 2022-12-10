@@ -1,15 +1,12 @@
 local Utils = {}
 
-
 local Raycast = import "Libraries/Raycast"
-
-
-local wait = task.wait
-local request = request or syn and syn.request or http and http.request
-
 
 local CoreGui = game:GetService("CoreGui")
 local Players = game:GetService("Players")
+
+
+local request = request or syn and syn.request or http and http.request
 
 
 Utils.IsOriginal = game.PlaceId == 455366377 and true
@@ -17,7 +14,7 @@ Utils.IsPrison = game.PlaceId == 4669040 and true
 
 
 function Utils.get_clipboard(): string
-    while not iswindowactive() do wait() end
+    while not iswindowactive() do task.wait() end
 
     local text_box = Instance.new("TextBox")
     text_box.Parent = CoreGui
@@ -27,7 +24,7 @@ function Utils.get_clipboard(): string
     keypress(0x11)
     keypress(0x44)
 
-    wait()
+    task.wait()
 
     keyrelease(0x11)
     keyrelease(0x44)
@@ -41,7 +38,7 @@ function Utils.get_clipboard(): string
 end
 
 function Utils.set_clipboard(text: string)
-    while not iswindowactive() do wait() end
+    while not iswindowactive() do task.wait() end
 
     local text_box = Instance.new("TextBox")
     text_box.Parent = CoreGui
@@ -51,7 +48,7 @@ function Utils.set_clipboard(text: string)
     keypress(0x11)
     keypress(0x43)
 
-    wait()
+    task.wait()
 
     keyrelease(0x11)
     keyrelease(0x43)

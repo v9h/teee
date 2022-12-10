@@ -1,6 +1,5 @@
 local Configs = {}
 
-
 local Utils = import "Utils"
 
 local HttpService = game:GetService("HttpService")

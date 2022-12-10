@@ -1,11 +1,6 @@
 local PlayerManager = {}
 
-
-local spawn = task.spawn
-
-
 local Utils = import "Utils"
-
 
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
@@ -165,7 +160,7 @@ end
 
 
 local function OnCharacterAdded(Player: Player, Character: Model)
-    spawn(function()
+    task.spawn(function()
         local Backpack = Player:WaitForChild("Backpack")
         local Humanoid = Character:WaitForChild("Humanoid")
         local Root = Humanoid.RootPart

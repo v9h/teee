@@ -179,7 +179,9 @@ do
     Menu.Indicators = Menu.Indicators()
     Menu.Keybinds = Menu.Keybinds()
     Menu.BoomboxFrame = Instance.new("Frame")
+    Menu.Commands = Instance.new("Frame")
     Menu.CommandBar = Instance.new("TextBox")
+    Menu.CommandLabels = {}
 
     local SubFolder = script_name .. "/Games/The Streets/"
 
@@ -979,13 +981,13 @@ function IsWindowOpen(Window: Model): boolean
     local Vector = Window.Move.Click.Position
 
     for _, OpenVector in next, DoorData.Windows.Open do
-        if math.abs((Vector - OpenVector).Magnitude) < 0.1 then
+        if math.abs((Vector - OpenVector).Magnitude) < 2 then
             return true
         end
     end
 
     for _, ClosedVector in next, DoorData.Windows.Closed do
-        if math.abs((Vector - ClosedVector).Magnitude) < 0.1 then
+        if math.abs((Vector - ClosedVector).Magnitude) < 2 then
             return false
         end
     end
@@ -3099,7 +3101,7 @@ function Stepped(_, Step: number) -- before phys
             end
         end
 
-        if Player:GetAttribute("Health") > 0 and Player:GetAttribute("IsAlive") then
+        if Player:GetAttribute("IsAlive") and Player:GetAttribute("Health") > 0 then
             UpdatePlayerFlyState()
 
             if Config.Noclip.Enabled then
@@ -3401,6 +3403,7 @@ end
 function OnCommandBarFocusLost()
     local CommandBar = Menu.CommandBar
 
+    Menu.Commands.Visible = false
     CommandBar:ReleaseFocus()
     CommandBar:TweenPosition(UDim2.new(0.5, -100, 1, 5), nil, nil, 0.2, true)
 
@@ -3410,6 +3413,20 @@ function OnCommandBarFocusLost()
     end
 
     CommandBar.Text = ""
+end
+
+
+function OnCommandBarTextChanged(Text: string)
+    local function FilterCommands(Text: string)
+        Menu.Commands.List.CanvasSize = UDim2.new(0, 0, 1, -165)
+        for _, Label in next, Menu.CommandLabels do
+            local Visible = (string.match(string.lower(Label.Text), string.lower(Text))) and true
+            Label.Visible = Visible
+            Menu.Commands.List.CanvasSize += UDim2.fromOffset(0, Visible and 15 or -15)
+        end
+    end
+
+    pcall(FilterCommands, Text)
 end
 
 
@@ -4250,6 +4267,7 @@ function CommandBarToggle(Action_Name: string, State: EnumItem, Input: InputObje
     if not State or State == Enum.UserInputState.Begin then
         local CommandBar = Menu.CommandBar
 
+        Menu.Commands.Visible = true
         CommandBar:CaptureFocus()
         CommandBar:TweenPosition(UDim2.new(0.5, -100, 0.6, -10), nil, nil, 0.2, true)
 
@@ -4669,9 +4687,7 @@ function InitializeCommands()
     end)
 
     Commands.Add("goto", {"to"}, "[player] - teleports to the 'player'", function(Arguments)
-        if not Arguments[1] then return end
-        local Target = PlayerManager:FindPlayersByName(Arguments[1])
-
+        local Target = Arguments[1] and PlayerManager:FindPlayersByName(Arguments[1])
         for _, Target in next, Target do
             local Torso = Utils.GetTorso(Target)
             if Torso then
@@ -4679,6 +4695,22 @@ function InitializeCommands()
                 break
             end
         end
+    end)
+
+    Commands.Add("view", {'v'}, "[player] - views the 'player'", function(Arguments)
+        local Target = Arguments[1] and PlayerManager:FindPlayersByName(Arguments[1])
+        Target = Target and Target[1]
+        if Target then
+            Config.View.Enabled = true
+            SelectedTarget = Target.Name
+            Menu:FindItem("Misc", "Players", "ListBox", "Target"):SetValue(SelectedTarget, Players:GetPlayers())
+            Menu:FindItem("Misc", "Players", "CheckBox", "View"):SetValue(Config.View.Enabled)
+        end
+    end)
+
+    Commands.Add("unview", {"uv"}, "disables player view", function()
+        Config.View.Enabled = false
+        Menu:FindItem("Misc", "Players", "CheckBox", "View"):SetValue(Config.View.Enabled)
     end)
 
     Commands.Add("item", {"get"}, "[name] - if the item is found then it teleports you to the item", function(Arguments)
@@ -4803,6 +4835,7 @@ function InitializeCommands()
     -- Command auto-printization thingy (note from xaxa - sorry if this looks bad elden)
     for Index, Command in next, Commands do
         if typeof(Command) == "table" then
+            Menu.AddCommandLabel(string.format("%s%s%s %s", Command.Name, (#Command.Aliases > 0 and "/" or ""), ((#Command.Aliases > 0 and table.concat(Command.Aliases, "/")) or ""), Command.Description) .. "\n")
             CommandsList ..= string.format("%s%s%s %s", Command.Name, (#Command.Aliases > 0 and "/" or ""), ((#Command.Aliases > 0 and table.concat(Command.Aliases, "/")) or ""), Command.Description) .. "\n"
         end
     end
@@ -4838,6 +4871,22 @@ function InitializeMenu()
             Menu.BoomboxFrame.List.CanvasSize += UDim2.fromOffset(0, 22)
             return AudioButton
         end
+    end
+
+
+    function Menu.AddCommandLabel(Description: string)
+        local Label = Instance.new("TextLabel")
+        Label.Name = "Command"
+        Label.BackgroundTransparency = 1
+        Label.Text = Description
+        Label.TextXAlignment = Enum.TextXAlignment.Left
+        Label.TextColor3 = Color3.new(1, 1, 1)
+        Label.TextSize = 12
+        Label.Font = Enum.Font.Roboto
+        Label.Size = UDim2.new(1, 0, 0, 15)
+        Label.Parent = Menu.Commands.List
+        
+        table.insert(Menu.CommandLabels, Label)
     end
 
 
@@ -5961,6 +6010,28 @@ function InitializeMenu()
     BoomboxLayout.Parent = BoomboxList
 
 
+    local CommandsList = Instance.new("ScrollingFrame", Menu.Commands)
+    local CommandsListLayout = Instance.new("UIListLayout", CommandsList)
+
+    Menu.Commands.Name = "Commands"
+    Menu.Commands.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+    Menu.Commands.BorderColor3 = Color3.new()
+    Menu.Commands.Size = UDim2.fromOffset(400, 150)
+    Menu.Commands.Position = UDim2.new(0.5, 0, 0, 100)
+    Menu.Commands.AnchorPoint = Vector2.new(0.5, 0.5)
+    Menu.Commands.Parent = Menu.Screen
+
+    CommandsList.Name = "List"
+    CommandsList.BackgroundTransparency = 1
+    CommandsList.Size = UDim2.fromScale(1, 1)
+    CommandsList.CanvasSize = UDim2.new(0, 0, 1, -165)
+    CommandsList.ScrollBarThickness = 4
+    CommandsList.ScrollBarImageColor3 = Color3.new(1, 1, 1)
+
+    CommandsListLayout.Name = ''
+    CommandsListLayout.Padding = UDim.new()
+    CommandsListLayout.VerticalAlignment = Enum.VerticalAlignment.Top
+
     Menu.CommandBar.BackgroundColor3 = Color3.fromRGB(15, 15, 15)
     Menu.CommandBar.BackgroundTransparency = 0.2
     Menu.CommandBar.BorderSizePixel = 0
@@ -6080,6 +6151,7 @@ function InitializeConnections()
     UserInput.InputEnded:Connect(OnInputEnded)
     Player.Idled:Connect(OnIdle)
     Menu.CommandBar.FocusLost:Connect(OnCommandBarFocusLost)
+    Menu.CommandBar:GetPropertyChangedSignal("Text"):Connect(function() OnCommandBarTextChanged(Menu.CommandBar.Text) end)
     workspace.ChildAdded:Connect(OnWorkspaceChildAdded)
     workspace.ChildRemoved:Connect(OnWorkspaceChildRemoved)
     Lighting.Changed:Connect(OnLightingChanged)
@@ -6093,15 +6165,12 @@ end
 
 
 function Initialize()
-    task.wait(0.2)
-
     if not HookGame() then
         return messagebox("Error 0x4; Failed to hook games anticheat!", script_name .. ".cc", 0)
     end
 
-    task.wait(0.5)
-    InitializeCommands()
     InitializeMenu()
+    InitializeCommands()
 
     PlayerManager.PlayerAdded:Connect(OnPlayerAdded)
     PlayerManager.PlayerRemoved:Connect(OnPlayerRemoving)
@@ -6109,15 +6178,11 @@ function Initialize()
 
     Events.Reset.Event:Connect(ResetCharacter)
 
-    task.wait(0.2)
     ESP:Init()
     Menu:Init()
-    task.wait(0.2)
     PlayerManager:Init()
 
-    task.wait(0.1)
     InitializeWorkspace()
-    task.wait(0.1)
 
     Lighting:Init()
     Lighting:UpdateSkybox(Config.Enviorment.Skybox.Value)
@@ -6537,9 +6602,7 @@ function Initialize()
         end
     end)()
 
-    task.wait(0.1)
     InitializeConnections()
-
     RefreshMenu()
     Menu:SetVisible(true)
     Menu.Notify(string.format(script_name .. ".cc took %s seconds to load in", Utils.GetRichTextColor(Utils.math_round((os.clock() - Time), 2), Config.Menu.Accent:ToHex()), 10))

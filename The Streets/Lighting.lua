@@ -1,14 +1,12 @@
 local Lighting = {}
 
-
-local get_custom_asset = getcustomasset or syn and getsynasset
-
-
 local Utils = import "Utils"
-
 
 local RunService = game:GetService("RunService")
 local LightingService = game:GetService("Lighting")
+
+
+local get_custom_asset = getcustomasset or syn and getsynasset
 
 
 Lighting.Time = LightingService.TimeOfDay
