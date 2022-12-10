@@ -97,7 +97,7 @@ end
 local Player = PlayerManager.LocalPlayer
 local Mouse = Player:GetMouse()
 local Character = Player.Character or Player.CharacterAdded:Wait()
-local Head, Root, Torso, Humanoid
+local Head, Root, Torso, Humanoid = Character:FindFirstChild("Head"), Character:FindFirstChild("HumanoidRootPart"), Character:FindFirstChild("Torso"), Character:FindFirstChild("Humanoid")
 local Backpack = Player:WaitForChild("Backpack")
 local Tool = Character:FindFirstChildOfClass("Tool")
 local PlayerGui, ChatFrame = Player:WaitForChild("PlayerGui"), nil
@@ -979,13 +979,13 @@ function IsWindowOpen(Window: Model): boolean
     local Vector = Window.Move.Click.Position
 
     for _, OpenVector in next, DoorData.Windows.Open do
-        if math.abs((Vector - OpenVector).Magnitude) < 0.2 then
+        if math.abs((Vector - OpenVector).Magnitude) < 0.1 then
             return true
         end
     end
 
     for _, ClosedVector in next, DoorData.Windows.Closed do
-        if math.abs((Vector - ClosedVector).Magnitude) < 0.2 then
+        if math.abs((Vector - ClosedVector).Magnitude) < 0.1 then
             return false
         end
     end
@@ -4549,7 +4549,6 @@ function HookGame()
     NameCall = hookmetamethod(game, "__namecall", OnNameCall)
 
     OldFunctionHook = hookfunction(PostMessage.fire, PostMessageHook)
-    --local mt = getrawmetatable(game); setreadonly(mt, false); local old_namecall = mt.__namecall; mt.__namecall = function(...) return old_namecall(...) end
 
     return true
 end
