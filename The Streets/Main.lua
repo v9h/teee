@@ -17,7 +17,7 @@ local ORIGINAL_HIPHEIGHT = 2
 local ORIGINAL_JUMPPOWER = game:GetService("StarterPlayer").CharacterJumpPower
 
 local script_name = "ponyhook"
-local script_version = get_script_version()
+local script_version
 
 local Stats = game:GetService("Stats")
 local Debris = game:GetService("Debris")
