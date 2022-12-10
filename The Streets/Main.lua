@@ -16,6 +16,9 @@ local ORIGINAL_SPEED = 0 -- if this gets read first before write then umm :rainb
 local ORIGINAL_HIPHEIGHT = 2
 local ORIGINAL_JUMPPOWER = game:GetService("StarterPlayer").CharacterJumpPower
 
+local script_name = "ponyhook"
+local script_version = get_script_version()
+
 local Stats = game:GetService("Stats")
 local Debris = game:GetService("Debris")
 local Players = game:GetService("Players")
@@ -42,11 +45,11 @@ local get_script_version = function()
     if Response.StatusCode == 200 then
         return HttpService:JSONDecode(Response.Body)[1].sha
     end
+
+    return script_version
 end
 
-local script_name = "ponyhook"
-local script_version = get_script_version()
-
+script_version = get_script_version()
 if not import then return messagebox("Error 0x5; Something went wrong with initializing the script (couldn't load modules)", script_name .. ".cc", 0) end
 
 local ESP
@@ -4292,7 +4295,7 @@ function HookGame()
             end
 
             if not Utils.IsOriginal and (Config.NoSlow.Enabled or Config.God.Enabled) then
-                if self == Root and Key == "Anchored" and (Tool and Tool.GetAttribute(Tool, "Gun")) then
+                if self == Root and Key == "Anchored" and (Tool and Tool:GetAttribute("Gun")) then
                     return false
                 end
             end
@@ -4339,7 +4342,7 @@ function HookGame()
         end
 
         if self == Mouse and Key == "Icon" then return end
-        if Utils.IsOriginal and Key == "OnClientInvoke" and self.Name == "GetMouse" then
+        if Utils.IsOriginal and Key == "OnClientInvoke" and self.Name == "GetMouse" and self.ClassName == "RemoteFunction" then
             Value = OnGetMouseInvoke
         end
 
@@ -4393,11 +4396,10 @@ function HookGame()
             return
         end
 
-        if Method == "FireServer" then
+        if (Method == "FireServer" or Method == "fireServer") and self.ClassName == "RemoteEvent" then
             if self.Parent == ReplicatedStorage then
-                if string.find(Name, "l") and string.find(Name, "i") and #Name < 7 then
-                    return
-                end
+                local Whitelist = {"TagReplicate"} -- "Xbox", "Talk", "Feedback", "VoteKick"
+                if not table.find(Whitelist, Name) then return end
             end
             
             if Name == "SprayIt" then
