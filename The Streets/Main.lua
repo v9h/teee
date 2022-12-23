@@ -3669,10 +3669,12 @@ function OnCharacterAdded(Player: Player, _Character: Model)
                 SortBackpack()
             end
 
-            task.spawn(function()
-                local GroupTitle = HUD:WaitForChild("Clan"):WaitForChild("Group"):WaitForChild("Title")
-                GroupTitle.AutoLocalize = false -- disable TextScraper lag; LocalizationService:StopTextScraper()
-            end)
+            if Utils.IsOriginal then
+                task.spawn(function()
+                    local GroupTitle = HUD:WaitForChild("Clan"):WaitForChild("Group"):WaitForChild("Title")
+                    GroupTitle.AutoLocalize = false -- disable TextScraper lag; LocalizationService:StopTextScraper()
+                end)
+            end
 
             task.delay(1, StarterGui.SetCore, StarterGui, "ResetButtonCallback", Events.Reset)
             Menu:FindItem("Visuals", "Hats", "ComboBox", "Hat"):SetValue("None", {"None", unpack(Humanoid:GetAccessories())})
@@ -4560,8 +4562,6 @@ function HookGame()
         return OldFunctionHook(self, Message)
     end
 
-    --if u do getgenv().hookmetamethod then ur the retard not me fuck you
-    if not hookmetamethod then while true do end end -- just incase someone tries to use a krnl for this script, sorry for the crash but I would rather crash you than you getting banned
     Index = hookmetamethod(game, "__index", OnIndex)
     NewIndex = hookmetamethod(game, "__newindex", OnNewIndex)
     NameCall = hookmetamethod(game, "__namecall", OnNameCall)
@@ -4738,7 +4738,7 @@ function InitializeCommands()
         end)
     end)
 
-    Commands.Add("bypass", {}, "[prison only] - Attempts to give you tool- and teleport-bypass", function()
+    Commands.Add("bypass", {}, "[prison only] - attempts to give you tool- and teleport-bypass", function()
         if not Utils.IsOriginal then
             queue_on_teleport([[
                 if not game:IsLoaded() then game.Loaded:Wait() end -- Synapse is shit
