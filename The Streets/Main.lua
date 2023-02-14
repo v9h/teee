@@ -86,7 +86,7 @@ task.spawn(function() PlayerManager = import("PlayerManager") end)
 
 while not ESP or not Menu or not Enums or not Utils or not Network or not Configs or not Raycast or not Commands or not ToolData or not DoorData or not Lighting or not UserTable or not TimerClass or not PlayerManager do task.wait() end -- waiting for the modules to load...
 
-if (Utils.IsOriginal and game.PlaceVersion ~= 1521) or (Utils.IsPrison and game.PlaceVersion ~= 225) then
+if (Utils.IsOriginal and game.PlaceVersion ~= 1528) or (Utils.IsPrison and game.PlaceVersion ~= 225) then
     return messagebox("Error 0x2; Script is not up to date with place version", script_name .. ".cc", 0)
 end
 
@@ -833,9 +833,16 @@ do
             end
         end
     end
+	
+    local Shops = {
+	workspace:WaitForChild("Ammo Shops"),
+	workspace:WaitForChild("Item Shops")
+    }
 
-    for _, v in next, workspace:GetChildren() do
-        AddPadToList(v)
+    for _, Shop in next, Shops do
+    	for _, v in Shop:GetChildren() do
+	    AddPadToList(v)
+	end
     end
 end
 
@@ -3061,6 +3068,11 @@ function Heartbeat(Step: number) -- after phys :: after heartbeat comes network 
 
         if Buying and not Dragging then
             Root.CFrame = BuyPart.CFrame * CFrame.Angles(0, math.rad(5), 0)
+	    local ProximityPrompt = BuyPart:FindFirstChildOfClass("ProximityPrompt")
+            
+            if ProximityPrompt then
+		fireproximityprompt(ProximityPrompt)
+	    end
         end
 
         if not UserInput:GetFocusedTextBox() and UserInput:IsKeyDown(Enum.KeyCode.Space) then
