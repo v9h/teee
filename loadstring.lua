@@ -1,4 +1,5 @@
-local ScriptName = "The Streets" -- Script Name here; ex : The Streets
+local LaunchOptions = {...}
+local ScriptName = table.remove(1, LaunchOptions)
 
 
 local request = request or syn and syn.request
@@ -32,4 +33,4 @@ function import(Name: string, ...)
 end
 
 getgenv().import = import
-import "Main"
+import("Main", LaunchOptions)
