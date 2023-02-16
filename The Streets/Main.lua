@@ -819,7 +819,7 @@ do
 	}
 
 	for _, Shop in next, Shops do
-		for _, v in Shop:GetChildren() do
+		for _, v in next, Shop:GetChildren() do
 			AddPadToList(v)
 		end
 	end
