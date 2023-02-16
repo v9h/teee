@@ -172,7 +172,7 @@ function Network:Add(Type: Enum_Item, Callback: any): RBXScriptConnection
     if Type == Enums.NETWORK.CHAT then
         return ReplicatedStorage:WaitForChild("DefaultChatSystemChatEvents"):WaitForChild("OnNewMessage").OnClientEvent:Connect(Callback)
     elseif Type == Enums.NETWORK.TAG_REPLICATE then
-        ReplicatedStorage:WaitForChild("TagReplicate").OnClientEvent:Connect(Callback)
+        ReplicatedStorage:WaitForChild("Remotes"):WaitForChild("TagReplicate").OnClientEvent:Connect(Callback)
     end
 end
 
