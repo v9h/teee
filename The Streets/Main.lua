@@ -7,7 +7,7 @@ if not game:IsLoaded() then
 end
 
 local Time = os.clock()
-local LaunchOptions = {...}
+local LaunchOptions = ...
 
 -- Original values maybe different for some remakes but I'm too lazy to add support for that
 local ORIGINAL_GRAVITY = workspace.Gravity
