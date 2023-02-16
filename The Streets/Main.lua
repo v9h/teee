@@ -7,6 +7,7 @@ if not game:IsLoaded() then
 end
 
 local Time = os.clock()
+local LaunchOptions = {...}
 
 -- Original values maybe different for some remakes but I'm too lazy to add support for that
 local ORIGINAL_GRAVITY = workspace.Gravity
@@ -69,7 +70,7 @@ task.spawn(function() PlayerManager = import("PlayerManager") end)
 
 while not ESP or not Menu or not Enums or not Utils or not Network or not Configs or not Raycast or not Commands or not ToolData or not DoorData or not Lighting or not Settings or not UserTable or not TimerClass or not PlayerManager do task.wait() end -- waiting for the modules to load...
 
-if game.PlaceVersion ~= Settings.place_versions[game.PlaceId] then
+if not LaunchOptions.ignore_place_version_check and game.PlaceVersion ~= Settings.place_versions[game.PlaceId] then
 	return messagebox("Error 0x2; Script is not up to date with place version", '', 0)
 end
 
