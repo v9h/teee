@@ -1,5 +1,5 @@
 local LaunchOptions = {...}
-local ScriptName = table.remove(1, LaunchOptions)
+local ScriptName = table.remove(LaunchOptions, 1)
 
 
 local request = request or syn and syn.request
