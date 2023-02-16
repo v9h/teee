@@ -77,7 +77,7 @@ end
 if _G.PonyHook then
 	return messagebox("Error 0x3; Script is already running", '', 0)
 end
-_G.PonyHook = true
+_G.PonyHook = {}
 
 
 local Player = PlayerManager.LocalPlayer
@@ -6077,6 +6077,19 @@ function InitializeMenu()
 end
 
 
+function LoadAPI()
+	-- Properties
+	_G.PonyHook.version = script_version
+
+	-- Functions
+	_G.PonyHook.set_clan_tag = SetClanTag
+	
+	-- Libraries
+
+	-- Events
+end
+
+
 function InitializeWorkspace()
 	for _, Pad in next, GetBuyPads() do
 		local Part = Pad.Part
@@ -6596,6 +6609,7 @@ function Initialize()
 
 	InitializeConnections()
 	RefreshMenu()
+	LoadAPI()
 	Menu:SetVisible(true)
 	Menu.Notify(string.format(Settings.name .. ".cc took %s seconds to load in", Utils.GetRichTextColor(Utils.math_round((os.clock() - Time), 2), Config.Menu.Accent:ToHex()), 10))
 end
