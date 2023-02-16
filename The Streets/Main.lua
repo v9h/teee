@@ -87,7 +87,7 @@ local Head, Root, Torso, Humanoid = Character:FindFirstChild("Head"), Character:
 local Backpack = Player:WaitForChild("Backpack")
 local Tool = Character:FindFirstChildOfClass("Tool")
 local PlayerGui, ChatFrame = Player:WaitForChild("PlayerGui"), nil
-local HUD = PlayerGui and PlayerGui:WaitForChild("HUD")
+local HUD, PhoneGui = PlayerGui:WaitForChild("HUD")
 local Camera = workspace.CurrentCamera
 
 local TagSystem = Utils.IsOriginal and require(ReplicatedStorage:WaitForChild("TagSystem")) -- "creator" || "creatorslow" || "gunslow" || "action" || "Action" || "KO" || "Dragged" || "Dragging" || "reloading" || "equipedgun" || yes with 1 p he's retarded
@@ -3661,8 +3661,11 @@ function OnCharacterAdded(Player: Player, _Character: Model)
 			end
 
 			if Utils.IsOriginal then
+				PhoneGui = PlayerGui:WaitForChild("phoneGUI")
 				task.spawn(function()
-					local GroupTitle = HUD:WaitForChild("Clan"):WaitForChild("Group"):WaitForChild("Title")
+					local GroupsFrame = PhoneGui:WaitForChild("Frame"):WaitForChild("Background"):WaitForChild("Wallpaper"):
+						WaitForChild("GroupFrame")
+					local GroupTitle = GroupsFrame:WaitForChild("Group"):WaitForChild("Title")
 					GroupTitle.AutoLocalize = false -- disable TextScraper lag; LocalizationService:StopTextScraper()
 				end)
 			end
