@@ -6599,7 +6599,9 @@ function Initialize()
 				if GuiService:GetErrorMessage() ~= '' then
 					TeleportToPlace(game.PlaceId, game.JobId)
 					queue_on_teleport([[
-					loadstring(game:HttpGet("https://raw.githubusercontent.com/elde-n/roblox-the-streets-pony-script/main/loadstring.lua"))("The Streets")
+					loadstring(game:HttpGet("https://raw.githubusercontent.com/elde-n/roblox-the-streets-pony-script/main/loadstring.lua"))("The Streets", {
+					    ignore_place_version_check = false
+					})
 					]])
 					coroutine.yield()
 				end
