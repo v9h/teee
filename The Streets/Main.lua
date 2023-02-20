@@ -981,20 +981,12 @@ end
 
 
 function IsInCar(): boolean
-	local Jeep = workspace:FindFirstChild("Jeep")
-	if Jeep then
-		Jeep.Name = "_Jeep"
-	else
-		return false
-	end
-
-	local Jeep2 = workspace:FindFirstChild("Jeep")
-	Jeep.Name = "Jeep"
+	local Jeep = workspace:FindFirstChild("Jeep1")
+	local Jeep2 = workspace:FindFirstChild("Jeep2")
 
 	for _, Jeep in next, {Jeep, Jeep2} do
 		local Seat = Jeep:FindFirstChild("DriveSeat")
 		local IsSeated = IsOnSeat(Player, Seat) -- Don't use IsSeated that doesn't have Car Seats Cached
-
 		if IsSeated then return Jeep end
 	end
 
@@ -4648,15 +4640,12 @@ function InitializeCommands()
 	Commands.Add("reset", {"re"}, "- resets your character", RefreshCharacter)
 
 	Commands.Add("car", {"bringcar"}, "[streets only] - brings a car to you", function()
-		local Jeep = workspace:FindFirstChild("Jeep")
-		if Jeep then
-			Jeep.Name = "_Jeep"
-		else
+		local Jeep = workspace:FindFirstChild("Jeep1")
+		local Jeep2 = workspace:FindFirstChild("Jeep2")
+
+		if not Jeep or not Jeep2 then
 			return Menu.Notify("Car not found!", 5)
 		end
-
-		local Jeep2 = workspace:FindFirstChild("Jeep")
-		Jeep.Name = "Jeep"
 
 		for _, Jeep in next, {Jeep, Jeep2} do
 			local Seat = Jeep:FindFirstChild("DriveSeat")
