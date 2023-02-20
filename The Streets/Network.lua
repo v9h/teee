@@ -14,13 +14,12 @@ local LocalPlayer = PlayerManager.LocalPlayer
 function Network:Send(Type: Enum_Item, ...)
     local Arguments = {...}
 
-    local Backpack = LocalPlayer.Backpack
-
+    local Backpack = LocalPlayer:FindFirstChild("Backpack")
     if Utils.IsOriginal then
-        local Stank = Backpack.Stank
+        local Stank = Backpack:FindFirstChild("Stank")
         --local Input = Backpack.Input
 
-        if Type == Enums.NETWORK.SET_GROUP then
+        if Type == Enums.NETWORK.SET_GROUP and Stank then
             local GroupId = Arguments[1]
             local Tag = Arguments[2]
 
@@ -32,22 +31,28 @@ function Network:Send(Type: Enum_Item, ...)
             else
                 -- the normal one
             end
-        elseif Type == Enums.NETWORK.LEAVE_GROUP then
+            
+            return true
+        elseif Type == Enums.NETWORK.LEAVE_GROUP and Stank then
             Stank:FireServer("leave")
-        elseif Type == Enums.NETWORK.SET_HAT then
+            return true
+        elseif Type == Enums.NETWORK.SET_HAT and Stank then
             local Hat = table.remove(Arguments, 1)
             assert(typeof(Hat) == "string", "string expected for #arguments 1, got '" .. typeof(Hat) .. "'")
 
             Stank:FireServer("rep", {
                 typ = {Value = Hat}
             })
-        elseif Type == Enums.NETWORK.REMOVE_HAT then
+            return true
+        elseif Type == Enums.NETWORK.REMOVE_HAT and Stank then
             Stank:FireServer("ren")
-        elseif Type == Enums.NETWORK.SET_HAT_COLOR then
+            return true
+        elseif Type == Enums.NETWORK.SET_HAT_COLOR and Stank then
             local Color = table.remove(Arguments, 1)
             assert(typeof(Color) == "Color3", "Color3 expected for #arguments 1, got '" .. typeof(Color) .. "'")
 
             Stank:FireServer("color", {BackgroundColor3 = Color})
+            return true
         end
     else
 
@@ -95,6 +100,7 @@ function Network:Send(Type: Enum_Item, ...)
                 local IsShifting = Arguments[2]
                 IsShifting = typeof(IsShifting) == "boolean" and IsShifting or false
                 Backpack.ServerTraits.Touch1:FireServer(Tool, 0, IsShifting, 0)
+                return true
             end
         end
     elseif Type == Enums.NETWORK.DRAG then
@@ -103,6 +109,8 @@ function Network:Send(Type: Enum_Item, ...)
         else
             Backpack.ServerTraits.Drag:FireServer(true)
         end
+        
+        return true
     elseif Type == Enums.NETWORK.STOMP then
         if Utils.IsOriginal then
             Backpack.Input:FireServer("e", {})
@@ -165,6 +173,8 @@ function Network:Send(Type: Enum_Item, ...)
            --Interactable.Mod.Knock.ClickDetector.RemoteEvent:FireServer()
         end
     end
+    
+    return false
 end
 
 
