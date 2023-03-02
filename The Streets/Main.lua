@@ -74,11 +74,6 @@ if not LaunchOptions.ignore_place_version_check and game.PlaceVersion ~= Setting
 	return messagebox("Error 0x2; Script is not up to date with place version", '', 0)
 end
 
-if _G.PonyHook then
-	return messagebox("Error 0x3; Script is already running", '', 0)
-end
-_G.PonyHook = {}
-
 
 local Player = PlayerManager.LocalPlayer
 local Mouse = Player:GetMouse()
