@@ -9,7 +9,7 @@ local Players = game:GetService("Players")
 local request = request or syn and syn.request or http and http.request
 
 
-Utils.IsOriginal = game.PlaceId == 455366377 and true
+Utils.IsOriginal = game.PlaceId == 3472451732 and true
 Utils.IsPrison = game.PlaceId == 4669040 and true
 
 
