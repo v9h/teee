@@ -1,5 +1,5 @@
 local Vec3 = Vector3.new
-local Original = game.PlaceId == 455366377 and true
+local Original = game.PlaceId == 3472451732 and true
 
 
 local DoorData = Original and {
