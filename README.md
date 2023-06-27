@@ -2,7 +2,7 @@
 
 
 ```lua
-loadstring(game:HttpGet("https://raw.githubusercontent.com/elde-n/roblox-the-streets-pony-script/main/loadstring.lua"))("The Streets", {
+loadstring(game:HttpGet("https://raw.githubusercontent.com/v9h/teee/main/loadstring.lua"))("The Streets", {
     ignore_place_version_check = false
 })
 ```
